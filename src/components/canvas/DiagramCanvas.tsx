@@ -66,6 +66,7 @@ export default function DiagramCanvas() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const { fitView, getNodes, screenToFlowPosition } = useReactFlow();
   const [showDelete, setShowDelete] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [showHint, setShowHint] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("hide-canvas-hint") !== "true";
@@ -125,10 +126,23 @@ export default function DiagramCanvas() {
           fitView({ nodes: selectedNodes, duration: 400 });
         else fitView({ duration: 400 });
       }
+      if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
+        e.preventDefault();
+        setShowShortcuts(true);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (!showShortcuts) return;
+    const onModalKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowShortcuts(false);
+    };
+    window.addEventListener("keydown", onModalKey);
+    return () => window.removeEventListener("keydown", onModalKey);
+  }, [showShortcuts]);
 
   useEffect(() => {
     if (!showDelete) return;
@@ -249,10 +263,11 @@ export default function DiagramCanvas() {
             zoomable
             nodeColor={(n) => {
               const cat = (n.data as { category?: string })?.category;
-              return cat
-                ? (CATEGORY_STYLE[cat as keyof typeof CATEGORY_STYLE]?.color ??
-                    "#aaa")
-                : "#aaa";
+              const catStyle = cat
+                ? CATEGORY_STYLE[cat as keyof typeof CATEGORY_STYLE]
+                : null;
+              if (!catStyle) return "#aaa";
+              return isDark ? catStyle.dark.color : catStyle.color;
             }}
           />
         )}
@@ -293,6 +308,50 @@ export default function DiagramCanvas() {
               >
                 Delete
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Keyboard Shortcuts Modal */}
+      {showShortcuts && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-card border border-border rounded-[--radius] shadow-2xl p-6 w-full max-w-sm animate-in zoom-in-95 duration-200 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-medium">Keyboard Shortcuts</h2>
+              <button
+                onClick={() => setShowShortcuts(false)}
+                className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer rounded-none"
+                aria-label="Close shortcuts"
+              >
+                <IconX size={14} />
+              </button>
+            </div>
+            <div className="flex flex-col text-xs">
+              {[
+                ["⌘/Ctrl + Z", "Undo"],
+                ["⌘/Ctrl + Y", "Redo"],
+                ["⌘/Ctrl + Shift + Z", "Redo"],
+                ["⌘/Ctrl + G", "Group selection"],
+                ["Delete / Backspace", "Delete selection"],
+                ["F", "Fit view"],
+                ["?", "Show this help"],
+              ].map(([keys, desc]) => (
+                <div
+                  key={`${keys}-${desc}`}
+                  className="flex items-center justify-between gap-4 py-1.5 border-b border-border/40 last:border-0"
+                >
+                  <kbd className="text-[10px] font-semibold text-foreground bg-muted px-1.5 py-0.5 rounded-sm border border-border">
+                    {keys}
+                  </kbd>
+                  <span className="text-[11px] text-muted-foreground">
+                    {desc}
+                  </span>
+                </div>
+              ))}
+              <p className="text-[10px] text-muted-foreground/70 pt-2">
+                Tip: drag components from the sidebar, double-click a node to
+                edit it.
+              </p>
             </div>
           </div>
         </div>

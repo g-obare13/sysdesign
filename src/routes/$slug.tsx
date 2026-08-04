@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import Sidebar from "../components/sidebar/Sidebar";
 import DiagramCanvas from "../components/canvas/DiagramCanvas";
+import CanvasErrorBoundary from "../components/canvas/CanvasErrorBoundary";
 import {
   createProject,
   useProjectStore,
@@ -85,7 +86,9 @@ function SlugPage() {
       <Sidebar />
 
       <main className="flex-1 relative overflow-hidden z-10">
-        <DiagramCanvas />
+        <CanvasErrorBoundary>
+          <DiagramCanvas />
+        </CanvasErrorBoundary>
       </main>
 
       <ProjectSetupPopup

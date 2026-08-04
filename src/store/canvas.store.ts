@@ -1,12 +1,17 @@
 import { Store } from '@tanstack/store'
 import { useState, useEffect } from 'react'
+import dagre from '@dagrejs/dagre'
 import { applyNodeChanges, applyEdgeChanges, MarkerType } from '@xyflow/react'
 import type { NodeChange, EdgeChange, Connection } from '@xyflow/react'
 import type { DiagramNode, DiagramEdge } from '../types/diagram'
-import { projectStore } from './project.store'
+import { projectStore, createProject, type ProjectType } from './project.store'
 import { supabase } from '../lib/supabase'
 
 let activeProjectId = projectStore.state.activeProjectId
+
+/** When true, the next project switch skips reloading canvas data (used when
+ * a scratchpad is being promoted into a freshly-created project). */
+let skipNextLoad = false
 
 function getStorageKey() {
   return activeProjectId ? `sysdesign-diagram-${activeProjectId}` : 'sysdesign-v2'
@@ -46,6 +51,8 @@ export interface CanvasState {
   diagramMode: 'architecture' | 'c4'
   /** Whether the canvas is currently being exported (hides UI) */
   isExporting: boolean
+  /** Status of the last persistence attempt, shown in the toolbar save indicator */
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error'
 }
 
 const DEFAULT_CANVAS_STATE: CanvasState = {
@@ -58,6 +65,7 @@ const DEFAULT_CANVAS_STATE: CanvasState = {
   editingNodeId: null,
   diagramMode: 'architecture',
   isExporting: false,
+  saveStatus: 'idle',
 }
 
 async function load(): Promise<Partial<CanvasState>> {
@@ -89,32 +97,101 @@ async function load(): Promise<Partial<CanvasState>> {
   } catch { return {} }
 }
 
-async function save(s: CanvasState) {
-  if (typeof window === 'undefined') return
-  
-  const user = projectStore.state.user
-  if (user && activeProjectId) {
-    // Autosave to Supabase
+/** Where a queued save should be written. Captured at schedule time so a
+ * project switch or auth change can't redirect the write to the wrong place. */
+type SaveTarget =
+  | { kind: 'cloud'; projectId: string }
+  | { kind: 'local'; key: string }
+
+interface PendingSave {
+  state: CanvasState
+  target: SaveTarget
+}
+
+/** Latest state queued for a debounced save. */
+let pendingSave: PendingSave | null = null
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+
+function setSaveStatus(status: CanvasState['saveStatus']) {
+  canvasStore.setState((s) =>
+    s.saveStatus === status ? s : { ...s, saveStatus: status },
+  )
+}
+
+/**
+ * Persists a queued save to Supabase or LocalStorage.
+ * Returns true on success, false on failure.
+ */
+async function persist(job: PendingSave): Promise<boolean> {
+  if (typeof window === 'undefined') return true
+  const s = job.state
+
+  if (job.target.kind === 'cloud') {
     const { error } = await supabase
       .from('projects')
       .update({
         nodes: s.nodes,
         edges: s.edges,
         edge_counter: s.edgeCounter,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', activeProjectId)
-    
-    if (error) console.error('Supabase save error:', error.message)
-    return
+      .eq('id', job.target.projectId)
+
+    if (error) {
+      console.error('Supabase save error:', error.message)
+      return false
+    }
+    return true
   }
 
   try {
-    localStorage.setItem(getStorageKey(), JSON.stringify({
+    localStorage.setItem(job.target.key, JSON.stringify({
       nodes: s.nodes, edges: s.edges, edgeCounter: s.edgeCounter,
       snapToGrid: s.snapToGrid,
     }))
-  } catch {}
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Persists the canvas, debounced. Rapid mutations (e.g. dragging a node)
+ * coalesce into a single write instead of firing one Supabase UPDATE per
+ * frame. The save target is captured up-front so it stays correct even if
+ * the active project changes before the debounce fires.
+ */
+function save(s: CanvasState) {
+  const user = projectStore.state.user
+  pendingSave = {
+    state: s,
+    target: user && activeProjectId
+      ? { kind: 'cloud', projectId: activeProjectId }
+      : { kind: 'local', key: getStorageKey() },
+  }
+  // Defer the "saving" indicator until after the current store update settles.
+  queueMicrotask(() => setSaveStatus('saving'))
+  if (saveTimer) return
+  saveTimer = setTimeout(() => {
+    saveTimer = null
+    const job = pendingSave
+    pendingSave = null
+    if (job) persist(job).then((ok) => setSaveStatus(ok ? 'saved' : 'error'))
+  }, 400)
+}
+
+/**
+ * Immediately flushes any pending debounced save. Call before switching
+ * projects or leaving the page so the latest edits aren't lost.
+ */
+export function flushSave() {
+  if (saveTimer) {
+    clearTimeout(saveTimer)
+    saveTimer = null
+  }
+  const job = pendingSave
+  pendingSave = null
+  if (job) persist(job).then((ok) => setSaveStatus(ok ? 'saved' : 'error'))
 }
 
 /**
@@ -133,15 +210,27 @@ if (typeof window !== 'undefined') {
       edgeCounter: saved.edgeCounter ?? 0,
       history: [{ nodes: saved.nodes ?? [], edges: saved.edges ?? [] }],
       snapToGrid: saved.snapToGrid ?? false,
+      saveStatus: 'idle',
     }))
   })
+
+  // Flush any pending debounced save before the page unloads.
+  window.addEventListener('beforeunload', flushSave)
 }
 
 // Subscribe to project changes to reload relevant data
 projectStore.subscribe(() => {
   const newActiveId = projectStore.state.activeProjectId
   if (newActiveId !== activeProjectId) {
+    // Persist any unsaved edits for the previous project first.
+    flushSave()
     activeProjectId = newActiveId
+    if (skipNextLoad) {
+      // A scratchpad was just promoted into a new project; the canvas has
+      // already been hydrated, so skip the empty-project reload.
+      skipNextLoad = false
+      return
+    }
     load().then(newSaved => {
       canvasStore.setState((s) => ({
         ...s,
@@ -151,6 +240,7 @@ projectStore.subscribe(() => {
         history: [{ nodes: newSaved.nodes ?? [], edges: newSaved.edges ?? [] }],
         historyIndex: 0,
         snapToGrid: newSaved.snapToGrid ?? false,
+        saveStatus: 'idle',
       }))
     })
   }
@@ -374,6 +464,102 @@ export function clearCanvas() {
       nodes: [], edges: [], edgeCounter: 0,
       history: [{ nodes: [], edges: [] }], historyIndex: 0,
     }
+    save(next)
+    return next
+  })
+}
+
+/**
+ * Promotes the current scratchpad canvas into a brand-new project, carrying
+ * over any nodes/edges the user already drew on the landing editor.
+ * @param name - The name of the new project
+ * @param type - The project type (design or c4)
+ * @param description - Optional description
+ * @returns The newly created project, or null if the project limit is reached
+ */
+export function createProjectFromScratchpad(
+  name: string,
+  type: ProjectType = "design",
+  description?: string,
+) {
+  const nodes = canvasStore.state.nodes
+  const edges = canvasStore.state.edges
+  const edgeCounter = canvasStore.state.edgeCounter
+
+  // Tell the project-switch subscription not to wipe the canvas we just set.
+  skipNextLoad = true
+  const newProject = createProject(name, type, description)
+  if (!newProject) {
+    skipNextLoad = false
+    return null
+  }
+
+  canvasStore.setState((s) => ({
+    ...s,
+    nodes,
+    edges,
+    edgeCounter,
+    history: [{ nodes, edges }],
+    historyIndex: 0,
+    saveStatus: "idle",
+  }))
+  // Persist the promoted canvas into the new project (activeProjectId is set).
+  save(canvasStore.state)
+  // The scratchpad lives under the no-project key; clear it so it doesn't
+  // linger or get double-migrated later.
+  try {
+    localStorage.removeItem("sysdesign-v2")
+  } catch {}
+  return newProject
+}
+
+/**
+ * Auto-arranges root nodes on the canvas using a Dagre top-to-bottom layout.
+ * Nodes inside groups keep their relative placement; only top-level nodes move.
+ */
+export function autoLayout() {
+  const graph = new dagre.graphlib.Graph()
+  graph.setDefaultEdgeLabel(() => ({}))
+  graph.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 90 })
+
+  const nodes = canvasStore.state.nodes.filter((n) => !n.parentId)
+  if (nodes.length === 0) return
+
+  const ids = new Set(nodes.map((n) => n.id))
+  const edges = canvasStore.state.edges.filter(
+    (e) => ids.has(e.source) && ids.has(e.target),
+  )
+
+  nodes.forEach((n) => {
+    const w = n.measured?.width ?? 170
+    const h = n.measured?.height ?? 100
+    graph.setNode(n.id, { width: w, height: h })
+  })
+  edges.forEach((e) => graph.setEdge(e.source, e.target))
+
+  dagre.layout(graph)
+
+  // Dagre positions node CENTERS; convert to top-left canvas coordinates.
+  const positioned = new Map(
+    nodes.map((n) => {
+      const pos = graph.node(n.id)
+      const w = n.measured?.width ?? 170
+      const h = n.measured?.height ?? 100
+      return [
+        n.id,
+        {
+          ...n,
+          position: { x: pos.x - w / 2, y: pos.y - h / 2 },
+        },
+      ] as const
+    }),
+  )
+
+  canvasStore.setState((s) => {
+    const next = pushHistory({
+      ...s,
+      nodes: s.nodes.map((n) => positioned.get(n.id) ?? n),
+    })
     save(next)
     return next
   })

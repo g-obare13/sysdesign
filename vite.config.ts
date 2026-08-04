@@ -43,7 +43,10 @@ const config = defineConfig({
     },
   },
   esbuild: {
-    drop: ["console", "debugger"],
+    // Deliberately do NOT drop console: `console.error` is the only trace of
+    // Supabase/export failures in production, and Vite's typed Drop list only
+    // supports "console" (which would strip errors too). Keep all output.
+    drop: ["debugger"],
   },
 });
 
