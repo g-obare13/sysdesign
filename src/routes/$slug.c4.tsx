@@ -2,18 +2,19 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import Sidebar from "../components/sidebar/Sidebar";
 import DiagramCanvas from "../components/canvas/DiagramCanvas";
+import CanvasErrorBoundary from "../components/canvas/CanvasErrorBoundary";
 import { useProjectStore, setActiveProject } from "../store/project.store";
 import { setDiagramMode } from "../store/canvas.store";
 import Container from "#/components/ui/container";
 import { IconFolderPlus } from "@tabler/icons-react";
 import { Button } from "#/components/ui/button";
 
-export const Route = createFileRoute("/$slug/c4" as any)({
+export const Route = createFileRoute("/$slug/c4")({
   component: C4Page,
 });
 
 function C4Page() {
-  const { slug } = Route.useParams() as any;
+  const { slug } = Route.useParams();
   const projects = useProjectStore((s) => s.projects);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const navigate = useNavigate();
@@ -51,7 +52,9 @@ function C4Page() {
     <div className="flex-1 flex h-full overflow-hidden">
       <Sidebar />
       <main className="flex-1 relative overflow-hidden z-10">
-        <DiagramCanvas />
+        <CanvasErrorBoundary>
+          <DiagramCanvas />
+        </CanvasErrorBoundary>
       </main>
     </div>
   );
