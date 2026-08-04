@@ -5,12 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import {
   IconArrowBackUp,
   IconArrowForwardUp,
+  IconAlertTriangle,
   IconBook,
+  IconCheck,
   IconChevronDown,
   IconFocus2,
   IconFolder,
   IconGridDots,
   IconLogout,
+  IconSitemap,
   IconSquarePlus,
   IconTrash,
   IconUserCircle,
@@ -20,6 +23,7 @@ import {
 import { type Template } from "../../data/templates";
 import {
   clearCanvas,
+  autoLayout,
   loadTemplate,
   redo,
   setExportingState,
@@ -64,6 +68,7 @@ export default function Toolbar() {
   const historyIndex = useCanvasStore((s) => s.historyIndex);
   const historyLen = useCanvasStore((s) => s.history.length);
   const isExporting = useCanvasStore((s) => s.isExporting);
+  const saveStatus = useCanvasStore((s) => s.saveStatus);
 
   const user = useProjectStore((s) => s.user);
   const loading = useProjectStore((s) => s.loading);
@@ -228,14 +233,14 @@ export default function Toolbar() {
               <div
                 id="project-menu"
                 className="absolute top-[calc(100%+6px)] left-0 z-50 bg-card border border-border
-                           rounded-[--radius] p-1 min-w-[200px] shadow-xl animate-in fade-in slide-in-from-top-1"
+                           rounded-[--radius] p-1 min-w-50 shadow-xl animate-in fade-in slide-in-from-top-1"
               >
                 <div className="px-3 py-1.5 border-b border-border mb-1">
                   <span className="flex items-center gap-1.5 px-2 py-1 rounded-[--radius] text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all select-none">
                     Switch Project
                   </span>
                 </div>
-                <div className="max-h-[300px] overflow-y-auto">
+                <div className="max-h-75 overflow-y-auto">
                   {projects.map((p) => (
                     <Button
                       key={p.id}
@@ -291,6 +296,36 @@ export default function Toolbar() {
           >
             {nodes.length} nodes · {edges.length} edges
           </span>
+
+          {isCanvasRoute && saveStatus !== "idle" && (
+            <span
+              className={cn(
+                "flex items-center gap-1.5 text-[11px] font-medium transition-opacity",
+                saveStatus === "error"
+                  ? "text-destructive"
+                  : "text-muted-foreground",
+              )}
+            >
+              {saveStatus === "saving" && (
+                <>
+                  <span className="size-2 rounded-full bg-primary animate-pulse" />
+                  Saving…
+                </>
+              )}
+              {saveStatus === "saved" && (
+                <>
+                  <IconCheck size={13} className="text-emerald-500" />
+                  Saved
+                </>
+              )}
+              {saveStatus === "error" && (
+                <>
+                  <IconAlertTriangle size={13} />
+                  Save failed
+                </>
+              )}
+            </span>
+          )}
         </div>
 
         {/* Right — Global Actions */}
@@ -367,7 +402,7 @@ export default function Toolbar() {
             {userMenuOpen && user && (
               <div
                 className="absolute top-[calc(100%+6px)] right-0 z-500 bg-card border border-border
-                             rounded-xl p-1 min-w-[200px] shadow-lg shadow-black/10"
+                             rounded-[--radius] p-1 min-w-50 shadow-lg shadow-black/10"
               >
                 <div className="px-3 py-2 border-b border-border/50 mb-1">
                   <p className="text-[12px] font-semibold truncate">
@@ -453,6 +488,19 @@ export default function Toolbar() {
               >
                 <IconFocus2 size={18} stroke={1.5} />
               </Button>
+              <Button
+                onClick={() => {
+                  autoLayout();
+                  setTimeout(() => fitView({ duration: 450, padding: 0.2 }), 60);
+                }}
+                disabled={!hasNodes}
+                variant="ghost"
+                size="icon-sm"
+                className="h-9 w-9 rounded-[--radius] hover:bg-muted transition-colors disabled:opacity-30"
+                title="Auto Layout"
+              >
+                <IconSitemap size={18} stroke={1.5} />
+              </Button>
             </div>
 
             <div className="w-px h-6 bg-border mx-1" />
@@ -502,7 +550,7 @@ export default function Toolbar() {
               </Button>
 
               {exportOpen && (
-                <div className="absolute bottom-[calc(100%+12px)] right-0 z-50 bg-card border border-border rounded-[--radius] p-1 min-w-[200px] shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="absolute bottom-[calc(100%+12px)] right-0 z-50 bg-card border border-border rounded-[--radius] p-1 min-w-50 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
                   <div className="px-3 py-1.5 border-b border-border/50 mb-1">
                     <span className="flex items-center gap-1.5 px-2 py-1 rounded-[--radius] text-xs font-medium text-muted-foreground select-none">
                       Select Format

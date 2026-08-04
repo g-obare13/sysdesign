@@ -110,9 +110,19 @@ export function createProject(name: string, type: ProjectType = "design", descri
     return null;
   }
 
+  // Ensure the URL slug is unique so two projects with the same name don't
+  // collide on the same /slug route (e.g. "My App" -> my-app, my-app-2, ...).
+  const existingSlugs = new Set(projectStore.state.projects.map((p) => p.slug));
+  let slug = slugify(name) || "project";
+  const baseSlug = slug;
+  let counter = 2;
+  while (existingSlugs.has(slug)) {
+    slug = `${baseSlug}-${counter++}`;
+  }
+
   const newProject: Project = {
     id: uuidv4(),
-    slug: slugify(name),
+    slug,
     name,
     type,
     description,

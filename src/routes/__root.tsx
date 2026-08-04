@@ -1,4 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
 import { IconHome, IconLinkOff } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { ReactFlowProvider } from "@xyflow/react";
@@ -65,9 +66,10 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&display=swap",
       },
     ],
   }),
@@ -81,6 +83,21 @@ export const Route = createRootRoute({
  */
 function RootDocument({ children }: { children: React.ReactNode }) {
   const isExporting = useCanvasStore((s) => s.isExporting);
+  const location = useLocation();
+
+  // Marketing/content routes keep the footer; the canvas editor hides it to
+  // maximize vertical space. Mirrors the toolbar's canvas-route detection.
+  const contentRoutes = [
+    "/projects",
+    "/templates",
+    "/privacy",
+    "/terms",
+    "/integrations",
+    "/flows",
+    "/shapes",
+  ];
+  const isCanvasRoute =
+    location.pathname === "/" || !contentRoutes.includes(location.pathname);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -90,14 +107,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="relative">
         <ThemeProvider>
           <TooltipProvider delay={300}>
-            <MobileBlock />
+            {/* The editor needs a desktop; content pages stay readable on mobile */}
+            {isCanvasRoute && <MobileBlock />}
             <ReactFlowProvider>
               <div className="flex flex-col h-screen overflow-hidden bg-background">
                 {!isExporting && <Toolbar />}
                 <div className="flex-1 flex overflow-y-auto relative">
                   {children}
                 </div>
-                {!isExporting && <Footer />}
+                {!isExporting && !isCanvasRoute && <Footer />}
               </div>
             </ReactFlowProvider>
           </TooltipProvider>
@@ -123,7 +141,7 @@ function NotFound() {
         </div>
       </div>
 
-      <h1 className="text-4xl font-black tracking-tight mb-3 bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
+      <h1 className="font-display text-4xl font-bold tracking-tight mb-3 bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
         Lost in the Cloud?
       </h1>
       <p className="max-w-md mx-auto text-muted-foreground mb-10 leading-relaxed font-medium">
@@ -136,7 +154,7 @@ function NotFound() {
           href="/"
           variant="default"
           size="lg"
-          className="rounded-2xl gap-2 h-12 px-8 min-w-[160px]"
+          className="rounded-lg gap-2 h-12 px-8 min-w-[160px]"
         >
           <IconHome size={18} />
           Go to Editor
@@ -145,7 +163,7 @@ function NotFound() {
           href="/projects"
           variant="secondary"
           size="lg"
-          className="rounded-2xl h-12 px-8 border-border/40"
+          className="rounded-lg h-12 px-8 border-border/40"
         >
           My Projects
         </Button>

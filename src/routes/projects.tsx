@@ -3,13 +3,12 @@ import {
   useProjectStore,
   deleteProject,
   createProject,
+  updateProject,
 } from "../store/project.store";
 import ProjectSetupPopup from "../components/dashboard/ProjectSetupPopup";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import type { Project } from "../store/project.store";
 import {
-  IconFolder,
-  IconPlus,
   IconTrash,
   IconCalendar,
   IconArrowRight,
@@ -19,10 +18,14 @@ import {
   IconFolderPlus,
   IconSitemap,
   IconVectorBezier2,
+  IconPencil,
+  IconCheck,
+  IconX,
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
 import Container from "#/components/ui/container";
 import { cn } from "../lib/utils";
 import type { ProjectType } from "../store/project.store";
@@ -47,6 +50,8 @@ function ProjectsPage() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [renameTarget, setRenameTarget] = useState<Project | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const handleCreateProject = (
     name: string,
@@ -61,6 +66,19 @@ function ProjectsPage() {
 
   const handleDeleteRequest = (p: Project) => {
     setDeleteTarget(p);
+  };
+
+  const handleRenameRequest = (p: Project) => {
+    setRenameTarget(p);
+    setRenameValue(p.name);
+  };
+
+  const confirmRename = () => {
+    if (renameTarget && renameValue.trim()) {
+      updateProject(renameTarget.id, { name: renameValue.trim() });
+      setRenameTarget(null);
+      setRenameValue("");
+    }
   };
 
   const confirmDelete = () => {
@@ -98,7 +116,7 @@ function ProjectsPage() {
           {/* Header */}
           <div className="flex items-end justify-between border-b pb-6">
             <div className="flex flex-col gap-1.5">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
                 Projects
               </h1>
               <p className="text-muted-foreground">
@@ -188,20 +206,29 @@ function ProjectsPage() {
                         {p.type === "c4" ? "C4 Model" : "Architecture"}
                       </div>
                     </div>
-                    <Button
-                      onClick={() => handleDeleteRequest(p)}
-                      className="border="
-                      title="Delete project"
-                      variant={"destructive"}
-                      size={"icon"}
-                    >
-                      <IconTrash size={16} />
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        onClick={() => handleRenameRequest(p)}
+                        title="Rename project"
+                        variant={"outline"}
+                        size={"icon"}
+                      >
+                        <IconPencil size={14} />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteRequest(p)}
+                        title="Delete project"
+                        variant={"destructive"}
+                        size={"icon"}
+                      >
+                        <IconTrash size={16} />
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-1">
                     <h3>{p.name}</h3>
-                    <p className="line-clamp-2 min-h-[40px]">
+                    <p className="line-clamp-2 min-h-10">
                       {p.description || "No description provided."}
                     </p>
                   </div>
@@ -269,8 +296,15 @@ function ProjectsPage() {
                         <IconArrowRight size={14} />
                       </Link>
                       <Button
+                        onClick={() => handleRenameRequest(p)}
+                        title="Rename project"
+                        variant={"outline"}
+                        size={"icon"}
+                      >
+                        <IconPencil size={14} />
+                      </Button>
+                      <Button
                         onClick={() => handleDeleteRequest(p)}
-                        className="border="
                         title="Delete project"
                         variant={"destructive"}
                         size={"icon"}
@@ -301,6 +335,66 @@ function ProjectsPage() {
             </div>
           )}
         </div>
+
+        {/* Rename Modal */}
+        {renameTarget && (
+          <div className="fixed inset-0 z-1000 flex items-center justify-center bg-background/40 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+            <div className="bg-card border border-border rounded-[--radius] shadow-2xl p-6 w-full max-w-sm animate-in zoom-in-95 duration-200 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                    <IconPencil size={16} />
+                  </div>
+                  <h2 className="text-sm font-bold">Rename Project</h2>
+                </div>
+                <Button
+                  onClick={() => setRenameTarget(null)}
+                  icon={IconX}
+                  variant="outline"
+                  size="icon-sm"
+                />
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  confirmRename();
+                }}
+                className="flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="rename-input">Project name</Label>
+                  <Input
+                    id="rename-input"
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    placeholder="Enter a new name"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex items-center justify-end gap-2.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRenameTarget(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    icon={IconCheck}
+                    iconSide="right"
+                    disabled={!renameValue.trim()}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         <ProjectSetupPopup
           open={modalOpen}
