@@ -1,7 +1,8 @@
 import * as TablerIcons from "@tabler/icons-react";
 import type { NodeProps } from "@xyflow/react";
 import { Handle, Position } from "@xyflow/react";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { cn } from "../../lib/utils";
 import {
   updateNodeMeta,
@@ -52,6 +53,7 @@ interface C4Style {
   text: string; // category label text color
   label: string; // display name of the abstraction
   icon: string; // default icon when none provided
+  dark: { color: string; pill: string; text: string }; // dark-mode variant
 }
 
 const C4_STYLES: Record<string, C4Style> = {
@@ -61,6 +63,7 @@ const C4_STYLES: Record<string, C4Style> = {
     text: "#c57642",
     label: "Person",
     icon: "IconUser",
+    dark: { color: "#E9A87E", pill: "#3A2A20", text: "#F0C4A0" },
   },
   "c4-system": {
     color: "#c57642",
@@ -68,6 +71,7 @@ const C4_STYLES: Record<string, C4Style> = {
     text: "#c57642",
     label: "System",
     icon: "IconBox",
+    dark: { color: "#E9A87E", pill: "#3A2A20", text: "#F0C4A0" },
   },
   "c4-container": {
     color: "#198038",
@@ -75,6 +79,7 @@ const C4_STYLES: Record<string, C4Style> = {
     text: "#0e6027",
     label: "Container",
     icon: "IconStack2",
+    dark: { color: "#42BE65", pill: "#14301E", text: "#7FE0A0" },
   },
   "c4-component": {
     color: "#d12771",
@@ -82,6 +87,7 @@ const C4_STYLES: Record<string, C4Style> = {
     text: "#9f1853",
     label: "Component",
     icon: "IconPuzzle",
+    dark: { color: "#EE6FA8", pill: "#3A2030", text: "#F5A8CC" },
   },
   "c4-external-system": {
     color: "#525252",
@@ -89,6 +95,7 @@ const C4_STYLES: Record<string, C4Style> = {
     text: "#161616",
     label: "External",
     icon: "IconBox",
+    dark: { color: "#A8A8A8", pill: "#2E2E2E", text: "#C6C6C6" },
   },
 };
 
@@ -114,6 +121,11 @@ function getC4Style(subtype: string): C4Style {
 
 //  Main DiagramNode
 function DiagramNode({ id, data, selected, type }: NodeProps) {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isDark = mounted && resolvedTheme === "dark";
+
   const meta = data as NodeMeta;
   const category = meta.category || "microservice";
   const subtype = meta.subtype || "";
@@ -121,14 +133,21 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
 
   // For C4 nodes use C4 style config; for others use CATEGORY_STYLE
   const c4Style = isC4 ? getC4Style(subtype) : null;
-  const style = isC4
+  const baseStyle = isC4
     ? {
         color: c4Style!.color,
         pill: c4Style!.pill,
         text: c4Style!.text,
         label: c4Style!.label,
+        dark: c4Style!.dark,
       }
     : CATEGORY_STYLE[category as keyof typeof CATEGORY_STYLE];
+  const style = {
+    color: isDark ? baseStyle.dark.color : baseStyle.color,
+    pill: isDark ? baseStyle.dark.pill : baseStyle.pill,
+    text: isDark ? baseStyle.dark.text : baseStyle.text,
+    label: baseStyle.label,
+  };
 
   // Resolve icon: C4 may override icon from meta or use C4Style default
   const iconName = meta.icon || (isC4 ? c4Style!.icon : "IconBox");

@@ -6,10 +6,6 @@ import ConfirmModal from "../components/ui/ConfirmModal";
 import {
   IconArrowRight,
   IconSparkles,
-  IconDeviceTv,
-  IconBrandWhatsapp,
-  IconBrandYoutube,
-  IconCloud,
 } from "@tabler/icons-react";
 import { Button } from "#/components/ui/button";
 
@@ -42,7 +38,7 @@ function TemplatesPage() {
       />
 
       <div className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 bg-linear-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
+        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-linear-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
           Architecture Templates
         </h1>
         <p className="max-w-2xl mx-auto text-lg leading-relaxed">
@@ -56,7 +52,7 @@ function TemplatesPage() {
         {TEMPLATES.map((tpl) => (
           <div
             key={tpl.id}
-            className="group relative flex flex-col bg-card border border-border/60 rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/30"
+            className="group relative flex flex-col bg-card border border-border/60 rounded-xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/30"
           >
             <h2 className="text-2xl font-bold mb-3">{tpl.name}</h2>
             <p className="text-muted-foreground text-[14px] leading-relaxed mb-8 grow">
@@ -89,7 +85,7 @@ function TemplatesPage() {
         ))}
 
         {/* Placeholder for coming soon */}
-        <div className="relative flex flex-col bg-muted/10 border border-dashed border-border rounded-3xl p-6 overflow-hidden">
+        <div className="relative flex flex-col bg-muted/10 border border-dashed border-border rounded-xl p-6 overflow-hidden">
           <div className="absolute inset-0 bg-linear-to-br from-transparent via-transparent to-primary/5 opacity-50" />
           <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-6 opacity-40">
             <IconSparkles size={28} className="text-muted-foreground" />

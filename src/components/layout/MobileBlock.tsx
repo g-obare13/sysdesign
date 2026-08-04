@@ -12,7 +12,7 @@ export default function MobileBlock() {
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
+      <h1 className="font-display text-2xl font-bold text-foreground mb-3 tracking-tight">
         Desktop Required
       </h1>
 

@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as TablerIcons from "@tabler/icons-react";
+import { useTheme } from "next-themes";
 import { REGISTRY } from "../../data/registry";
 import {
   CATEGORY_STYLE,
@@ -63,7 +64,12 @@ function NodeItem({
   /** Whether dragging is disabled (e.g., if no project is active) */
   disabled?: boolean;
 }) {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const isDark = mounted && resolvedTheme === "dark";
   const style = CATEGORY_STYLE[template.category];
+  const accent = isDark ? style.dark.color : style.color;
   const Icon = isCustom ? null : getIcon(template.icon);
 
   const onDragStart = (e: React.DragEvent) => {
@@ -89,10 +95,10 @@ function NodeItem({
       <div
         className="w-7 h-7 rounded-[--radius] flex items-center justify-center shrink-0 border border-border"
         style={{
-          background: `color-mix(in srgb, ${style.color} 10%, var(--card))`,
+          background: `color-mix(in srgb, ${accent} 10%, var(--card))`,
         }}
       >
-        {Icon && <Icon size={14} stroke={1.5} color={style.color} />}
+        {Icon && <Icon size={14} stroke={1.5} color={accent} />}
       </div>
       <div className="min-w-0">
         <div className="text-[12px] font-medium text-foreground leading-tight truncate">
@@ -128,6 +134,11 @@ export default function Sidebar() {
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const projects = useProjectStore((s) => s.projects);
   const activeProject = projects.find((p) => p.id === activeProjectId);
+
+  // Dragging stays enabled on the scratchpad (no projects yet) so first-time
+  // visitors can draw immediately; disabled only when a project list exists
+  // but none is selected.
+  const canDrag = !!activeProjectId || projects.length === 0;
 
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
@@ -656,7 +667,7 @@ export default function Sidebar() {
                         <NodeItem
                           key={t.subtype}
                           template={t}
-                          disabled={!activeProjectId}
+                          disabled={!canDrag}
                         />
                       ))}
                     </div>
@@ -1156,7 +1167,7 @@ export default function Sidebar() {
           <div className="shrink-0 px-1 py-1 border-t border-border/30 pt-4 bg-muted/5 min-h-[140px]">
             <NodeItem
               isCustom
-              disabled={!activeProjectId}
+              disabled={!canDrag}
               template={{
                 subtype: `custom-node-${Date.now()}`,
                 label: "Custom Node",

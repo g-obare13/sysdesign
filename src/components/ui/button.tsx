@@ -1,8 +1,7 @@
-"use client";
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { type VariantProps } from "class-variance-authority";
-import { Loader2 } from "lucide-react";
+import { IconLoader2 } from "@tabler/icons-react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button-variants";
@@ -30,7 +29,7 @@ function renderIconNode(
   className: string,
 ): React.ReactNode {
   if (loading) {
-    return <Loader2 className={cn(className, "animate-spin")} />;
+    return <IconLoader2 className={cn(className, "animate-spin")} />;
   }
   if (!icon) return null;
   if (React.isValidElement(icon)) {

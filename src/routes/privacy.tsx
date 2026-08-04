@@ -31,7 +31,7 @@ function PrivacyPage() {
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
             <IconShieldCheck size={28} />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-4">
+          <h1 className="font-display text-4xl font-bold tracking-tight text-foreground mb-4">
             Privacy Policy
           </h1>
           <p className="text-muted-foreground">

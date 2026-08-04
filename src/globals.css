@@ -41,6 +41,9 @@
   --font-sans: var(--font-general-sans);
   --font-serif: var(--font-general-sans);
   --font-heading: var(--font-general-sans);
+  /* Display serif — used only on marketing page titles via `font-display`,
+     keeps the editor canvas fully sans for legibility. */
+  --font-display: "IBM Plex Serif", Georgia, "Times New Roman", serif;
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -68,10 +71,12 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 14px;
-  --radius-xl: 24px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
 
   --color-ibm-blue: #0f62fe;
   --color-ibm-blue-hover: #0353e9;
@@ -97,8 +102,6 @@
 
 :root {
   --font-general-sans: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-ibm-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-ibm-mono: "IBM Plex Mono", monospace;
 
   --background: #ffffff;
   --foreground: #161616;
@@ -128,7 +131,7 @@
   --input: #e0e0e0;
   --ring: #c57642;
 
-  --radius: 0px;
+  --radius: 8px;
 
   --sidebar: #f4f4f4;
   --sidebar-foreground: #161616;
@@ -278,10 +281,6 @@
     );
   }
 
-}
-
-.lucide {
-  stroke-width: 3px;
 }
 
 .react-flow__controls {
