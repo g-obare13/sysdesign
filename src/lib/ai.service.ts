@@ -75,7 +75,7 @@ async function callAnthropic(
       "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
-      model: "claude-3-5-haiku-20241022",
+      model: "claude-3-5-haiku-latest",
       system: systemMsg,
       messages: userMsgs,
       max_tokens: 4096,
@@ -103,7 +103,7 @@ async function callGemini(
     parts: [{ text: m.content }],
   }));
 
-  const model = "gemini-2.5-pro-preview-03-25";
+  const model = "gemini-2.5-pro";
 
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
