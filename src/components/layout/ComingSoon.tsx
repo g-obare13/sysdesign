@@ -1,6 +1,4 @@
-import { IconRocket, IconArrowLeft } from "@tabler/icons-react";
-import { Button } from "../ui/button";
-import { useNavigate } from "@tanstack/react-router";
+import { IconRocket } from "@tabler/icons-react";
 import Sidebar from "../sidebar/Sidebar";
 
 interface ComingSoonProps {
@@ -14,8 +12,6 @@ export default function ComingSoon({
   description,
   icon: Icon,
 }: ComingSoonProps) {
-  const navigate = useNavigate();
-
   return (
     <div className="flex-1 flex h-full overflow-hidden">
       <Sidebar />
@@ -30,7 +26,7 @@ export default function ComingSoon({
           </div>
         </div>
 
-        <h1 className="text-3xl font-medium tracking-tight mb-3 text-foreground">
+        <h1 className="font-display text-3xl font-medium tracking-tight mb-3 text-foreground">
           {title}
         </h1>
         <p className="max-w-md mx-auto text-muted-foreground mb-10 leading-relaxed text-sm">
