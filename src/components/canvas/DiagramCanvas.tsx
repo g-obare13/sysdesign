@@ -290,7 +290,7 @@ export default function DiagramCanvas() {
             <div className="flex items-center justify-end gap-2.5 mt-2">
               <Button
                 icon={IconCancel}
-                iconSide="left"
+                iconPlacement="left"
                 variant="outline"
                 onClick={() => setShowDelete(false)}
               >
@@ -299,7 +299,7 @@ export default function DiagramCanvas() {
 
               <Button
                 icon={IconTrash}
-                iconSide="left"
+                iconPlacement="left"
                 variant="destructive"
                 onClick={() => {
                   deleteSelected();
@@ -359,136 +359,141 @@ export default function DiagramCanvas() {
       {/* Navigation Tips Toggle & Hint */}
       {!isExporting && (
         <div className="absolute right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col items-end gap-3 pointer-events-none">
-        {showHint && (
-          <div className="animate-in slide-in-from-right-4 fade-in duration-300 pointer-events-auto">
-            <div className="relative bg-card border border-border rounded-[--radius] p-5 shadow-2xl w-[260px] overflow-hidden">
-              <button
-                onClick={toggleHint}
-                className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer rounded-none"
-              >
-                <IconX size={14} />
-              </button>
-
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-primary/10 rounded-none">
-                  <IconMouse size={18} className="text-primary" />
-                </div>
-                <h4 className="text-[13px] font-medium tracking-tight">
-                  Navigation Tips
-                </h4>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-1.5 bg-muted/50 rounded-lg shrink-0">
-                    <IconMouse size={14} className="text-muted-foreground" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-bold">Canvas Control</div>
-                    <div className="text-[10px] text-muted-foreground leading-relaxed">
-                      <span className="block font-medium text-foreground/80">
-                        Right-click + Drag
-                      </span>{" "}
-                      Pan the design board
-                      <span className="block font-medium text-foreground/80 mt-1">
-                        Left-click + Drag
-                      </span>{" "}
-                      Draw box to Auto-Group
-                      <span className="block font-medium text-foreground/80 mt-1">
-                        Scroll Wheel
-                      </span>{" "}
-                      Zoom in and out
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="p-1.5 bg-muted/50 rounded-lg shrink-0">
-                    <IconKeyboard size={14} className="text-muted-foreground" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-bold">Shortcuts</div>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-1">
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
-                          ^G
-                        </kbd>
-                        <span>Group</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
-                          F
-                        </kbd>
-                        <span>Fit View</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
-                          Del
-                        </kbd>
-                        <span>Delete</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
-                          ^Z
-                        </kbd>
-                        <span>Undo</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground col-span-2">
-                        <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
-                          ^Y
-                        </kbd>
-                        <span>Redo (or ^⇧Z)</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="p-1.5 bg-muted/50 rounded-lg shrink-0">
-                    <IconClick size={14} className="text-muted-foreground" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-bold">Editing</div>
-                    <div className="text-[10px] text-muted-foreground leading-relaxed">
-                      <span className="block font-medium text-foreground/80">
-                        Double-click
-                      </span>{" "}
-                      Open editor for nodes or edges
-                      <span className="block font-medium text-foreground/80 mt-1">
-                        Drag Handles
-                      </span>{" "}
-                      Create new connections
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5 pt-4 border-t border-border/40">
-                <Button
+          {showHint && (
+            <div className="animate-in slide-in-from-right-4 fade-in duration-300 pointer-events-auto">
+              <div className="relative bg-card border border-border rounded-[--radius] p-5 shadow-2xl w-[260px] overflow-hidden">
+                <button
                   onClick={toggleHint}
-                  variant="outline"
-                  className={"w-full"}
+                  className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer rounded-none"
                 >
-                  Hide for now
-                </Button>
+                  <IconX size={14} />
+                </button>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-primary/10 rounded-none">
+                    <IconMouse size={18} className="text-primary" />
+                  </div>
+                  <h4 className="text-[13px] font-medium tracking-tight">
+                    Navigation Tips
+                  </h4>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-1.5 bg-muted/50 rounded-lg shrink-0">
+                      <IconMouse size={14} className="text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold">
+                        Canvas Control
+                      </div>
+                      <div className="text-[10px] text-muted-foreground leading-relaxed">
+                        <span className="block font-medium text-foreground/80">
+                          Right-click + Drag
+                        </span>{" "}
+                        Pan the design board
+                        <span className="block font-medium text-foreground/80 mt-1">
+                          Left-click + Drag
+                        </span>{" "}
+                        Draw box to Auto-Group
+                        <span className="block font-medium text-foreground/80 mt-1">
+                          Scroll Wheel
+                        </span>{" "}
+                        Zoom in and out
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="p-1.5 bg-muted/50 rounded-lg shrink-0">
+                      <IconKeyboard
+                        size={14}
+                        className="text-muted-foreground"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold">Shortcuts</div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-1">
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
+                            ^G
+                          </kbd>
+                          <span>Group</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
+                            F
+                          </kbd>
+                          <span>Fit View</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
+                            Del
+                          </kbd>
+                          <span>Delete</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
+                            ^Z
+                          </kbd>
+                          <span>Undo</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground col-span-2">
+                          <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
+                            ^Y
+                          </kbd>
+                          <span>Redo (or ^⇧Z)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="p-1.5 bg-muted/50 rounded-lg shrink-0">
+                      <IconClick size={14} className="text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold">Editing</div>
+                      <div className="text-[10px] text-muted-foreground leading-relaxed">
+                        <span className="block font-medium text-foreground/80">
+                          Double-click
+                        </span>{" "}
+                        Open editor for nodes or edges
+                        <span className="block font-medium text-foreground/80 mt-1">
+                          Drag Handles
+                        </span>{" "}
+                        Create new connections
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 pt-4 border-t border-border/40">
+                  <Button
+                    onClick={toggleHint}
+                    variant="outline"
+                    className={"w-full"}
+                  >
+                    Hide for now
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-
-        <Button
-          onClick={toggleHint}
-          className={cn(
-            "p-3 rounded-full shadow-lg border backdrop-blur-md transition-all duration-300 pointer-events-auto cursor-pointer",
-            showHint
-              ? "bg-primary text-white border-primary translate-x-12 opacity-0"
-              : "bg-card text-muted-foreground hover:text-foreground border-border hover:border-primary/50 hover:shadow-primary/10",
           )}
-          title="Show Navigation Tips"
-        >
-          <IconInfoCircle size={22} />
-        </Button>
-      </div>
+
+          <Button
+            onClick={toggleHint}
+            className={cn(
+              "p-3 rounded-full shadow-lg border backdrop-blur-md transition-all duration-300 pointer-events-auto cursor-pointer",
+              showHint
+                ? "bg-primary text-white border-primary translate-x-12 opacity-0"
+                : "bg-card text-muted-foreground hover:text-foreground border-border hover:border-primary/50 hover:shadow-primary/10",
+            )}
+            title="Show Navigation Tips"
+          >
+            <IconInfoCircle size={22} />
+          </Button>
+        </div>
       )}
     </div>
   );

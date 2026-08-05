@@ -42,3 +42,17 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+graft/
+.adal
+.claude
+.cursor
+.gemini
+.github
+.kiro
+.windsurf
+.mcp.json
+AGENTS.md
+GEMINI.md
+opencode.json

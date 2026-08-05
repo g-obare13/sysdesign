@@ -1,50 +1,23 @@
+"use client";
+
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { type VariantProps } from "class-variance-authority";
-import { IconLoader2 } from "@tabler/icons-react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
-import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button-variants";
+import type { VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+import { Loader } from "@/components/ui/loader";
 
 interface ButtonProps
   extends
-    React.ComponentPropsWithoutRef<typeof ButtonPrimitive>,
+    Omit<React.ComponentPropsWithoutRef<typeof ButtonPrimitive>, "variant">,
     VariantProps<typeof buttonVariants> {
   href?: string;
-  // Accepts a component type (e.g. SendIcon) OR a JSX element (e.g. <svg>...</svg>)
-  icon?: React.ElementType | React.ReactElement;
+  icon?: React.ElementType | React.ReactNode;
+  iconPlacement?: "left" | "right";
   hideIcon?: boolean;
   showLine?: boolean;
-  iconSide?: "left" | "right";
   loading?: boolean;
-}
-
-/**
- * Renders an icon regardless of whether it was passed as a component type
- * or as a pre-rendered JSX element. When loading, always renders the spinner.
- */
-function renderIconNode(
-  icon: React.ElementType | React.ReactElement | undefined,
-  loading: boolean,
-  className: string,
-): React.ReactNode {
-  if (loading) {
-    return <IconLoader2 className={cn(className, "animate-spin")} />;
-  }
-  if (!icon) return null;
-  if (React.isValidElement(icon)) {
-    return React.cloneElement(
-      icon as React.ReactElement<{ className?: string }>,
-      {
-        className: cn(
-          (icon.props as { className?: string }).className,
-          className,
-        ),
-      },
-    );
-  }
-  const Icon = icon as React.ElementType;
-  return <Icon className={className} />;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -54,10 +27,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant,
       size,
       href,
-      icon,
+      icon: Icon,
+      iconPlacement = "right",
       hideIcon,
       showLine,
-      iconSide = "left",
       loading = false,
       children,
       disabled,
@@ -65,89 +38,76 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
-    const hasIcon = !hideIcon && (!!icon || loading);
-    const isIconOnly = hasIcon && !children;
+    const isIconOnly = !children && (!!Icon || loading);
+    const renderIcon = !hideIcon && (!!Icon || loading);
 
-    const iconNode = hasIcon
-      ? renderIconNode(icon, loading, "shrink-0 size-4")
-      : null;
+    const renderIconContent = (icon: any, iconClassName?: string) => {
+      if (loading) {
+        return <Loader size="sm" className={iconClassName} />;
+      }
 
-    // showLine underline decoration — only wraps children, no font changes
-    const labelContent = showLine ? (
-      <span className="relative z-10">
-        {children}
-        <span
-          className="absolute -bottom-1 left-0 h-[1.5px] w-full bg-current scale-x-0 transition-transform duration-300 ease-in-out origin-left group-hover/button:scale-x-100 z-0"
-          aria-hidden="true"
-        />
+      if (!icon) return null;
+
+      if (React.isValidElement(icon)) return icon;
+
+      const IconComponent = icon;
+      return <IconComponent className={iconClassName} />;
+    };
+
+    const iconElement = renderIcon && (
+      <span
+        className={cn(
+          "inline-flex size-4 items-center justify-center",
+          iconPlacement === "left" ? "mr-1" : "ml-1",
+        )}
+      >
+        {renderIconContent(Icon, "size-4")}
       </span>
-    ) : (
-      children
     );
 
-    let content: React.ReactNode;
+    const content = isIconOnly ? (
+      <span className="flex h-full w-full items-center justify-center">
+        {renderIconContent(Icon, "size-5")}
+      </span>
+    ) : (
+      <>
+        {iconPlacement === "left" && iconElement}
 
-    if (isIconOnly) {
-      // No label — render icon directly, no slots
-      content = iconNode;
-    } else if (hasIcon) {
-      // Icon + label: muted slot with divider, label rendered directly (no font-breaking span)
-      const iconSlot = (
-        <span
-          aria-hidden="true"
-          className={cn(
-            "self-stretch flex items-center justify-center shrink-0",
-            "bg-black/10 dark:bg-white/10",
-            iconSide === "left"
-              ? "border-r border-black/10 dark:border-white/10 px-2.5"
-              : "border-l border-black/10 dark:border-white/10 px-2.5",
-          )}
-        >
-          {iconNode}
+        <span className="relative z-10 text-sm font-semibold">
+          {loading ? "Saving..." : children}
         </span>
-      );
 
-      content =
-        iconSide === "left" ? (
-          <>
-            {iconSlot}
-            <span className="px-2.5 font-medium text-xs text-muted-background">
-              {labelContent}
-            </span>
-          </>
-        ) : (
-          <>
-            <span className="px-2.5 font-medium text-xs text-muted-background">
-              {labelContent}
-            </span>
-            {iconSlot}
-          </>
-        );
-    } else {
-      // No icon — children render directly inside the button, inheriting all styles
-      content = labelContent;
-    }
+        {iconPlacement === "right" && iconElement}
 
-    const combinedClassName = cn(
-      buttonVariants({ variant, size, className }),
-      hasIcon && !isIconOnly && "px-0 gap-0",
+        {showLine && (
+          <span className="absolute -bottom-1 left-0 z-0 h-[1.5px] w-full origin-left scale-x-0 bg-current transition-transform duration-300 group-hover/button:scale-x-100" />
+        )}
+      </>
+    );
+
+    const classes = cn(
+      "group/button inline-flex items-center justify-center gap-2",
+      buttonVariants({ variant, size }),
+      isIconOnly && "aspect-square justify-center px-0",
+      className,
     );
 
     if (href) {
       return (
-        <Link to={href} className={combinedClassName}>
+        <Link to={href} className={classes}>
           {content}
         </Link>
       );
     }
 
+    const { dangerouslySetInnerHTML, ...cleanProps } = props as any;
+
     return (
       <ButtonPrimitive
         ref={ref}
-        className={combinedClassName}
+        className={classes}
         disabled={disabled || loading}
-        aria-busy={loading}
-        {...props}
+        {...cleanProps}
       >
         {content}
       </ButtonPrimitive>
@@ -156,4 +116,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
-export { Button, buttonVariants, type ButtonProps };
+
+export { Button };

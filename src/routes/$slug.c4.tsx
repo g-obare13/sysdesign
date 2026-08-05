@@ -38,7 +38,7 @@ function C4Page() {
 
           <Button
             icon={IconFolderPlus}
-            iconSide="right"
+            iconPlacement="right"
             onClick={() => navigate({ to: "/projects" })}
           >
             Browse Projects

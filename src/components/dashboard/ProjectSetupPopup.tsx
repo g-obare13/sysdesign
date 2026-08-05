@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { IconFolderPlus, IconX, IconFolder } from "@tabler/icons-react";
 import {
   useProjectStore,
@@ -10,10 +11,8 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
 import { cn } from "../../lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-/**
- * Props for the ProjectSetupPopup component.
- */
 interface ProjectSetupPopupProps {
   /** Whether the modal is currently visible */
   open: boolean;
@@ -38,6 +37,7 @@ export default function ProjectSetupPopup({
   const [loading, setLoading] = useState(false);
   const projects = useProjectStore((s) => s.projects);
   const isLimitReached = projects.length >= MAX_PROJECTS;
+  const canClose = projects.length > 0;
 
   if (!open) return null;
 
@@ -55,34 +55,39 @@ export default function ProjectSetupPopup({
     }, 400);
   };
 
-  return (
-    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-1000 w-full max-w-sm px-4">
-      <div className="bg-card border border-border rounded-xs shadow-2xl shadow-black/10 animate-in slide-in-from-top-4 fade-in duration-300 p-5 flex flex-col gap-5">
+  return createPortal(
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-background/60 backdrop-blur-sm animate-in fade-in duration-300"
+        onClick={canClose ? onClose : undefined}
+      />
+
+      {/* Modal Content */}
+      <div className="relative w-full max-w-md bg-card border border-border/80 rounded-3xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 p-6 flex flex-col gap-5 z-10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <IconFolderPlus size={18} stroke={1.8} />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold">Project Setup</h2>
-              <p className="text-xs">Start by naming your architecture</p>
-            </div>
+          <div className="flex flex-col items-start gap-2">
+            <h4>Create New Project</h4>
+            <p>Start by naming your architecture design</p>
           </div>
-          <Button
-            onClick={onClose}
-            icon={IconX}
-            variant="outline"
-            size="icon-sm"
-          />
+          {canClose && (
+            <button
+              onClick={onClose}
+              type="button"
+              className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition-colors cursor-pointer"
+            >
+              <IconX size={18} />
+            </button>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Project Name</Label>
             <Input
               autoFocus
-              startIcon={<IconFolder size={8} stroke={1.8} />}
               id="name"
+              size={"lg"}
               placeholder="e.g. Payments Engine"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -91,60 +96,45 @@ export default function ProjectSetupPopup({
 
           <div className="flex flex-col gap-1.5">
             <Label>Project Type</Label>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xs border border-border/50">
-              <button
-                type="button"
-                onClick={() => setType("design")}
-                className={cn(
-                  "flex items-center justify-center gap-2 py-2 rounded-md text-xs font-semibold transition-all",
-                  type === "design"
-                    ? "bg-card text-foreground shadow-sm border border-border/50"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                Architecture
-              </button>
-              <button
-                type="button"
-                onClick={() => setType("c4")}
-                className={cn(
-                  "flex items-center justify-center gap-2 py-2 rounded-md text-xs font-semibold transition-all",
-                  type === "c4"
-                    ? "bg-card text-foreground shadow-sm border border-border/50"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                C4 Model
-              </button>
-            </div>
+            <Tabs
+              value={type}
+              onValueChange={(val) => setType(val as ProjectType)}
+              className="w-full"
+            >
+              <TabsList className="w-full grid grid-cols-2 border">
+                <TabsTrigger value="design">Architecture</TabsTrigger>
+                <TabsTrigger value="c4">C4 Model</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="desc">Description</Label>
+            <Label htmlFor="desc">Description (Optional)</Label>
             <Textarea
               id="desc"
               rows={2}
-              placeholder="System details..."
+              placeholder="Brief description of the system architecture..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 mt-1">
+          <div className="flex items-center justify-end gap-2 mt-2">
             <Button
               icon={IconFolderPlus}
-              iconSide="right"
+              iconPlacement="right"
+              size={"pill"}
+              variant={"shiny"}
               type="submit"
               disabled={!name.trim() || loading || isLimitReached}
-              className={`w-full${
-                isLimitReached
-                  ? "bg-muted text-muted-foreground pointer-events-none"
-                  : "bg-primary hover:bg-primary/90"
-              }`}
+              className={cn(
+                "w-full ",
+                isLimitReached ? "bg-muted pointer-events-none" : "",
+              )}
               loading={loading}
             >
               {loading ? (
-                <>Initialising...</>
+                <>Initialising Project...</>
               ) : isLimitReached ? (
                 "Project Limit Reached"
               ) : (
@@ -154,6 +144,7 @@ export default function ProjectSetupPopup({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -71,7 +71,7 @@ function SlugPage() {
 
           <Button
             icon={IconFolderPlus}
-            iconSide="right"
+            iconPlacement="right"
             onClick={() => navigate({ to: "/projects" })}
           >
             Browse Projects

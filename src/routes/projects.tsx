@@ -126,7 +126,7 @@ function ProjectsPage() {
 
             <Button
               icon={IconFolderPlus}
-              iconSide="right"
+              iconPlacement="right"
               onClick={() => setModalOpen(true)}
             >
               New Project
@@ -327,7 +327,7 @@ function ProjectsPage() {
               </p>
               <Button
                 icon={IconFolderPlus}
-                iconSide="right"
+                iconPlacement="right"
                 onClick={() => setModalOpen(true)}
               >
                 New Project
@@ -385,7 +385,7 @@ function ProjectsPage() {
                     type="submit"
                     size="sm"
                     icon={IconCheck}
-                    iconSide="right"
+                    iconPlacement="right"
                     disabled={!renameValue.trim()}
                   >
                     Save

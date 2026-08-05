@@ -44,7 +44,7 @@ export default class CanvasErrorBoundary extends Component<Props, State> {
             <Button
               onClick={() => window.location.reload()}
               icon={IconReload}
-              iconSide="right"
+              iconPlacement="right"
             >
               Reload Editor
             </Button>

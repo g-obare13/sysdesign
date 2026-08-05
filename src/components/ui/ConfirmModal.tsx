@@ -1,8 +1,4 @@
-import {
-  IconAlertTriangle,
-  IconCancel,
-  IconTrash,
-} from "@tabler/icons-react";
+import { IconAlertTriangle, IconCancel, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import { Button } from "./button";
 
@@ -47,10 +43,10 @@ export default function ConfirmModal({
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-sm bg-card border border-border rounded-[--radius] shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 p-6 flex flex-col gap-6">
+      <div className="relative w-full max-w-sm bg-card border border-border rounded-3xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 p-6 flex flex-col gap-6">
         <div className="flex items-start gap-4">
           <div
-            className={`w-10 h-10 rounded-[--radius] flex shrink-0 items-center justify-center ${isDestructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}
+            className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center ${isDestructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}
           >
             <IconAlertTriangle size={20} stroke={2} />
           </div>
@@ -63,7 +59,7 @@ export default function ConfirmModal({
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button
             icon={IconCancel}
-            iconSide="left"
+            iconPlacement="left"
             variant="outline"
             onClick={onClose}
           >
@@ -72,7 +68,7 @@ export default function ConfirmModal({
 
           <Button
             icon={IconTrash}
-            iconSide="left"
+            iconPlacement="left"
             onClick={handleConfirm}
             disabled={loading}
             variant="destructive"

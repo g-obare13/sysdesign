@@ -1,41 +1,53 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useReactFlow } from "@xyflow/react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import {
+  IconAlertTriangle,
   IconArrowBackUp,
   IconArrowForwardUp,
-  IconAlertTriangle,
   IconBook,
+  IconBooks,
+  IconBrain,
   IconCheck,
   IconChevronDown,
+  IconCompass,
   IconFocus2,
   IconFolder,
+  IconFolderPlus,
   IconGridDots,
+  IconHierarchy,
+  IconKey,
   IconLogout,
+  IconNotebook,
+  IconSettings,
   IconSitemap,
   IconSquarePlus,
   IconTrash,
   IconUserCircle,
   IconZoomIn,
   IconZoomOut,
+  IconX,
 } from "@tabler/icons-react";
 import { type Template } from "../../data/templates";
 import {
-  clearCanvas,
   autoLayout,
+  clearCanvas,
   loadTemplate,
   redo,
+  setDiagramMode,
   setExportingState,
   toggleSnap,
   undo,
   useCanvasStore,
 } from "../../store/canvas.store";
 import {
+  createProject,
   login,
   logout,
   setActiveProject,
   useProjectStore,
+  type ProjectType,
 } from "../../store/project.store";
 import {
   exportMermaid,
@@ -47,8 +59,18 @@ import {
 import { ThemeToggle } from "../ThemeToggle";
 import { Button } from "../ui/button";
 import ConfirmModal from "../ui/ConfirmModal";
+import ProjectSetupPopup from "../dashboard/ProjectSetupPopup";
 import { Logo } from "../ui/logo";
-import { cn } from "#/lib/utils";
+import { cn } from "@/lib/utils";
+import AISettings from "../ai/AISettings";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const EXPORT_OPTIONS = [
   { key: "png", label: "PNG image", desc: "Raster, 2× resolution" },
@@ -56,6 +78,25 @@ const EXPORT_OPTIONS = [
   { key: "mermaid", label: "Mermaid", desc: "Diagram-as-code (.mmd)" },
   { key: "terraform", label: "Terraform", desc: "HCL scaffold (main.tf)" },
   { key: "dsl", label: "Structurizr", desc: "C4 architecture (.dsl)" },
+];
+
+const TOP_NAV_ITEMS = [
+  {
+    id: "components",
+    label: "Architecture",
+    icon: IconCompass,
+    path: "/$slug",
+  },
+  { id: "c4", label: "C4 Model", icon: IconBrain, path: "/$slug/c4" },
+  { id: "templates", label: "Templates", icon: IconBook, path: "/templates" },
+  {
+    id: "integrations",
+    label: "Integrations",
+    icon: IconBooks,
+    path: "/integrations",
+  },
+  { id: "flows", label: "Flows", icon: IconHierarchy, path: "/flows" },
+  { id: "shapes", label: "Shapes", icon: IconNotebook, path: "/shapes" },
 ];
 
 export default function Toolbar() {
@@ -69,6 +110,7 @@ export default function Toolbar() {
   const historyLen = useCanvasStore((s) => s.history.length);
   const isExporting = useCanvasStore((s) => s.isExporting);
   const saveStatus = useCanvasStore((s) => s.saveStatus);
+  const diagramMode = useCanvasStore((s) => s.diagramMode);
 
   const user = useProjectStore((s) => s.user);
   const loading = useProjectStore((s) => s.loading);
@@ -78,17 +120,27 @@ export default function Toolbar() {
   const navigate = useNavigate();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
-  const [exportOpen, setExportOpen] = useState(false);
-  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
+  const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
   const [templateConfirm, setTemplateConfirm] = useState<Template | null>(null);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+  const [switchConfirmTab, setSwitchConfirmTab] = useState<string | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-  const hasLocalProjects = useProjectStore(
-    (s) => s.projects.length > 0 && !s.user,
-  );
+
+  const handleCreateNewProject = (
+    name: string,
+    type: ProjectType = "design",
+    description?: string,
+  ) => {
+    const newProject = createProject(name, type, description);
+    if (!newProject) return;
+    setCreateProjectModalOpen(false);
+    if (type === "c4") {
+      navigate({ to: "/$slug/c4", params: { slug: newProject.slug } });
+    } else {
+      navigate({ to: "/$slug", params: { slug: newProject.slug } });
+    }
+  };
 
   const isCanvasRoute =
     location.pathname === "/" ||
@@ -103,37 +155,17 @@ export default function Toolbar() {
     ].includes(location.pathname) &&
       !location.pathname.includes("."));
 
+  const currentPath = location.pathname;
+  let activeNavTab = "components";
+  if (currentPath === "/integrations") activeNavTab = "integrations";
+  else if (currentPath === "/flows") activeNavTab = "flows";
+  else if (currentPath === "/shapes") activeNavTab = "shapes";
+  else if (currentPath === "/templates") activeNavTab = "templates";
+  else if (currentPath.endsWith("/c4")) activeNavTab = "c4";
+
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < historyLen - 1;
   const hasNodes = nodes.length > 0;
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setExportOpen(false);
-      }
-
-      const pMenu = document.getElementById("project-menu");
-      const pBtn = document.getElementById("project-btn");
-      if (
-        pMenu &&
-        !pMenu.contains(e.target as Node) &&
-        pBtn &&
-        !pBtn.contains(e.target as Node)
-      ) {
-        setProjectMenuOpen(false);
-      }
-
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(e.target as Node)
-      ) {
-        setUserMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const handleLoadTemplate = (tpl: Template) => {
     loadTemplate(tpl);
@@ -142,12 +174,7 @@ export default function Toolbar() {
 
   const handleExport = async (key: string) => {
     setExporting(key);
-    setExportOpen(false);
-
-    // Set exporting state to true to hide UI components
     setExportingState(true);
-
-    // Small delay to ensure React state change reflects in the DOM
     await new Promise((r) => setTimeout(r, 100));
 
     try {
@@ -162,11 +189,54 @@ export default function Toolbar() {
     }
   };
 
+  const handleNavClick = (item: (typeof TOP_NAV_ITEMS)[0]) => {
+    if (
+      item.id === "integrations" ||
+      item.id === "flows" ||
+      item.id === "shapes" ||
+      item.id === "templates"
+    ) {
+      navigate({ to: item.path as any });
+      return;
+    }
+
+    const isSwitchingToC4 = item.id === "c4" && diagramMode !== "c4";
+    const isSwitchingToArch =
+      item.id === "components" && diagramMode !== "architecture";
+
+    if (
+      (isSwitchingToC4 || isSwitchingToArch) &&
+      (nodes.length > 0 || edges.length > 0)
+    ) {
+      setSwitchConfirmTab(item.id);
+      return;
+    }
+
+    if (item.id === "c4") {
+      setDiagramMode("c4");
+      if (activeProject) {
+        navigate({
+          to: "/$slug/c4",
+          params: { slug: activeProject.slug } as any,
+        });
+      } else {
+        navigate({ to: "/" });
+      }
+    } else if (item.id === "components") {
+      setDiagramMode("architecture");
+      if (activeProject) {
+        navigate({ to: "/$slug", params: { slug: activeProject.slug } as any });
+      } else {
+        navigate({ to: "/" });
+      }
+    }
+  };
+
   return (
     <>
       <header
         className={cn(
-          "h-12 flex items-center justify-between px-4 border-b bg-background shrink-0 relative z-50 transition-all",
+          "h-14 flex items-center justify-between px-4 border-b border-border/50 bg-background/95 backdrop-blur-md shrink-0 relative z-50 transition-all",
           isExporting && "opacity-0 invisible h-0 border-none",
         )}
       >
@@ -191,111 +261,149 @@ export default function Toolbar() {
           }}
         />
 
-        {/* Left — brand + stats */}
+        <ConfirmModal
+          open={!!switchConfirmTab}
+          isDestructive
+          title="Clear Canvas?"
+          description={`Switching to ${switchConfirmTab === "c4" ? "C4 Model" : "Architecture"} mode will clear your current canvas.`}
+          confirmText="Clear & Switch"
+          onClose={() => setSwitchConfirmTab(null)}
+          onConfirm={() => {
+            if (switchConfirmTab) {
+              clearCanvas();
+              setDiagramMode(switchConfirmTab === "c4" ? "c4" : "architecture");
+              if (switchConfirmTab === "c4") {
+                if (activeProject)
+                  navigate({
+                    to: "/$slug/c4",
+                    params: { slug: activeProject.slug } as any,
+                  });
+              } else {
+                if (activeProject)
+                  navigate({
+                    to: "/$slug",
+                    params: { slug: activeProject.slug } as any,
+                  });
+              }
+              setSwitchConfirmTab(null);
+            }
+          }}
+        />
+
+        <ProjectSetupPopup
+          open={createProjectModalOpen}
+          onClose={() => setCreateProjectModalOpen(false)}
+          onCreate={handleCreateNewProject}
+        />
+
+        {/* AI Key Settings Dialog */}
+        {aiSettingsOpen && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-background/60 backdrop-blur-sm animate-in fade-in duration-300"
+              onClick={() => setAiSettingsOpen(false)}
+            />
+            <div className="relative w-full max-w-md bg-card border border-border rounded-3xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <IconKey size={18} />
+                  </div>
+                  <h2 className="text-base font-bold">AI Provider Keys</h2>
+                </div>
+                <button
+                  onClick={() => setAiSettingsOpen(false)}
+                  className="p-1 rounded-full hover:bg-muted text-muted-foreground"
+                >
+                  <IconX size={18} />
+                </button>
+              </div>
+              <AISettings />
+            </div>
+          </div>
+        )}
+
+        {/* Left — brand + project selector */}
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2 relative">
-            <Logo className="h-6 w-auto" />
+            <Logo className="h-4 w-auto" />
             <h1 className="sr-only">SysDesign — Systems Architecture</h1>
           </Link>
 
-          <Link
-            to="/projects"
-            className="flex items-center gap-1.5 px-2 py-1 rounded-[--radius] text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all select-none"
-          >
-            <IconFolder size={14} stroke={1.8} />
-            Projects
-          </Link>
-
-          <Link
-            to="/templates"
-            className="flex items-center gap-1.5 px-2 py-1 rounded-[--radius] text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all select-none"
-          >
-            <IconBook size={14} stroke={1.8} className="text-primary" />
-            Templates
-          </Link>
-
-          {/* Project Selector Dropdown */}
-          <div className="relative flex items-center">
-            <Button
-              variant={"outline"}
-              icon={
-                <IconChevronDown
-                  className={`transition-transform duration-200 ${projectMenuOpen ? "rotate-180" : ""}`}
-                />
-              }
-              iconSide="right"
-              onClick={() => setProjectMenuOpen(!projectMenuOpen)}
+          {/* Project Selector Shadcn Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/60 bg-muted/30 hover:bg-muted/70 text-xs font-semibold text-foreground transition-all shadow-xs cursor-pointer outline-none">
+              <IconFolder size={15} className="text-primary shrink-0" />
+              <span className="truncate max-w-35">
+                {activeProject ? activeProject.name : "Select Project"}
+              </span>
+              <IconChevronDown
+                size={14}
+                className="text-muted-foreground transition-transform duration-200"
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="min-w-[220px] rounded-2xl p-1.5 shadow-2xl"
             >
-              {activeProject ? activeProject.name : "Select Project"}
-            </Button>
-
-            {projectMenuOpen && (
-              <div
-                id="project-menu"
-                className="absolute top-[calc(100%+6px)] left-0 z-50 bg-card border border-border
-                           rounded-[--radius] p-1 min-w-50 shadow-xl animate-in fade-in slide-in-from-top-1"
-              >
-                <div className="px-3 py-1.5 border-b border-border mb-1">
-                  <span className="flex items-center gap-1.5 px-2 py-1 rounded-[--radius] text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all select-none">
-                    Switch Project
-                  </span>
-                </div>
-                <div className="max-h-75 overflow-y-auto">
-                  {projects.map((p) => (
-                    <Button
-                      key={p.id}
-                      variant="ghost"
-                      onClick={() => {
-                        setActiveProject(p.id);
-                        setProjectMenuOpen(false);
-                        navigate({ to: "/$slug", params: { slug: p.slug } });
-                      }}
-                      className={`w-full justify-start px-3 py-2 h-auto text-left gap-2 rounded-none ${p.id === activeProjectId ? "bg-primary/10 text-primary" : ""}`}
-                    >
-                      <IconFolder
-                        size={14}
-                        className={
-                          p.id === activeProjectId
-                            ? "text-primary"
-                            : "text-muted-foreground"
-                        }
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[12.5px] font-medium truncate">
-                          {p.name}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground truncate">
-                          {new Date(p.updatedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-                <div className="mt-1 pt-1 border-t border-border">
-                  <Button
+              <DropdownMenuLabel className="px-3 py-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                Switch Project
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="max-h-60 overflow-y-auto space-y-0.5 custom-scrollbar">
+                {projects.map((p) => (
+                  <DropdownMenuItem
+                    key={p.id}
                     onClick={() => {
-                      setProjectMenuOpen(false);
-                      navigate({ to: "/projects" });
+                      setActiveProject(p.id);
+                      navigate({ to: "/$slug", params: { slug: p.slug } });
                     }}
-                    variant="ghost"
-                    className="w-full justify-start px-3 py-2 h-auto text-left gap-2 text-primary hover:bg-primary/5 rounded-none"
+                    className={cn(
+                      "w-full flex items-center justify-start px-3 py-2 gap-2 rounded-xl text-xs font-medium cursor-pointer",
+                      p.id === activeProjectId &&
+                        "bg-primary/10 text-primary font-bold",
+                    )}
                   >
-                    <IconSquarePlus size={14} />
-                    <span className="text-[12px] font-medium">
-                      All Projects
-                    </span>
-                  </Button>
-                </div>
+                    <IconFolder
+                      size={15}
+                      className={
+                        p.id === activeProjectId
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                      }
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate">{p.name}</span>
+                      <span className="text-[10px] text-muted-foreground truncate">
+                        {new Date(p.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
               </div>
-            )}
-          </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setCreateProjectModalOpen(true)}
+                className="w-full flex items-center justify-start px-3 py-2 gap-2 text-xs font-semibold text-primary hover:bg-primary/10 rounded-xl cursor-pointer"
+              >
+                <IconFolderPlus size={15} />
+                <span>New Project</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate({ to: "/projects" })}
+                className="w-full flex items-center justify-start px-3 py-2 gap-2 text-xs font-semibold text-muted-foreground hover:bg-muted rounded-xl cursor-pointer"
+              >
+                <IconSquarePlus size={15} />
+                <span>All Projects</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          <span className="text-border mx-1 opacity-50">|</span>
-          <span
-            className={`text-[11.5px] text-muted-foreground transition-opacity ${isCanvasRoute ? "opacity-100" : "opacity-0"}`}
-          >
-            {nodes.length} nodes · {edges.length} edges
-          </span>
+          {isCanvasRoute && (
+            <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/30">
+              {nodes.length} nodes · {edges.length} edges
+            </span>
+          )}
 
           {isCanvasRoute && saveStatus !== "idle" && (
             <span
@@ -328,48 +436,98 @@ export default function Toolbar() {
           )}
         </div>
 
-        {/* Right — Global Actions */}
-        <div className="flex items-center gap-1.5">
-          <ThemeToggle />
-          <div ref={userMenuRef} className="relative ml-1">
-            {user ? (
-              <Button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                variant="outline"
-                size="icon-sm"
-                className="rounded-full overflow-hidden border-2 border-primary/20 p-0"
-                title={user.email}
+        {/* Center — Top Navigation Pill Bar */}
+        <nav className="hidden lg:flex items-center gap-1.5 p-1 bg-muted/60 dark:bg-muted/30 rounded-full border border-border/40 shadow-inner">
+          {TOP_NAV_ITEMS.map((item) => {
+            const isActive = activeNavTab === item.id;
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavClick(item)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition-all duration-200 select-none cursor-pointer",
+                  isActive
+                    ? "bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary-100 font-bold shadow-xs border border-primary/20 scale-[1.02]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70 font-medium",
+                )}
               >
-                {user.user_metadata?.avatar_url ? (
-                  <img
-                    src={user.user_metadata.avatar_url}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <IconUserCircle size={18} />
-                )}
-              </Button>
-            ) : (
-              <div className="flex items-center gap-2">
-                {hasLocalProjects && (
-                  <span className="text-[10px] text-muted-foreground mr-1 hidden sm:inline-block bg-muted/50 px-2 py-0.5 rounded-full whitespace-nowrap">
-                    Local work will be synced
-                  </span>
-                )}
-                <Button
-                  onClick={login}
-                  disabled={loading || migrating}
-                  variant="outline"
-                  size="sm"
-                  icon={
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
+                <Icon
+                  size={15}
+                  stroke={1.8}
+                  className={
+                    isActive
+                      ? "text-primary shrink-0"
+                      : "text-muted-foreground shrink-0"
+                  }
+                />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Right — Settings & User Profile Shadcn Dropdown */}
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/60 bg-muted/30 hover:bg-muted/70 text-xs font-semibold text-foreground transition-all shadow-xs cursor-pointer outline-none">
+              {user?.user_metadata?.avatar_url ? (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt=""
+                  className="size-5 rounded-full object-cover border border-primary/30"
+                />
+              ) : (
+                <IconSettings size={16} className="text-muted-foreground" />
+              )}
+              <span className="hidden sm:inline-block max-w-[100px] truncate">
+                {user ? user.user_metadata?.full_name || "Account" : "Settings"}
+              </span>
+              <IconChevronDown
+                size={13}
+                className="text-muted-foreground transition-transform duration-200"
+              />
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="end"
+              className="min-w-[240px] rounded-2xl p-2 shadow-2xl space-y-1"
+            >
+              {user ? (
+                <div className="px-3 py-2.5 bg-muted/40 rounded-xl border border-border/40 mb-1 flex items-center justify-between gap-2">
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-xs font-bold truncate">
+                      {user.user_metadata?.full_name || "Signed In"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => logout()}
+                    className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                    title="Logout"
+                  >
+                    <IconLogout size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="p-3 bg-primary/5 rounded-xl border border-primary/15 mb-1 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <IconUserCircle size={18} className="text-primary" />
+                    <span className="text-xs font-bold">Sign In</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    Sync your system designs safely across devices.
+                  </p>
+                  <Button
+                    onClick={() => login()}
+                    disabled={loading || migrating}
+                    variant="default"
+                    size="sm"
+                    className="rounded-full gap-2 w-full justify-center"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                       <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                         fill="#4285F4"
@@ -387,52 +545,61 @@ export default function Toolbar() {
                         fill="#EA4335"
                       />
                     </svg>
-                  }
-                  className="gap-1.5 pl-2 pr-3"
-                >
-                  {migrating
-                    ? "Migrating…"
-                    : loading
-                      ? "Signing in…"
-                      : "Sign in"}
-                </Button>
-              </div>
-            )}
-
-            {userMenuOpen && user && (
-              <div
-                className="absolute top-[calc(100%+6px)] right-0 z-500 bg-card border border-border
-                             rounded-[--radius] p-1 min-w-50 shadow-lg shadow-black/10"
-              >
-                <div className="px-3 py-2 border-b border-border/50 mb-1">
-                  <p className="text-[12px] font-semibold truncate">
-                    {user.user_metadata?.full_name || "User"}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground truncate">
-                    {user.email}
-                  </p>
+                    <span>
+                      {migrating
+                        ? "Migrating…"
+                        : loading
+                          ? "Signing in…"
+                          : "Sign in with Google"}
+                    </span>
+                  </Button>
                 </div>
-                <Button
-                  onClick={() => {
-                    logout();
-                    setUserMenuOpen(false);
-                  }}
-                  variant="ghost"
-                  className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 px-3 py-2 h-auto"
-                >
-                  <IconLogout size={14} className="mr-2" />
-                  <span className="text-[12.5px] font-medium">Logout</span>
-                </Button>
+              )}
+
+              <div className="flex items-center justify-between px-3 py-2 hover:bg-muted/50 rounded-xl transition-colors">
+                <span className="text-xs font-semibold">Theme</span>
+                <ThemeToggle />
               </div>
-            )}
-          </div>
+
+              <DropdownMenuItem
+                onClick={() => setAiSettingsOpen(true)}
+                className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/50 rounded-xl transition-colors text-xs font-semibold cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <IconKey size={15} className="text-primary" />
+                  <span>AI API Keys</span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">
+                  Config
+                </span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem
+                onClick={() => navigate({ to: "/projects" })}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted/50 rounded-xl transition-colors text-xs font-medium cursor-pointer"
+              >
+                <IconFolder size={15} className="text-muted-foreground" />
+                <span>My Projects</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => navigate({ to: "/templates" })}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted/50 rounded-xl transition-colors text-xs font-medium cursor-pointer"
+              >
+                <IconBook size={15} className="text-muted-foreground" />
+                <span>Templates Library</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      {/* Floating Bottom Toolbar — Design System Center Dock */}
+      {/* Floating Bottom Toolbar — Floating Center Dock */}
       {isCanvasRoute && !isExporting && (
-        <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex items-center gap-1 p-1 bg-card border rounded-[--radius] shadow-xl">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center gap-1 p-1.5 bg-card/90 backdrop-blur-md border border-border/60 rounded-full shadow-2xl">
             {/* History Dock */}
             <div className="flex items-center gap-0.5">
               <Button
@@ -440,7 +607,7 @@ export default function Toolbar() {
                 disabled={!canUndo}
                 variant="ghost"
                 size="icon-sm"
-                className="h-9 w-9 rounded-[--radius] hover:bg-muted transition-colors disabled:opacity-30"
+                className="h-9 w-9 rounded-full hover:bg-muted transition-colors disabled:opacity-30"
                 title="Undo (⌘Z)"
               >
                 <IconArrowBackUp size={18} stroke={1.5} />
@@ -450,7 +617,7 @@ export default function Toolbar() {
                 disabled={!canRedo}
                 variant="ghost"
                 size="icon-sm"
-                className="h-9 w-9 rounded-[--radius] hover:bg-muted transition-colors disabled:opacity-30"
+                className="h-9 w-9 rounded-full hover:bg-muted transition-colors disabled:opacity-30"
                 title="Redo (⌘Y)"
               >
                 <IconArrowForwardUp size={18} stroke={1.5} />
@@ -465,7 +632,7 @@ export default function Toolbar() {
                 onClick={() => zoomIn()}
                 variant="ghost"
                 size="icon-sm"
-                className="h-9 w-9 rounded-[--radius] hover:bg-muted transition-colors"
+                className="h-9 w-9 rounded-full hover:bg-muted transition-colors"
                 title="Zoom In (+)"
               >
                 <IconZoomIn size={18} stroke={1.5} />
@@ -474,7 +641,7 @@ export default function Toolbar() {
                 onClick={() => zoomOut()}
                 variant="ghost"
                 size="icon-sm"
-                className="h-9 w-9 rounded-[--radius] hover:bg-muted transition-colors"
+                className="h-9 w-9 rounded-full hover:bg-muted transition-colors"
                 title="Zoom Out (-)"
               >
                 <IconZoomOut size={18} stroke={1.5} />
@@ -483,7 +650,7 @@ export default function Toolbar() {
                 onClick={() => fitView({ duration: 450 })}
                 variant="ghost"
                 size="icon-sm"
-                className="h-9 w-9 rounded-[--radius] hover:bg-muted transition-colors"
+                className="h-9 w-9 rounded-full hover:bg-muted transition-colors"
                 title="Fit to Canvas"
               >
                 <IconFocus2 size={18} stroke={1.5} />
@@ -491,12 +658,15 @@ export default function Toolbar() {
               <Button
                 onClick={() => {
                   autoLayout();
-                  setTimeout(() => fitView({ duration: 450, padding: 0.2 }), 60);
+                  setTimeout(
+                    () => fitView({ duration: 450, padding: 0.2 }),
+                    60,
+                  );
                 }}
                 disabled={!hasNodes}
                 variant="ghost"
                 size="icon-sm"
-                className="h-9 w-9 rounded-[--radius] hover:bg-muted transition-colors disabled:opacity-30"
+                className="h-9 w-9 rounded-full hover:bg-muted transition-colors disabled:opacity-30"
                 title="Auto Layout"
               >
                 <IconSitemap size={18} stroke={1.5} />
@@ -513,6 +683,7 @@ export default function Toolbar() {
                 variant={snapToGrid ? "default" : "outline"}
                 loading={loading}
                 size="sm"
+                className="rounded-full"
               />
 
               <div className="w-px h-6 bg-border mx-1" />
@@ -522,12 +693,10 @@ export default function Toolbar() {
                 disabled={!hasNodes}
                 icon={IconTrash}
                 loading={loading}
-                iconSide="left"
+                iconPlacement="left"
                 variant="destructive"
                 size="sm"
-                className={
-                  "text-destructive hover:bg-destructive/10 border-transparent hover:border-destructive/20"
-                }
+                className="rounded-full text-destructive hover:bg-destructive/10 border-transparent hover:border-destructive/20"
               >
                 Clear
               </Button>
@@ -535,47 +704,40 @@ export default function Toolbar() {
 
             <div className="w-px h-6 bg-border mx-1" />
 
-            {/* Primary Action: Export */}
-            <div ref={menuRef} className="relative">
-              <Button
-                onClick={() => setExportOpen((p) => !p)}
+            {/* Primary Action: Export Shadcn Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger
                 disabled={!hasNodes}
-                icon={IconChevronDown}
-                loading={exporting ? true : false}
-                iconSide="right"
-                variant="default"
-                size="sm"
+                className="inline-flex items-center justify-center gap-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary-600 px-3.5 py-1.5 text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:pointer-events-none outline-none"
               >
-                Export
-              </Button>
-
-              {exportOpen && (
-                <div className="absolute bottom-[calc(100%+12px)] right-0 z-50 bg-card border border-border rounded-[--radius] p-1 min-w-50 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <div className="px-3 py-1.5 border-b border-border/50 mb-1">
-                    <span className="flex items-center gap-1.5 px-2 py-1 rounded-[--radius] text-xs font-medium text-muted-foreground select-none">
-                      Select Format
+                <span>Export</span>
+                <IconChevronDown size={14} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                side="top"
+                className="min-w-[200px] rounded-2xl p-1.5 shadow-2xl space-y-0.5"
+              >
+                <DropdownMenuLabel className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider select-none">
+                  Export Format
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {EXPORT_OPTIONS.map((opt) => (
+                  <DropdownMenuItem
+                    key={opt.key}
+                    onClick={() => handleExport(opt.key)}
+                    className="w-full flex flex-col items-start px-3 py-2 rounded-xl hover:bg-muted transition-colors cursor-pointer"
+                  >
+                    <span className="text-xs font-semibold text-foreground">
+                      {opt.label}
                     </span>
-                  </div>
-                  <div className="space-y-0.5">
-                    {EXPORT_OPTIONS.map((opt) => (
-                      <Button
-                        key={opt.key}
-                        onClick={() => handleExport(opt.key)}
-                        variant="ghost"
-                        className="w-full flex-col items-start px-3 py-2 h-auto text-left rounded-none hover:bg-muted"
-                      >
-                        <span className="flex items-center gap-1.5 text-xs font-medium text-foreground transition-all select-none">
-                          {opt.label}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground font-medium">
-                          {opt.desc}
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      {opt.desc}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       )}

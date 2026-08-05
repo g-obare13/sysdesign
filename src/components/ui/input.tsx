@@ -1,23 +1,23 @@
 import * as React from "react";
 import { Input as InputPrimitive } from "@base-ui/react/input";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
+
 import { cn } from "@/lib/utils";
 
 const inputVariants = cva(
-  "w-full min-w-0 text-sm rounded-[--radius] border bg-card font-sans shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:border-0 file:bg-transparent placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-[1px] focus-visible:ring-primary/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-[1px] aria-invalid:ring-destructive/20 dark:bg-white/5 dark:placeholder:text-muted-foreground dark:focus-visible:border-primary dark:focus-visible:ring-primary/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+  "w-full min-w-0 rounded-md border-[1.5px] bg-input font-sans transition-[color,box-shadow] outline-none file:inline-flex file:border-0 file:bg-transparent placeholder:text-muted-foreground focus-visible:border-primary-500 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive dark:bg-primary-50/10 dark:placeholder:text-primary-50 dark:focus-visible:border-neutral-500 dark:aria-invalid:border-destructive/50",
   {
     variants: {
       size: {
-        default:
-          "h-10 px-3 py-2 text-sm file:h-8 file:text-sm file:font-medium md:text-sm",
-        xs: "h-6 px-2 py-0.5 text-xs file:h-4 file:text-xs",
-        sm: "h-8 px-2.5 py-1 text-sm file:h-6 file:text-xs",
-        lg: "h-12 px-4 py-3 text-base file:h-10 file:text-sm",
+        default: "h-9 py-1 text-sm file:h-7 file:text-sm file:font-medium",
+        xs: "h-6 py-0.5 text-xs file:h-4 file:text-xs",
+        sm: "h-8 py-1 text-sm file:h-6 file:text-xs",
+        lg: "h-10 py-2 text-sm file:h-8 file:text-sm",
+        kuzafy: "h-12 py-3 text-base file:h-9 file:text-sm",
       },
     },
-    defaultVariants: {
-      size: "default",
-    },
+    defaultVariants: { size: "default" },
   },
 );
 
@@ -26,96 +26,53 @@ export interface InputProps
     Omit<React.ComponentProps<"input">, "size">,
     VariantProps<typeof inputVariants> {
   size?: VariantProps<typeof inputVariants>["size"];
-  startIcon?: React.ReactNode;
-  endIcon?: React.ReactNode;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 function Input({
   className,
   type,
   size,
-  startIcon,
-  endIcon,
+  leftIcon,
+  rightIcon,
   ...props
 }: InputProps) {
-  if (!startIcon && !endIcon) {
-    return (
-      <InputPrimitive
-        type={type}
-        data-slot="input"
-        className={cn(inputVariants({ size, className }))}
-        {...props}
-      />
-    );
-  }
+  const sizePaddingPx = {
+    xs: { base: 8, icon: 28 },
+    sm: { base: 10, icon: 32 },
+    default: { base: 10, icon: 36 },
+    lg: { base: 12, icon: 40 },
+    kuzafy: { base: 16, icon: 48 },
+  };
 
+  const currentSize = size ?? "default";
+  const { base, icon } = sizePaddingPx[currentSize];
+
+  const paddingStyle: React.CSSProperties = {
+    paddingLeft: leftIcon ? icon : base,
+    paddingRight: rightIcon ? icon : base,
+  };
+
+  const { dangerouslySetInnerHTML, ...cleanProps } = props as any;
   return (
-    <div
-      className={cn(
-        "relative flex items-stretch w-full rounded-[--radius] border bg-card shadow-xs",
-        // clips slots to border radius so corners look clean
-        "overflow-hidden",
-        "transition-[color,box-shadow]",
-        "focus-within:border-primary focus-within:ring-[1px] focus-within:ring-primary/20",
-        "dark:bg-white/5",
-        "dark:focus-within:border-primary",
-        "has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50",
-        "has-[aria-invalid]:border-destructive has-[aria-invalid]:ring-[1px] has-[aria-invalid]:ring-destructive/20",
-        "dark:has-[aria-invalid]:border-destructive/50 dark:has-[aria-invalid]:ring-destructive/40",
+    <div className="relative flex w-full items-center">
+      {leftIcon && (
+        <span className="absolute left-3 flex items-center text-muted-foreground">
+          {leftIcon}
+        </span>
       )}
-    >
-      {startIcon && (
-        <div
-          className={cn(
-            "self-stretch flex items-center justify-center shrink-0",
-            "bg-black/5 dark:bg-white/5",
-            "border-r border-black/10 dark:border-white/10",
-            "text-muted-foreground",
-            size === "xs" && "px-1.5",
-            size === "sm" && "px-2",
-            size === "lg" && "px-3",
-            (!size || size === "default") && "px-2.5",
-          )}
-        >
-          {startIcon}
-        </div>
-      )}
-
       <InputPrimitive
         type={type}
         data-slot="input"
-        className={cn(
-          // wrapper owns border, radius, shadow — input is bare
-          "flex-1 min-w-0 bg-transparent border-0 rounded-none shadow-none outline-none ring-0 focus-visible:ring-0 focus-visible:border-0",
-          "font-sans transition-[color] placeholder:text-primary-950 dark:placeholder:text-primary-50",
-          "disabled:pointer-events-none disabled:cursor-not-allowed",
-          size === "xs" && "h-6 px-2 py-0.5 text-xs file:h-4 file:text-xs",
-          size === "sm" && "h-8 px-2.5 py-1 text-sm file:h-6 file:text-xs",
-          size === "lg" && "h-10 px-3 py-2 text-base file:h-8 file:text-sm",
-          (!size || size === "default") &&
-            "h-9 px-2.5 py-1 text-base file:h-7 file:text-sm file:font-medium md:text-sm",
-          startIcon && "pl-2.5",
-          endIcon && "pr-2.5",
-          className,
-        )}
-        {...props}
+        style={paddingStyle}
+        className={cn(inputVariants({ size }), className)}
+        {...cleanProps}
       />
-
-      {endIcon && (
-        <div
-          className={cn(
-            "self-stretch flex items-center justify-center shrink-0",
-            "bg-black/5 dark:bg-white/5",
-            "border-l border-black/10 dark:border-white/10",
-            "text-muted-foreground",
-            size === "xs" && "px-1.5",
-            size === "sm" && "px-2",
-            size === "lg" && "px-3",
-            (!size || size === "default") && "px-2.5",
-          )}
-        >
-          {endIcon}
-        </div>
+      {rightIcon && (
+        <span className="absolute right-3 flex items-center text-muted-foreground">
+          {rightIcon}
+        </span>
       )}
     </div>
   );

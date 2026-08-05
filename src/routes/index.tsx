@@ -25,8 +25,15 @@ function HomePage() {
   const projects = useProjectStore((s) => s.projects)
   const loading = useProjectStore((s) => s.loading)
   const activeProjectId = useProjectStore((s) => s.activeProjectId)
-  const activeProject = projects.find(p => p.id === activeProjectId)
-  const [modalOpen, setModalOpen] = useState(false)
+  const activeProject = projects.find((p) => p.id === activeProjectId)
+  const hasProjects = projects.length > 0
+  const [modalOpen, setModalOpen] = useState(!hasProjects)
+
+  useEffect(() => {
+    if (!hasProjects) {
+      setModalOpen(true)
+    }
+  }, [hasProjects])
 
   // Automatic redirect if a project is already active
   useEffect(() => {
@@ -45,8 +52,6 @@ function HomePage() {
     setModalOpen(false)
     navigate({ to: '/$slug', params: { slug: newProject.slug } })
   }
-
-  const hasProjects = projects.length > 0;
 
   if (loading) {
     return (
