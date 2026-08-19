@@ -573,19 +573,21 @@ export function autoLayout() {
  * Clears the current canvas and loads a pre-defined architecture template.
  * @param template - The template object containing nodes and edges
  */
-export function loadTemplate(template: { nodes: any[], edges: any[] }) {
-  canvasStore.setState((s) => {
-    const next: CanvasState = {
-      ...s,
-      nodes: template.nodes,
-      edges: template.edges,
-      edgeCounter: template.edges.length,
-      history: [{ nodes: template.nodes, edges: template.edges }],
-      historyIndex: 0,
-    }
-    save(next)
-    return next
-  })
+export function loadTemplate(template: { nodes: any[]; edges: any[]; category?: 'architecture' | 'c4' }) {
+  const mode = template.category ?? canvasStore.state.diagramMode
+  const next: CanvasState = {
+    ...canvasStore.state,
+    diagramMode: mode,
+    nodes: template.nodes,
+    edges: template.edges,
+    edgeCounter: template.edges.length,
+    history: [{ nodes: template.nodes, edges: template.edges }],
+    historyIndex: 0,
+    saveStatus: 'idle',
+  }
+  canvasStore.setState(() => next)
+  save(next)
+  flushSave()
 }
 
 /**

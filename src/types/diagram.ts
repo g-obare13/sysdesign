@@ -8,9 +8,9 @@ export type C4Level = 'context' | 'container' | 'component' | 'code'
 export interface NodeMeta extends Record<string, unknown> {
   label: string
   category: NodeCategory
-  subtype: string
-  icon: string
-  description: string
+  subtype?: string
+  icon?: string
+  description?: string
   /** For C4 nodes: which diagram level this node belongs to */
   c4Level?: C4Level
   technology?: string

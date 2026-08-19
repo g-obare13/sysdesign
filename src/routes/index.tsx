@@ -38,9 +38,13 @@ function HomePage() {
   // Automatic redirect if a project is already active
   useEffect(() => {
     if (activeProject) {
-      navigate({ to: '/$slug', params: { slug: activeProject.slug } })
+      const isC4 = activeProject.type === "c4";
+      navigate({
+        to: isC4 ? "/$slug/c4" : "/$slug",
+        params: { slug: activeProject.slug } as any,
+      });
     }
-  }, [activeProject, navigate])
+  }, [activeProject, navigate]);
 
   const handleCreateProject = (
     name: string,
