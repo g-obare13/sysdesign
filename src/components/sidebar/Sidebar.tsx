@@ -66,7 +66,7 @@ function NodeItem({
   React.useEffect(() => setMounted(true), []);
   const isDark = mounted && resolvedTheme === "dark";
   const style = CATEGORY_STYLE[template.category];
-  const accent = isDark ? style.dark.color : style.color;
+  const accent = (isDark && style?.dark?.color) || style?.color || "#888888";
   const Icon = isCustom ? null : getIcon(template.icon);
 
   const onDragStart = (e: React.DragEvent) => {
@@ -231,25 +231,25 @@ export default function Sidebar() {
   if (isExporting) return null;
 
   return (
-    <div className="relative flex h-full select-none z-30">
+    <div className="select-none z-30">
       {/* Floating Toggle Button when Collapsed */}
       {isCollapsed && (
         <button
           onClick={() => setIsCollapsed(false)}
-          className="absolute top-3 left-3 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border shadow-md hover:bg-muted text-xs font-semibold transition-all"
+          className="absolute top-4 left-4 z-40 flex items-center gap-2 px-3.5 py-2 rounded-full bg-card/90 backdrop-blur-md border border-border/80 shadow-lg hover:bg-muted font-sans font-bold transition-all"
         >
           <TablerIcons.IconLayoutSidebar size={16} className="text-primary" />
-          <span>Components</span>
+          <span>Palette</span>
         </button>
       )}
 
-      {/* Main Component Palette Panel */}
+      {/* Main Component Palette Panel (Floating Studio Panel) */}
       <aside
         className={cn(
-          "flex flex-col overflow-hidden bg-card/95 backdrop-blur-md border-r border-border/50 shadow-lg transition-all duration-300 ease-in-out",
+          "absolute top-4 left-4 bottom-4 w-[280px] rounded-3xl bg-card/90 backdrop-blur-xl border border-border/80 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out z-30",
           isCollapsed
-            ? "w-0 opacity-0 pointer-events-none border-none"
-            : "w-[270px] opacity-100",
+            ? "-translate-x-[320px] opacity-0 pointer-events-none"
+            : "translate-x-0 opacity-100",
         )}
       >
         {/* Panel Header */}
@@ -368,7 +368,7 @@ export default function Sidebar() {
                     <div className="flex items-center gap-2">
                       <span
                         className="size-2 rounded-full"
-                        style={{ backgroundColor: style.color }}
+                        style={{ backgroundColor: style?.color ?? "#888888" }}
                       />
                       <span className="text-xs font-bold capitalize text-foreground/90">
                         {cat}

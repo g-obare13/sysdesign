@@ -64,6 +64,7 @@ export const Route = createRootRoute({
     ],
 
     links: [
+      { rel: "preload", href: "/fonts/MonaSans.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -104,7 +105,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="relative">
+      <body className="relative" suppressHydrationWarning>
         <ThemeProvider>
           <TooltipProvider delay={300}>
             {/* The editor needs a desktop; content pages stay readable on mobile */}

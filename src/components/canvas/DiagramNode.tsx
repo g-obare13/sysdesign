@@ -8,20 +8,13 @@ import {
   updateNodeMeta,
   setEditingNodeId,
   useCanvasStore,
+  applyNodeChangesToStore,
 } from "../../store/canvas.store";
 import type { NodeMeta } from "../../types/diagram";
 import { CATEGORY_STYLE } from "../../types/diagram";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Textarea } from "../ui/textarea";
-import { IconPencilBolt } from "@tabler/icons-react";
+import NodeEditModal from "./NodeEditModal";
 
 type TablerIconComponent = React.FC<{
   size?: number;
@@ -142,11 +135,14 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
         dark: c4Style!.dark,
       }
     : CATEGORY_STYLE[category as keyof typeof CATEGORY_STYLE];
+  const darkVariant =
+    baseStyle && "dark" in baseStyle ? baseStyle.dark : undefined;
   const style = {
-    color: isDark ? baseStyle.dark.color : baseStyle.color,
-    pill: isDark ? baseStyle.dark.pill : baseStyle.pill,
-    text: isDark ? baseStyle.dark.text : baseStyle.text,
-    label: baseStyle.label,
+    color: (isDark && darkVariant?.color) || baseStyle?.color || "#888888",
+    pill: (isDark && darkVariant?.pill) || baseStyle?.pill || "var(--muted)",
+    text:
+      (isDark && darkVariant?.text) || baseStyle?.text || "var(--foreground)",
+    label: baseStyle?.label || category,
   };
 
   // Resolve icon: C4 may override icon from meta or use C4Style default
@@ -337,250 +333,124 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     );
   }
 
-  //  Shared card renderer for both Architecture + C4 nodes
-  // C4 nodes use the exact same card design as architecture nodes.
-  // The only differences are: color config, abstraction label, and (for Person) a circle icon pill.
-  const nodeColorVar = subtype === "sh-sticky" ? "#facc15" : style.color;
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      applyNodeChangesToStore([{ id, type: "remove" }]);
+    },
+    [id],
+  );
 
   return (
-    <div
-      className={cn(
-        "relative transition-all duration-150 px-3 py-2.5 border rounded-[--radius]",
-        shapeClass,
-        editing
-          ? "min-w-[220px] max-w-[240px]"
-          : isFlow
-            ? "min-w-[160px] flex flex-col items-center justify-center p-3 text-center"
-            : isC4
-              ? "min-w-[148px] max-w-[190px]"
-              : "min-w-[148px] max-w-[190px]",
-        selected
-          ? "border-(--node-color) bg-[color-mix(in_srgb,var(--node-color)_6%,var(--card))] shadow-[0_0_0_3px_color-mix(in_srgb,var(--node-color)_20%,transparent)]"
-          : cn(
-              "bg-card border-border shadow-[0_1px_4px_rgba(0,0,0,0.07)]",
-              subtype === "sh-sticky" && "border-yellow-400 bg-yellow-100/50",
-            ),
-      )}
-      style={
-        {
-          ...shapeStyle,
-          "--node-color": nodeColorVar,
-        } as React.CSSProperties
-      }
-    >
-      {statusCfg && !editing && (
+    <>
+      <div
+        className={cn(
+          "group relative flex items-center gap-3.5 px-4 py-3 bg-card text-foreground rounded-2xl border transition-all duration-200 min-w-[210px] max-w-[250px] select-none cursor-pointer",
+          selected
+            ? "border-primary ring-3 ring-primary/20 shadow-md z-20"
+            : "border-border/80 hover:border-border hover:shadow-md shadow-xs",
+        )}
+      >
+        {/* Floating Actions on Hover & Select: Edit and Delete buttons */}
         <div
           className={cn(
-            "absolute -top-2 -right-2 shrink-0 text-[8.5px] font-semibold px-1.5 py-0.5 rounded-full leading-none z-10",
-            statusCfg.className,
+            "absolute -top-3.5 -right-2 flex items-center gap-1 z-30 transition-all duration-150",
+            selected
+              ? "opacity-100 pointer-events-auto scale-100"
+              : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-hover:scale-100 scale-95",
           )}
         >
-          {statusCfg.label}
-        </div>
-      )}
-
-      {/* Handles */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top-t"
-        style={handleStyle}
-      />
-      <Handle
-        type="source"
-        position={Position.Top}
-        id="top-s"
-        style={handleStyle}
-      />
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left-t"
-        style={handleStyle}
-      />
-      <Handle
-        type="source"
-        position={Position.Left}
-        id="left-s"
-        style={handleStyle}
-      />
-      <Handle
-        type="target"
-        position={Position.Right}
-        id="right-t"
-        style={handleStyle}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right-s"
-        style={handleStyle}
-      />
-      <Handle
-        type="target"
-        position={Position.Bottom}
-        id="bottom-t"
-        style={handleStyle}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="bottom-s"
-        style={handleStyle}
-      />
-
-      {/* Header row: icon pill + category/abstraction label */}
-      {!isFlow && (
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <div
-              className={cn(
-                "size-4 rounded-md flex items-center justify-center shrink-0",
-                // Person gets a circle pill to hint at the avatar shape
-                isC4 && subtype === "c4-person" && "rounded-full",
-              )}
-              style={{ background: style.pill, color: style.color }}
-            >
-              <Icon size={8} stroke={1.8} />
-            </div>
-            <h6
-              className="text-[8px] font-medium tracking-widest truncate"
-              style={{
-                color: subtype === "sh-sticky" ? "#854f0b" : style.text,
-              }}
-            >
-              {isShape ? "Note" : style.label}
-            </h6>
-          </div>
-        </div>
-      )}
-
-      {/* Edit form */}
-      {editing ? (
-        <div className="flex flex-col gap-2 mt-1">
-          <Input
-            autoFocus
-            size="xs"
-            className="nodrag py-1! text-[6px]!"
-            placeholder="Label"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") commitEdit();
-              if (e.key === "Escape") closeEdit();
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit();
             }}
-          />
-          <Input
-            size="xs"
-            className="nodrag py-1! text-[6px]!"
-            placeholder={isC4 ? "Technology / role" : "Owner (e.g. Auth Team)"}
-            value={draftOwner}
-            onChange={(e) => setDraftOwner(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") commitEdit();
-            }}
-          />
-          <Textarea
-            placeholder={isC4 ? "Description…" : "Notes… (Shift+Enter to save)"}
-            value={draftNotes}
-            rows={4}
-            className="resize-none nodrag px-2 py-1 text-[6px]! leading-tight min-h-4"
-            onChange={(e) => setDraftNotes(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && e.shiftKey) {
-                e.preventDefault();
-                commitEdit();
-              }
-            }}
-          />
-          <Select
-            value={draftStatus}
-            onValueChange={(val) => setDraftStatus(val as Status)}
+            title="Edit properties"
+            className="w-7 h-7 rounded-lg bg-card border border-border shadow-md flex items-center justify-center cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted hover:border-primary/40 transition-all hover:scale-105"
           >
-            <SelectTrigger
-              size="xs"
-              className="w-full nodrag text-[6px]! py-1! h-1"
-            >
-              <SelectValue
-                placeholder="No status"
-                className="text-[6px]! h-4!"
-              />
-            </SelectTrigger>
-            <SelectContent className="nodrag">
-              <SelectItem value="">No status</SelectItem>
-              <SelectItem value="existing">Existing</SelectItem>
-              <SelectItem value="planned">Planned</SelectItem>
-              <SelectItem value="deprecated">Deprecated</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={commitEdit}
-            variant="default"
-            size="sm"
-            className="w-full text-[6px]! h-6 active:scale-[0.98] transition-all cursor-pointer nodrag"
+            <TablerIcons.IconPencil size={13} stroke={1.8} />
+          </button>
+          <button
+            onClick={handleDelete}
+            title="Delete node"
+            className="w-7 h-7 rounded-lg bg-card border border-border shadow-md flex items-center justify-center cursor-pointer text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-all hover:scale-105"
           >
-            Save
-          </Button>
+            <TablerIcons.IconTrash size={13} stroke={1.8} />
+          </button>
         </div>
-      ) : (
-        /* Read view */
+
+        {/* Handles for Edge Connections */}
+        <Handle
+          type="target"
+          position={Position.Top}
+          id="top-t"
+          style={handleStyle}
+        />
+        <Handle
+          type="source"
+          position={Position.Top}
+          id="top-s"
+          style={handleStyle}
+        />
+        <Handle
+          type="target"
+          position={Position.Left}
+          id="left-t"
+          style={handleStyle}
+        />
+        <Handle
+          type="source"
+          position={Position.Left}
+          id="left-s"
+          style={handleStyle}
+        />
+        <Handle
+          type="target"
+          position={Position.Right}
+          id="right-t"
+          style={handleStyle}
+        />
+        <Handle
+          type="source"
+          position={Position.Right}
+          id="right-s"
+          style={handleStyle}
+        />
+        <Handle
+          type="target"
+          position={Position.Bottom}
+          id="bottom-t"
+          style={handleStyle}
+        />
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id="bottom-s"
+          style={handleStyle}
+        />
+
+        {/* Left Squircle Icon Container */}
         <div
-          onDoubleClick={openEdit}
-          className={cn(
-            "cursor-text h-full",
-            isFlow && "flex flex-col items-center justify-center",
-          )}
+          className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-slate-600 dark:bg-slate-700 text-white shadow-xs"
+          style={{
+            background: `color-mix(in srgb, ${style.color} 80%, #334155)`,
+          }}
         >
-          <div
-            className={cn(
-              "flex flex-wrap gap-1 items-center",
-              isFlow && "justify-center",
-            )}
-          >
-            {!isFlow && <IconPencilBolt size={8} stroke={1.8} />}
-            <h6
-              className={cn(
-                "font-semibold wrap-break-word leading-tight",
-                isFlow ? "text-sm text-[8px]" : "text-[8px]",
-              )}
-            >
-              {meta.label as string}
-            </h6>
-          </div>
-
-          {/* Description/notes shown for C4 and regular nodes */}
-          {(meta.description || meta.notes) && !isFlow && (
-            <div className="text-[7px] text-muted-foreground mt-0.5 leading-snug">
-              {
-                (isC4
-                  ? meta.notes || meta.description
-                  : meta.description) as string
-              }
-            </div>
-          )}
-
-          {/* Owner / tech badge */}
-          {meta.owner && !isFlow && (
-            <div
-              className="text-[7px] font-semibold mt-1"
-              style={{ color: style.color }}
-            >
-              {isC4 ? `[${meta.owner as string}]` : `@${meta.owner as string}`}
-            </div>
-          )}
-
-          {/* Notes indicator for non-C4 */}
-          {meta.notes && !isC4 && !isFlow && (
-            <div className="mt-1.5 pt-1.5 border-t border-dashed border-border flex flex-col gap-0.5">
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <TablerIcons.IconNotes size={10} stroke={2} />
-                <span className="text-[7px]">Notes attached</span>
-              </div>
-            </div>
-          )}
+          <Icon size={20} stroke={1.8} color="white" />
         </div>
-      )}
-    </div>
+
+        {/* Node Labels Column */}
+        <div className="flex flex-col min-w-0 flex-1">
+          <h6 className="text-sm truncate">{meta.label || style.label}</h6>
+          <span className="font-mono text-xs text-muted-foreground leading-tight truncate">
+            {meta.subtype || style.label}
+          </span>
+        </div>
+      </div>
+
+      {/* Node Edit Popup Modal */}
+      {editing && <NodeEditModal nodeId={id} meta={meta} />}
+    </>
   );
 }
 

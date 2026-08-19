@@ -310,8 +310,8 @@ export function connectNodes(connection: Connection) {
       type: 'smoothstep',
       label: isC4 ? 'Uses' : undefined,
       data: isC4 ? { label: 'Uses' } : {},
-      style: { stroke: 'var(--border)', strokeWidth: 1.5 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--border)' },
+      style: { stroke: 'var(--primary)', strokeWidth: 1.5 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--primary)' },
     }
     const next = pushHistory({ ...s, edges: [...s.edges, edge], edgeCounter: s.edgeCounter + 1 })
     save(next)

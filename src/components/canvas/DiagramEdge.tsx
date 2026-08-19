@@ -58,7 +58,16 @@ export default function DiagramEdge({
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} style={style} markerEnd={markerEnd} />
+      <BaseEdge
+        id={id}
+        path={edgePath}
+        style={{
+          stroke: "var(--primary)",
+          strokeWidth: 1.5,
+          ...style,
+        }}
+        markerEnd={markerEnd}
+      />
 
       <EdgeLabelRenderer>
         <div

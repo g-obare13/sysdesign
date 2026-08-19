@@ -33,12 +33,15 @@ function C4Page() {
   if (!project) {
     return (
       <Container>
-        <div className="flex flex-col h-screen items-center justify-center bg-background p-4">
+        <div className="flex flex-col gap-3 h-screen items-center justify-center bg-background p-4">
           <h1>Project not found</h1>
+          <p>The project you're looking for doesn"t exist or has been moved.</p>
 
           <Button
             icon={IconFolderPlus}
             iconPlacement="right"
+            variant={"shiny"}
+            size="pill"
             onClick={() => navigate({ to: "/projects" })}
           >
             Browse Projects
@@ -49,9 +52,9 @@ function C4Page() {
   }
 
   return (
-    <div className="flex-1 flex h-full overflow-hidden">
+    <div className="relative flex-1 flex h-full overflow-hidden w-full">
       <Sidebar />
-      <main className="flex-1 relative overflow-hidden z-10">
+      <main className="flex-1 relative overflow-hidden z-10 w-full h-full">
         <CanvasErrorBoundary>
           <DiagramCanvas />
         </CanvasErrorBoundary>
