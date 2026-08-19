@@ -1,12 +1,25 @@
+/**
+ * @fileoverview Placeholder landing layout for in-development features.
+ */
+
 import { IconRocket } from "@tabler/icons-react";
-import Sidebar from "../sidebar/Sidebar";
+import Sidebar from "@/components/sidebar/Sidebar";
 
 interface ComingSoonProps {
+  /** Title of the upcoming feature */
   title: string;
+  /** Detailed description of the functionality */
   description: string;
+  /** Primary icon component */
   icon: React.ElementType;
 }
 
+/**
+ * Placeholder view rendered on work-in-progress routes.
+ *
+ * @param props - ComingSoonProps
+ * @returns ComingSoon view component
+ */
 export default function ComingSoon({
   title,
   description,

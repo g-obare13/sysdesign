@@ -1,5 +1,12 @@
-import type { Template } from "../templates";
+/**
+ * @fileoverview C4 Model diagram template for a Telehealth & Clinical EHR Platform.
+ */
 
+import type { Template } from "@/data/templates";
+
+/**
+ * Telehealth & Clinical EHR Platform C4 architecture template.
+ */
 export const TELEHEALTH_C4_TEMPLATE: Template = {
   id: "telehealth-ehr-c4",
   name: "Telehealth & Clinical EHR Platform (C4 Model)",
@@ -7,7 +14,7 @@ export const TELEHEALTH_C4_TEMPLATE: Template = {
   description:
     "C4 Model for a HIPAA-compliant telehealth platform with patient portal, physician consultation console, WebRTC streaming gateway, and FHIR clinical records service.",
   nodes: [
-    // ── Person 1: Patient ────────────────────────────────────────────
+    // Person 1: Patient
     {
       id: "c4-th-patient",
       type: "diagram",
@@ -22,7 +29,7 @@ export const TELEHEALTH_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── Person 2: Physician / Specialist ─────────────────────────────
+    // Person 2: Physician / Specialist
     {
       id: "c4-th-doctor",
       type: "diagram",
@@ -37,7 +44,7 @@ export const TELEHEALTH_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── System Boundary: Telehealth & Clinical EHR Platform ──────────
+    // System Boundary: Telehealth & Clinical EHR Platform
     {
       id: "grp-telehealth-system",
       type: "group",
@@ -130,7 +137,7 @@ export const TELEHEALTH_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── External System 1: National Health Insurance ─────────────────
+    // External System 1: National Health Insurance
     {
       id: "c4-th-insurance",
       type: "diagram",
@@ -146,7 +153,7 @@ export const TELEHEALTH_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── External System 2: E-Prescription Fulfillment ────────────────
+    // External System 2: E-Prescription Fulfillment
     {
       id: "c4-th-pharmacy",
       type: "diagram",

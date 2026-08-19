@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Primary application header and floating canvas control docks (history, navigation, C4 level switcher, export).
+ */
+
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useReactFlow, useViewport } from "@xyflow/react";
 import { useState } from "react";
@@ -32,7 +36,7 @@ import {
   IconKeyboard,
   IconInfoCircle,
 } from "@tabler/icons-react";
-import { type Template } from "../../data/templates";
+import { type Template } from "@/data/templates";
 import {
   autoLayout,
   clearCanvas,
@@ -44,8 +48,8 @@ import {
   toggleSnap,
   undo,
   useCanvasStore,
-} from "../../store/canvas.store";
-import type { C4Level } from "../../types/diagram";
+} from "@/store/canvas.store";
+import type { C4Level } from "@/types/diagram";
 import {
   createProject,
   login,
@@ -53,21 +57,21 @@ import {
   setActiveProject,
   useProjectStore,
   type ProjectType,
-} from "../../store/project.store";
+} from "@/store/project.store";
 import {
   exportMermaid,
   exportPng,
   exportStructurizr,
   exportSvgFile,
   exportTerraform,
-} from "../export/exportUtils";
-import { ThemeToggle } from "../ThemeToggle";
-import { Button } from "../ui/button";
-import ConfirmModal from "../ui/ConfirmModal";
-import ProjectSetupPopup from "../dashboard/ProjectSetupPopup";
-import { Logo } from "../ui/logo";
+} from "@/components/export/exportUtils";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import ProjectSetupPopup from "@/components/dashboard/ProjectSetupPopup";
+import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
-import AISettings from "../ai/AISettings";
+import AISettings from "@/components/ai/AISettings";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -116,6 +120,11 @@ const TOP_NAV_ITEMS = [
   { id: "shapes", label: "Shapes", icon: IconNotebook, path: "/shapes" },
 ];
 
+/**
+ * Global application top header bar and floating diagram interaction docks.
+ *
+ * @returns Header and Dock control components
+ */
 export default function Toolbar() {
   const projects = useProjectStore((s) => s.projects);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);

@@ -1,12 +1,16 @@
+/**
+ * @fileoverview Default landing route for the application (`/`).
+ */
+
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import Sidebar from '../components/sidebar/Sidebar'
-import DiagramCanvas from '../components/canvas/DiagramCanvas'
-import CanvasErrorBoundary from '../components/canvas/CanvasErrorBoundary'
-import { createProjectFromScratchpad } from '../store/canvas.store'
-import { useProjectStore, type ProjectType } from '../store/project.store'
-import ProjectSetupPopup from '../components/dashboard/ProjectSetupPopup'
-import { Button } from "#/components/ui/button";
+import Sidebar from '@/components/sidebar/Sidebar'
+import DiagramCanvas from '@/components/canvas/DiagramCanvas'
+import CanvasErrorBoundary from '@/components/canvas/CanvasErrorBoundary'
+import { createProjectFromScratchpad } from '@/store/canvas.store'
+import { useProjectStore, type ProjectType } from '@/store/project.store'
+import ProjectSetupPopup from '@/components/dashboard/ProjectSetupPopup'
+import { Button } from "@/components/ui/button";
 import { IconSparkles } from "@tabler/icons-react";
 
 /**
@@ -19,6 +23,8 @@ export const Route = createFileRoute('/')({
 /**
  * The initial landing page component.
  * Handles automatic redirection to active projects and initial project setup.
+ *
+ * @returns Home page workspace element
  */
 function HomePage() {
   const navigate = useNavigate()

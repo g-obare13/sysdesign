@@ -1,6 +1,10 @@
+/**
+ * @fileoverview Unit tests for Canvas Store (node operations, undo/redo, auto-layout, scratchpad promotion).
+ */
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-vi.mock("../lib/supabase", () => ({
+vi.mock("@/lib/supabase", () => ({
   supabase: {
     auth: {
       getSession: vi
@@ -34,8 +38,14 @@ import {
   createProjectFromScratchpad,
 } from "./canvas.store";
 import { projectStore } from "./project.store";
-import type { DiagramNode } from "../types/diagram";
+import type { DiagramNode } from "@/types/diagram";
 
+/**
+ * Creates a mock test diagram node.
+ *
+ * @param id - Unique node identifier
+ * @returns Initialized DiagramNode
+ */
 function makeNode(id: string): DiagramNode {
   return {
     id,
@@ -100,7 +110,6 @@ describe("canvas.store", () => {
     const p = createProjectFromScratchpad("Saved From Scratchpad");
     expect(p).not.toBeNull();
     expect(projectStore.state.activeProjectId).toBe(p?.id);
-    // The scratchpad nodes carry over into the new project.
     expect(canvasStore.state.nodes.map((n) => n.id)).toEqual(["scratch-a"]);
   });
 });

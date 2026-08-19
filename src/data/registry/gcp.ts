@@ -1,6 +1,12 @@
-import type { NodeTemplate } from '../../types/diagram'
+/**
+ * @fileoverview Component catalog for Google Cloud Platform (GCP) architecture nodes.
+ */
 
-/** Google Cloud Platform components. */
+import type { NodeTemplate } from '@/types/diagram'
+
+/**
+ * Google Cloud Platform component catalog.
+ */
 export const GCP_REGISTRY: NodeTemplate[] = [
   // Compute
   { subtype: 'gcp-compute-engine', label: 'Compute Engine', category: 'cloud', icon: 'IconServer', description: 'Virtual Machines' },

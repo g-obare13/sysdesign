@@ -1,37 +1,91 @@
+/**
+ * @fileoverview Diagram types, node metadata, templates, and styling definitions.
+ * Provides core type definitions for system architecture and C4 diagramming.
+ */
+
 import type { Node, Edge } from '@xyflow/react'
 
-export type NodeCategory = 'microservice' | 'cloud' | 'database' | 'frontend' | 'networking' | 'security' | 'observability' | 'ai' | 'devops' | 'flow' | 'shape' | 'c4'
+/**
+ * Top-level classification category for diagram nodes.
+ */
+export type NodeCategory =
+  | 'microservice'
+  | 'cloud'
+  | 'database'
+  | 'frontend'
+  | 'networking'
+  | 'security'
+  | 'observability'
+  | 'ai'
+  | 'devops'
+  | 'flow'
+  | 'shape'
+  | 'c4'
 
-
+/**
+ * Supported hierarchical levels in the C4 architecture model.
+ */
 export type C4Level = 'context' | 'container' | 'component' | 'code'
 
+/**
+ * Metadata attributes stored on each ReactFlow diagram node.
+ */
 export interface NodeMeta extends Record<string, unknown> {
+  /** Display label for the node */
   label: string
+  /** Architectural category */
   category: NodeCategory
+  /** Specific component subtype (e.g., 'api-gateway', 'postgres', 'c4-container') */
   subtype?: string
+  /** Icon identifier from tabler icons */
   icon?: string
+  /** Human-readable description or purpose */
   description?: string
   /** For C4 nodes: which diagram level this node belongs to */
   c4Level?: C4Level
+  /** Underlying technology stack (e.g., 'Go, Gin', 'React, Vite', 'PostgreSQL 16') */
   technology?: string
+  /** Whether the node represents an external boundary/third-party system */
   isExternal?: boolean
+  /** Parent container or boundary reference */
   containerRef?: string
-  status?: string // e.g. "planned", "existing", "deprecated"
+  /** Lifecycle or implementation status (e.g. 'planned', 'existing', 'deprecated') */
+  status?: string
+  /** Team or engineer ownership */
   owner?: string
+  /** Additional engineering notes or documentation */
   notes?: string
 }
 
+/**
+ * Typed ReactFlow diagram node wrapping NodeMeta.
+ */
 export type DiagramNode = Node<NodeMeta>
+
+/**
+ * Typed ReactFlow diagram edge connection.
+ */
 export type DiagramEdge = Edge
 
+/**
+ * Template configuration for draggable library items.
+ */
 export interface NodeTemplate {
+  /** Subtype unique identifier */
   subtype: string
+  /** Human-readable display label */
   label: string
+  /** Architectural category */
   category: NodeCategory
+  /** Tabler icon identifier */
   icon: string
+  /** Brief description shown in tooltips and sidebar */
   description: string
 }
 
+/**
+ * Predefined node templates grouped by architectural category.
+ */
 export const NODE_TEMPLATES: Record<NodeCategory, NodeTemplate[]> = {
   microservice: [
     { subtype: 'api-gateway',    label: 'API Gateway',    category: 'microservice', icon: 'IconApi',          description: 'Entry point for API traffic' },
@@ -72,14 +126,23 @@ export const NODE_TEMPLATES: Record<NodeCategory, NodeTemplate[]> = {
   ],
 }
 
-
+/**
+ * Visual styling theme configuration for a node category.
+ */
 export interface CategoryStyle {
+  /** Display label for the category */
   label: string
+  /** Accent color hex code */
   color: string
+  /** Background color hex code */
   bg: string
+  /** Border color hex code */
   border: string
+  /** Primary text color hex code */
   text: string
+  /** Tag / badge background color */
   pill: string
+  /** Optional dark theme overrides */
   dark?: {
     color?: string
     bg?: string
@@ -89,6 +152,9 @@ export interface CategoryStyle {
   }
 }
 
+/**
+ * Color palettes and styling presets for all diagram node categories.
+ */
 export const CATEGORY_STYLE: Record<NodeCategory, CategoryStyle> = {
   microservice:  { label: 'Microservices', color: '#185FA5', bg: '#EBF3FC', border: '#B5D4F4', text: '#0C447C', pill: '#DAEAF9' },
   cloud:         { label: 'Cloud Infra',   color: '#3B6D11', bg: '#EDF5E2', border: '#C0DD97', text: '#27500A', pill: '#DFF0C5' },
@@ -103,4 +169,3 @@ export const CATEGORY_STYLE: Record<NodeCategory, CategoryStyle> = {
   shape:         { label: 'Shapes',        color: '#64748B', bg: '#F1F5F9', border: '#CBD5E1', text: '#334155', pill: '#F1F5F9' },
   c4:            { label: 'C4 Model',      color: '#1168BD', bg: '#E8F4FD', border: '#1168BD', text: '#0B4D8C', pill: '#BBDEFB' },
 }
-

@@ -1,10 +1,11 @@
 /**
- * System prompts for AI-powered diagram generation.
- * The AI must respond with ONLY a JSON object — no markdown, no explanation.
+ * @fileoverview System prompts and schemas for AI-powered diagram generation.
+ * Enforces structured JSON output without markdown fences across Architecture and C4 modes.
  */
 
-// ── Available subtypes the AI can use ─────────────────────────────────
-
+/**
+ * Node subtypes available for Architecture diagram mode.
+ */
 const ARCH_NODE_TYPES = `
 Available node subtypes for Architecture mode:
 MICROSERVICE: api-gateway, service, message-queue, load-balancer
@@ -13,6 +14,9 @@ DATABASE: postgres, redis, mongo, elasticsearch
 FRONTEND: web-app, mobile, component, bff
 `
 
+/**
+ * Node subtypes available for C4 Model diagram mode.
+ */
 const C4_NODE_TYPES = `
 Available node subtypes for C4 mode (use ONLY these):
 c4-person    — An end user, customer, or actor
@@ -21,8 +25,9 @@ c4-container — An app, service, database, or deployable unit within a system
 c4-component — A building block or module inside a container
 `
 
-// ── Layout helpers ────────────────────────────────────────────────────
-
+/**
+ * Layout heuristics guiding node placement and spacing.
+ */
 const LAYOUT_GUIDE = `
 Layout rules:
 - Space nodes 200px apart horizontally, 160px apart vertically
@@ -32,8 +37,9 @@ Layout rules:
 - Keep x values between 80 and 1400, y values between 80 and 900
 `
 
-// ── Output schema ─────────────────────────────────────────────────────
-
+/**
+ * JSON response schema expected from AI model completions.
+ */
 const OUTPUT_SCHEMA = `
 Respond with ONLY valid JSON — no markdown fences, no explanation, nothing else.
 Schema:
@@ -58,8 +64,9 @@ Schema:
 }
 `
 
-// ── Exported system prompts ───────────────────────────────────────────
-
+/**
+ * Complete system prompt for standard software architecture diagram generation.
+ */
 export const ARCHITECTURE_SYSTEM_PROMPT = `
 You are an expert software architect assistant integrated into SysDesign, a system diagram tool.
 Your job is to generate architecture diagrams from user descriptions.
@@ -79,6 +86,9 @@ Rules:
 - Labels must be concise (e.g. "User Service", "Postgres DB", "API Gateway").
 `.trim()
 
+/**
+ * Complete system prompt for C4 Model diagram generation.
+ */
 export const C4_SYSTEM_PROMPT = `
 You are an expert software architect assistant integrated into SysDesign, a C4 model diagram tool.
 Your job is to generate C4 model diagrams from user descriptions.

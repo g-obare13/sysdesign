@@ -1,7 +1,11 @@
+/**
+ * @fileoverview Unit tests for Project Store (creation, slugification, limits, and renaming).
+ */
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Supabase is only used for cloud persistence; unit tests run as a guest.
-vi.mock("../lib/supabase", () => ({
+vi.mock("@/lib/supabase", () => ({
   supabase: {
     auth: {
       getSession: vi

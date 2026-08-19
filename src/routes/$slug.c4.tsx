@@ -1,18 +1,27 @@
+/**
+ * @fileoverview C4 Architecture editor page mapped to a project slug (`/$slug/c4`).
+ */
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import Sidebar from "../components/sidebar/Sidebar";
-import DiagramCanvas from "../components/canvas/DiagramCanvas";
-import CanvasErrorBoundary from "../components/canvas/CanvasErrorBoundary";
-import { useProjectStore, setActiveProject } from "../store/project.store";
-import { setDiagramMode } from "../store/canvas.store";
-import Container from "#/components/ui/container";
+import Sidebar from "@/components/sidebar/Sidebar";
+import DiagramCanvas from "@/components/canvas/DiagramCanvas";
+import CanvasErrorBoundary from "@/components/canvas/CanvasErrorBoundary";
+import { useProjectStore, setActiveProject } from "@/store/project.store";
+import { setDiagramMode } from "@/store/canvas.store";
+import Container from "@/components/ui/container";
 import { IconFolderPlus } from "@tabler/icons-react";
-import { Button } from "#/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/$slug/c4")({
   component: C4Page,
 });
 
+/**
+ * C4 diagram editor view for a given project slug.
+ *
+ * @returns C4 diagram editing workspace element
+ */
 function C4Page() {
   const { slug } = Route.useParams();
   const projects = useProjectStore((s) => s.projects);
@@ -35,7 +44,7 @@ function C4Page() {
       <Container>
         <div className="flex flex-col gap-3 h-screen items-center justify-center bg-background p-4">
           <h1>Project not found</h1>
-          <p>The project you're looking for doesn"t exist or has been moved.</p>
+          <p>The project you're looking for doesn't exist or has been moved.</p>
 
           <Button
             icon={IconFolderPlus}

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Custom ReactFlow edge renderer with editable inline label pill and animated stroke.
+ */
+
 import { useState, useEffect, useRef } from "react";
 import {
   BaseEdge,
@@ -5,12 +9,15 @@ import {
   EdgeLabelRenderer,
   type EdgeProps,
 } from "@xyflow/react";
-import { updateEdgeMeta } from "../../store/canvas.store";
-import { cn } from "../../lib/utils";
+import { updateEdgeMeta } from "@/store/canvas.store";
+import { cn } from "@/lib/utils";
 
 /**
  * Custom edge component for the diagram.
  * Renders an animated bezier path with an editable label in the center.
+ *
+ * @param props - ReactFlow EdgeProps
+ * @returns ReactFlow Diagram Edge element
  */
 export default function DiagramEdge({
   id,
@@ -39,14 +46,12 @@ export default function DiagramEdge({
   const [labelDraft, setLabelDraft] = useState((data?.label as string) || "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Keep draft in sync with saved value when not editing
   useEffect(() => {
     if (!isEditing) {
       setLabelDraft((data?.label as string) || "");
     }
   }, [data?.label, isEditing]);
 
-  // Auto-resize textarea height to fit content
   useEffect(() => {
     if (isEditing && textareaRef.current) {
       textareaRef.current.style.height = "auto";

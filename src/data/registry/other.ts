@@ -1,6 +1,13 @@
-import type { NodeTemplate } from '../../types/diagram'
+/**
+ * @fileoverview Component catalog for provider-agnostic databases, frontends, microservice patterns,
+ * networking, observability, AI/ML, DevOps, ER/sequence flows, and basic shapes.
+ */
 
-/** Provider-agnostic components: databases, frontends, patterns, flows, shapes. */
+import type { NodeTemplate } from '@/types/diagram'
+
+/**
+ * Provider-agnostic components: databases, frontends, patterns, flows, and shapes.
+ */
 export const OTHER_REGISTRY: NodeTemplate[] = [
   // Generic Databases / Data Stores
   { subtype: 'db-postgres', label: 'PostgreSQL', category: 'database', icon: 'IconDatabase', description: 'Relational Database system' },

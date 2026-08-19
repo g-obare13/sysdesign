@@ -1,6 +1,10 @@
+/**
+ * @fileoverview React Error Boundary isolating runtime failures in the Diagram Canvas.
+ */
+
 import { Component, type ReactNode } from "react";
 import { IconAlertTriangle, IconReload } from "@tabler/icons-react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   children: ReactNode;
@@ -12,7 +16,7 @@ interface State {
 
 /**
  * Catches render errors inside the diagram canvas (e.g. a bad node/edge type)
- * so a single broken node can't white-screen the entire editor.
+ * so a single broken node cannot crash the entire editor application.
  */
 export default class CanvasErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
@@ -22,7 +26,6 @@ export default class CanvasErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: unknown) {
-    // Keep this in the log — it's the only trace of what node failed.
     console.error("Canvas render error:", error);
   }
 

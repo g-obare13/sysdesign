@@ -1,3 +1,8 @@
+/**
+ * @fileoverview AI Provider settings configuration modal/section.
+ * Allows users to add, reveal, and remove their OpenAI, Anthropic, and Google Gemini API keys securely.
+ */
+
 import * as React from "react";
 import {
   IconKey,
@@ -16,10 +21,15 @@ import {
   PROVIDER_META,
   maskKey,
   type AIProvider,
-} from "../../store/ai.store";
+} from "@/store/ai.store";
 
 const PROVIDERS: AIProvider[] = ["openai", "anthropic", "google"];
 
+/**
+ * AI Provider API Keys management settings component.
+ *
+ * @returns AI Settings view component
+ */
 export default function AISettings() {
   const { keys, add, remove } = useAIKeys();
   const [adding, setAdding] = React.useState<AIProvider | null>(null);

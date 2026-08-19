@@ -1,20 +1,25 @@
+/**
+ * @fileoverview Custom ReactFlow diagram node component rendering styled architecture and C4 nodes,
+ * group containers, interactive connection handles, and inline quick actions.
+ */
+
 import * as TablerIcons from "@tabler/icons-react";
 import type { NodeProps } from "@xyflow/react";
 import { Handle, Position } from "@xyflow/react";
 import { memo, useCallback, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { cn } from "../../lib/utils";
+import { cn } from "@/lib/utils";
 import {
   updateNodeMeta,
   setEditingNodeId,
   setC4Level,
   useCanvasStore,
   applyNodeChangesToStore,
-} from "../../store/canvas.store";
-import type { NodeMeta } from "../../types/diagram";
-import { CATEGORY_STYLE } from "../../types/diagram";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+} from "@/store/canvas.store";
+import type { NodeMeta } from "@/types/diagram";
+import { CATEGORY_STYLE } from "@/types/diagram";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import NodeEditModal from "./NodeEditModal";
 
 type TablerIconComponent = React.FC<{
@@ -31,14 +36,13 @@ function getIcon(name: string): TablerIconComponent {
 
 type Status = "existing" | "planned" | "deprecated" | "";
 
-//  C4 abstraction styles — formal tones
 interface C4Style {
-  color: string; // main accent color (icon, handles, borders)
-  pill: string; // icon pill background
-  text: string; // category label text color
-  label: string; // display name of the abstraction
-  icon: string; // default icon when none provided
-  dark: { color: string; pill: string; text: string }; // dark-mode variant
+  color: string;
+  pill: string;
+  text: string;
+  label: string;
+  icon: string;
+  dark: { color: string; pill: string; text: string };
 }
 
 const C4_STYLES: Record<string, C4Style> = {
@@ -104,7 +108,12 @@ function getC4Style(subtype: string): C4Style {
   return C4_STYLES["c4-system"];
 }
 
-//  Main DiagramNode
+/**
+ * Diagram node view component supporting standard architecture nodes, C4 hierarchical nodes, and group boundaries.
+ *
+ * @param props - ReactFlow NodeProps
+ * @returns ReactFlow node element
+ */
 function DiagramNode({ id, data, selected, type }: NodeProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -119,7 +128,6 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     subtype.startsWith("c4-") ||
     meta.c4Level !== undefined;
 
-  // For C4 nodes use C4 style config; for others use CATEGORY_STYLE
   const c4Style = isC4 ? getC4Style(subtype) : null;
   const baseStyle = isC4
     ? {
@@ -140,7 +148,6 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     label: baseStyle?.label || category,
   };
 
-  // Resolve icon: C4 may override icon from meta or use C4Style default
   const iconName = meta.icon || (isC4 ? c4Style!.icon : "IconBox");
   const Icon = getIcon(iconName);
 
@@ -189,7 +196,6 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
 
   const isGroup = type === "group";
 
-  //  Group node
   if (isGroup) {
     return (
       <div

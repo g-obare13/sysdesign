@@ -1,7 +1,16 @@
+/**
+ * @fileoverview Theme toggle switch component for toggling light and dark modes.
+ */
+
 import * as React from "react";
 import { useTheme } from "next-themes";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
+/**
+ * Animated toggle button switching between light and dark visual themes.
+ *
+ * @returns Theme toggle button element
+ */
 export function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);

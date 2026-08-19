@@ -1,18 +1,22 @@
+/**
+ * @fileoverview Dynamic project canvas route mapped to project slug (`/$slug`).
+ */
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import Sidebar from "../components/sidebar/Sidebar";
-import DiagramCanvas from "../components/canvas/DiagramCanvas";
-import CanvasErrorBoundary from "../components/canvas/CanvasErrorBoundary";
+import Sidebar from "@/components/sidebar/Sidebar";
+import DiagramCanvas from "@/components/canvas/DiagramCanvas";
+import CanvasErrorBoundary from "@/components/canvas/CanvasErrorBoundary";
 import {
   createProject,
   useProjectStore,
   setActiveProject,
-} from "../store/project.store";
-import ProjectSetupPopup from "../components/dashboard/ProjectSetupPopup";
-import Container from "#/components/ui/container";
-import type { ProjectType } from "../store/project.store";
-import { setDiagramMode } from "../store/canvas.store";
-import { Button } from "#/components/ui/button";
+} from "@/store/project.store";
+import ProjectSetupPopup from "@/components/dashboard/ProjectSetupPopup";
+import Container from "@/components/ui/container";
+import type { ProjectType } from "@/store/project.store";
+import { setDiagramMode } from "@/store/canvas.store";
+import { Button } from "@/components/ui/button";
 import { IconFolderPlus } from "@tabler/icons-react";
 
 /**
@@ -25,6 +29,8 @@ export const Route = createFileRoute("/$slug")({
 /**
  * The main editor page for a specific project.
  * Synchronizes the active project state with the URL slug and renders the canvas.
+ *
+ * @returns Project diagram editing workspace element
  */
 function SlugPage() {
   const { slug } = Route.useParams();
@@ -35,13 +41,11 @@ function SlugPage() {
   const project = projects.find((p) => p.slug === slug);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Sync active project state based on URL slug
   useEffect(() => {
     if (project) {
       if (project.id !== activeProjectId) {
         setActiveProject(project.id);
       }
-      // If it's a C4 project but we are on the base route, redirect to C4 route
       if (project.type === "c4") {
         navigate({ to: "/$slug/c4", params: { slug: project.slug } as any });
       } else {
@@ -61,13 +65,12 @@ function SlugPage() {
     navigate({ to: "/$slug", params: { slug: newProject.slug } });
   };
 
-  // If no project found for this slug, we can show the "Create" popup or redirect
   if (!project) {
     return (
       <Container>
         <div className="flex flex-col gap-3 h-screen items-center justify-center bg-background p-4">
           <h1>Project not found</h1>
-          <p>The project you're looking for doesn"t exist or has been moved.</p>
+          <p>The project you're looking for doesn't exist or has been moved.</p>
 
           <Button
             icon={IconFolderPlus}

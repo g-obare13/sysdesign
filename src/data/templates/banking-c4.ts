@@ -1,5 +1,12 @@
-import type { Template } from "../templates";
+/**
+ * @fileoverview C4 Model diagram template for an Enterprise Digital Banking System.
+ */
 
+import type { Template } from "@/data/templates";
+
+/**
+ * Enterprise Banking System C4 architecture template.
+ */
 export const BANKING_C4_TEMPLATE: Template = {
   id: "banking-c4-system",
   name: "Enterprise Banking System (C4 Model)",
@@ -7,7 +14,7 @@ export const BANKING_C4_TEMPLATE: Template = {
   description:
     "C4 Model representing an enterprise digital banking system: customer personas, containerized web & mobile apps, API gateway, core services, and external mainframe integrations.",
   nodes: [
-    // ── Person 1: Retail Customer ────────────────────────────────────
+    // Person 1: Retail Customer
     {
       id: "c4-person-customer",
       type: "diagram",
@@ -22,7 +29,7 @@ export const BANKING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── Person 2: Branch Officer ─────────────────────────────────────
+    // Person 2: Branch Officer
     {
       id: "c4-person-teller",
       type: "diagram",
@@ -37,7 +44,7 @@ export const BANKING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── System Boundary: Online Banking System ───────────────────────
+    // System Boundary: Online Banking System
     {
       id: "grp-banking-system",
       type: "group",
@@ -130,7 +137,7 @@ export const BANKING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── External System 1: Mainframe Core Banking ────────────────────
+    // External System 1: Mainframe Core Banking
     {
       id: "c4-ext-mainframe",
       type: "diagram",
@@ -146,7 +153,7 @@ export const BANKING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── External System 2: Credit Scoring Bureau ─────────────────────
+    // External System 2: Credit Scoring Bureau
     {
       id: "c4-ext-credit",
       type: "diagram",
@@ -162,7 +169,7 @@ export const BANKING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── External System 3: Push Notification System ──────────────────
+    // External System 3: Push Notification System
     {
       id: "c4-ext-notification",
       type: "diagram",

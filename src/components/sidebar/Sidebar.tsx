@@ -1,20 +1,24 @@
+/**
+ * @fileoverview Left component palette drawer allowing users to search and drag architecture & C4 items onto the canvas.
+ */
+
 import * as React from "react";
 import * as TablerIcons from "@tabler/icons-react";
 import { useTheme } from "next-themes";
-import { REGISTRY } from "../../data/registry";
+import { REGISTRY } from "@/data/registry";
 import {
   CATEGORY_STYLE,
   type NodeCategory,
   type NodeTemplate,
-} from "../../types/diagram";
+} from "@/types/diagram";
 
-import { useProjectStore } from "../../store/project.store";
-import { useCanvasStore } from "../../store/canvas.store";
-import { useAIKeys } from "../../store/ai.store";
-import AIPanel from "../ai/AIPanel";
+import { useProjectStore } from "@/store/project.store";
+import { useCanvasStore } from "@/store/canvas.store";
+import { useAIKeys } from "@/store/ai.store";
+import AIPanel from "@/components/ai/AIPanel";
 import { cn } from "@/lib/utils";
 import { useLocation } from "@tanstack/react-router";
-import { Input } from "../ui/input";
+import { Input } from "@/components/ui/input";
 
 type TablerIcon = React.FC<{
   size?: number;
@@ -113,6 +117,8 @@ type TabId =
 
 /**
  * Left component palette drawer with searchable node registry.
+ *
+ * @returns Sidebar component palette element
  */
 export default function Sidebar() {
   const activeProjectId = useProjectStore((s) => s.activeProjectId);

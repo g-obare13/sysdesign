@@ -1,5 +1,12 @@
-import type { Template } from "../templates";
+/**
+ * @fileoverview System architecture template for a Global E-Commerce Platform.
+ */
 
+import type { Template } from "@/data/templates";
+
+/**
+ * Global E-Commerce Platform architecture template.
+ */
 export const ECOMMERCE_TEMPLATE: Template = {
   id: "ecommerce-platform",
   name: "Global E-Commerce Platform",
@@ -7,7 +14,7 @@ export const ECOMMERCE_TEMPLATE: Template = {
   description:
     "High-throughput microservices architecture with edge CDN, Kubernetes API gateway, Kafka event streaming, Redis caching, and Aurora PostgreSQL.",
   nodes: [
-    // ── Group 1: Edge & Ingress ──────────────────────────────────────
+    // Group 1: Edge & Ingress
     {
       id: "grp-edge",
       type: "group",
@@ -64,7 +71,7 @@ export const ECOMMERCE_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 2: Core Microservices (K8s Cluster) ───────────────────
+    // Group 2: Core Microservices (K8s Cluster)
     {
       id: "grp-services",
       type: "group",
@@ -134,7 +141,7 @@ export const ECOMMERCE_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 3: Event Mesh & Workers ───────────────────────────────
+    // Group 3: Event Mesh & Workers
     {
       id: "grp-events",
       type: "group",
@@ -191,7 +198,7 @@ export const ECOMMERCE_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 4: Data & Persistence ─────────────────────────────────
+    // Group 4: Data & Persistence
     {
       id: "grp-storage",
       type: "group",

@@ -1,5 +1,9 @@
+/**
+ * @fileoverview Diagram export utilities generating PNG, SVG, Mermaid flowchart, Terraform HCL, and Structurizr DSL.
+ */
+
 import { toPng, toSvg } from 'html-to-image'
-import type { DiagramNode, DiagramEdge } from '../../types/diagram'
+import type { DiagramNode, DiagramEdge } from '@/types/diagram'
 
 /**
  * Exports the current diagram container as a high-resolution PNG image.
@@ -32,7 +36,7 @@ export async function exportSvgFile(): Promise<void> {
     const el = document.getElementById('sys-diagram')
     if (!el) return
     const url = await toSvg(el, { 
-      backgroundColor: '#ffffff',
+      backgroundColor: '#ffffff', 
       skipFonts: true,
     })
 
@@ -42,10 +46,9 @@ export async function exportSvgFile(): Promise<void> {
   }
 }
 
-
-
 /**
  * Generates and downloads a Mermaid.js flowchart representation of the diagram.
+ *
  * @param nodes - Current collection of diagram nodes
  * @param edges - Current collection of diagram edges
  */
@@ -65,6 +68,7 @@ export function exportMermaid(nodes: DiagramNode[], edges: DiagramEdge[]): void 
 /**
  * Generates a basic Terraform configuration (HCL) boilerplate based on the diagram nodes.
  * Maps recognized subtypes (e.g., 'lambda', 's3') to AWS resource blocks.
+ *
  * @param nodes - Current collection of diagram nodes
  * @param edges - Current collection of diagram edges (used for commentary only)
  */
@@ -104,6 +108,7 @@ export function exportTerraform(nodes: DiagramNode[], edges: DiagramEdge[]): voi
 /**
  * Generates and downloads a Structurizr DSL workspace representation.
  * Maps C4 categories and subtypes to their respective DSL elements (person, softwareSystem, container, component).
+ *
  * @param nodes - Collection of diagram nodes
  * @param edges - Collection of diagram edges
  */
@@ -174,15 +179,15 @@ export function exportStructurizr(nodes: DiagramNode[], edges: DiagramEdge[]): v
   blob(dsl, 'workspace.dsl')
 }
 
-function slug(n: DiagramNode) {
+function slug(n: DiagramNode): string {
   return (n.data.label as string).toLowerCase().replace(/[^a-z0-9]/g, '_')
 }
 
-function tfBlock(resource: string, n: DiagramNode, body: string) {
+function tfBlock(resource: string, n: DiagramNode, body: string): string {
   return `resource "${resource}" "${slug(n)}" {\n  ${body}\n  tags = { Name = "${n.data.label as string}" }\n}\n`
 }
 
-function trigger(url: string, filename: string) {
+function trigger(url: string, filename: string): void {
   const a = document.createElement('a')
   a.style.display = 'none'
   a.href = url
@@ -192,8 +197,7 @@ function trigger(url: string, filename: string) {
   document.body.removeChild(a)
 }
 
-
-function blob(content: string, filename: string) {
+function blob(content: string, filename: string): void {
   const url = URL.createObjectURL(new Blob([content], { type: 'text/plain' }))
   trigger(url, filename)
   setTimeout(() => URL.revokeObjectURL(url), 1000)

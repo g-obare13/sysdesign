@@ -1,5 +1,12 @@
-import type { Template } from "../templates";
+/**
+ * @fileoverview System architecture template for a Fintech Payments & Fraud Scoring Engine.
+ */
 
+import type { Template } from "@/data/templates";
+
+/**
+ * Fintech Payments & Fraud Engine architecture template.
+ */
 export const FINTECH_TEMPLATE: Template = {
   id: "fintech-payment-engine",
   name: "Fintech Payments & Fraud Engine",
@@ -7,7 +14,7 @@ export const FINTECH_TEMPLATE: Template = {
   description:
     "PCI-DSS compliant payment processing engine with distributed tokenization vault, real-time ML fraud scoring, and multi-region ACID ledger.",
   nodes: [
-    // ── Group 1: Gateway & PCI Boundary ─────────────────────────────
+    // Group 1: Gateway & PCI Boundary
     {
       id: "grp-fin-perimeter",
       type: "group",
@@ -64,7 +71,7 @@ export const FINTECH_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 2: Payment Orchestration Services ─────────────────────
+    // Group 2: Payment Orchestration Services
     {
       id: "grp-fin-core",
       type: "group",
@@ -134,7 +141,7 @@ export const FINTECH_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 3: Real-Time AI / ML Risk Engine ───────────────────────
+    // Group 3: Real-Time AI / ML Risk Engine
     {
       id: "grp-fin-fraud",
       type: "group",
@@ -191,7 +198,7 @@ export const FINTECH_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 4: Financial Ledger & Storage ──────────────────────────
+    // Group 4: Financial Ledger & Storage
     {
       id: "grp-fin-storage",
       type: "group",

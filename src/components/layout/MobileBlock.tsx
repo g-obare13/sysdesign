@@ -1,5 +1,14 @@
+/**
+ * @fileoverview Fullscreen blocker view informing mobile users that desktop browsers are required for diagramming.
+ */
+
 import { IconDeviceLaptop, IconDeviceDesktop } from "@tabler/icons-react";
 
+/**
+ * Mobile blocker overlay component visible on small screens.
+ *
+ * @returns Blocker overlay element
+ */
 export default function MobileBlock() {
   return (
     <div className="flex lg:hidden fixed inset-0 z-9999 flex-col items-center justify-center p-6 text-center bg-background/95 backdrop-blur-md overflow-hidden">
@@ -21,23 +30,6 @@ export default function MobileBlock() {
         using a <strong>desktop</strong> or <strong>laptop</strong> browser for
         the best experience.
       </p>
-
-      {/* <div className="flex flex-col gap-4 items-center">
-        <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/60">
-          Supported Systems
-        </p>
-        <div className="flex -space-x-3">
-          <div className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center">
-            <span className="text-xs font-semibold">Mac</span>
-          </div>
-          <div className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-semibold">
-            Win
-          </div>
-          <div className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-semibold">
-            Lnx
-          </div>
-        </div>
-      </div> */}
 
       <div className="mt-auto pb-10">
         <div className="text-[12px] font-medium text-primary/80 flex items-center gap-2">

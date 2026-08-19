@@ -1,5 +1,8 @@
-﻿// Registry data has been split by provider into ./registry/ for maintainability.
-// This file is kept as the stable public entry point.
+/**
+ * @fileoverview Stable public entry point for the component template registry.
+ * Re-exports provider registries (AWS, GCP, Azure, generic) and the aggregated catalog.
+ */
+
 export {
   REGISTRY,
   AWS_REGISTRY,

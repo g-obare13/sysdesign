@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Modal dialog allowing users to configure and initialize a new architecture or C4 diagram project.
+ */
+
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { IconFolderPlus, IconX } from "@tabler/icons-react";
@@ -5,12 +9,12 @@ import {
   useProjectStore,
   MAX_PROJECTS,
   type ProjectType,
-} from "../../store/project.store";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Label } from "../ui/label";
-import { cn } from "../../lib/utils";
+} from "@/store/project.store";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ProjectSetupPopupProps {
@@ -25,6 +29,9 @@ interface ProjectSetupPopupProps {
 /**
  * A modal popup used to initialize a new project with a name and description.
  * Enforces project limits and provides loading states during creation.
+ *
+ * @param props - ProjectSetupPopupProps
+ * @returns Portaled modal element
  */
 export default function ProjectSetupPopup({
   open,

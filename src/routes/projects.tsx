@@ -1,13 +1,17 @@
+/**
+ * @fileoverview Projects management dashboard route (`/projects`).
+ */
+
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   useProjectStore,
   deleteProject,
   createProject,
   updateProject,
-} from "../store/project.store";
-import ProjectSetupPopup from "../components/dashboard/ProjectSetupPopup";
-import ConfirmModal from "../components/ui/ConfirmModal";
-import type { Project } from "../store/project.store";
+} from "@/store/project.store";
+import ProjectSetupPopup from "@/components/dashboard/ProjectSetupPopup";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import type { Project } from "@/store/project.store";
 import {
   IconTrash,
   IconCalendar,
@@ -23,12 +27,12 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { useState } from "react";
-import { Button } from "#/components/ui/button";
-import { Input } from "#/components/ui/input";
-import { Label } from "#/components/ui/label";
-import Container from "#/components/ui/container";
-import { cn } from "../lib/utils";
-import type { ProjectType } from "../store/project.store";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Container from "@/components/ui/container";
+import { cn } from "@/lib/utils";
+import type { ProjectType } from "@/store/project.store";
 
 /**
  * Route for the project management dashboard.
@@ -40,6 +44,8 @@ export const Route = createFileRoute("/projects")({
 /**
  * Dashboard component that lists all user projects.
  * Supports searching, grid/list view toggling, and project deletion.
+ *
+ * @returns Projects management dashboard view element
  */
 function ProjectsPage() {
   const navigate = useNavigate();
@@ -147,10 +153,6 @@ function ProjectsPage() {
           {/* Toolbar & Search */}
           <div className="flex items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
-              {/* <IconSearch
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={16}
-            /> */}
               <Input
                 type="text"
                 size={"lg"}
@@ -193,9 +195,6 @@ function ProjectsPage() {
                       <div
                         className={cn(
                           "mt-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider flex items-center gap-1",
-                          // p.type === "c4"
-                          //   ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                          //   : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
                         )}
                       >
                         {p.type === "c4" ? (

@@ -1,6 +1,10 @@
+/**
+ * @fileoverview Unit tests for diagram export formats (Mermaid, Terraform, Structurizr DSL).
+ */
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { exportMermaid, exportTerraform, exportStructurizr } from "./exportUtils";
-import type { DiagramNode, DiagramEdge } from "../../types/diagram";
+import type { DiagramNode, DiagramEdge } from "@/types/diagram";
 
 function node(id: string, label: string, subtype = "service"): DiagramNode {
   return {
@@ -21,7 +25,6 @@ function edge(source: string, target: string): DiagramEdge {
   return { id: `e-${source}-${target}`, source, target };
 }
 
-/** Capture whatever content gets pushed into a download Blob. */
 let captured = "";
 
 describe("exportUtils", () => {

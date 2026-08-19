@@ -1,5 +1,12 @@
-import type { Template } from "../templates";
+/**
+ * @fileoverview C4 Model diagram template for a Ride-Hailing & Dynamic Dispatch Platform.
+ */
 
+import type { Template } from "@/data/templates";
+
+/**
+ * Ride-Hailing & Dynamic Dispatch C4 architecture template.
+ */
 export const RIDEHAILING_C4_TEMPLATE: Template = {
   id: "ridehailing-c4-system",
   name: "Ride-Hailing & Dynamic Dispatch (C4 Model)",
@@ -7,7 +14,7 @@ export const RIDEHAILING_C4_TEMPLATE: Template = {
   description:
     "C4 Model representing a global ride-hailing dispatch system with rider/driver personas, real-time geospatial location tracking, matching engine, and external payment & mapping providers.",
   nodes: [
-    // ── Person 1: Rider ──────────────────────────────────────────────
+    // Person 1: Rider
     {
       id: "c4-rh-rider",
       type: "diagram",
@@ -22,7 +29,7 @@ export const RIDEHAILING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── Person 2: Driver ─────────────────────────────────────────────
+    // Person 2: Driver
     {
       id: "c4-rh-driver",
       type: "diagram",
@@ -37,7 +44,7 @@ export const RIDEHAILING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── System Boundary: Ride-Hailing Platform ───────────────────────
+    // System Boundary: Ride-Hailing Platform
     {
       id: "grp-ridehail-system",
       type: "group",
@@ -145,7 +152,7 @@ export const RIDEHAILING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── External System 1: Maps & Routing Platform ───────────────────
+    // External System 1: Maps & Routing Platform
     {
       id: "c4-rh-ext-maps",
       type: "diagram",
@@ -161,7 +168,7 @@ export const RIDEHAILING_C4_TEMPLATE: Template = {
       },
     },
 
-    // ── External System 2: Payment Gateway ───────────────────────────
+    // External System 2: Payment Gateway
     {
       id: "c4-rh-ext-payments",
       type: "diagram",

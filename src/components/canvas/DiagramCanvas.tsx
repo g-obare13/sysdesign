@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Primary interactive ReactFlow diagram canvas.
+ * Manages viewport panning, drag-and-drop node placement, hotkeys, connections, and selection modals.
+ */
+
 import { useCallback, useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
@@ -30,13 +35,13 @@ import {
   updateEdgeConnection,
   setEditingNodeId,
   useCanvasStore,
-} from "../../store/canvas.store";
-import { CATEGORY_STYLE, type NodeTemplate } from "../../types/diagram";
-import type { DiagramNode, DiagramEdge } from "../../types/diagram";
+} from "@/store/canvas.store";
+import { CATEGORY_STYLE, type NodeTemplate } from "@/types/diagram";
+import type { DiagramNode, DiagramEdge } from "@/types/diagram";
 import DiagramNodeComponent from "./DiagramNode";
 import DiagramEdgeComponent from "./DiagramEdge";
 import { IconX } from "@tabler/icons-react";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 const nodeTypes: NodeTypes = { diagram: DiagramNodeComponent };
 const edgeTypes: EdgeTypes = { smoothstep: DiagramEdgeComponent };
@@ -46,6 +51,8 @@ let nodeCounter = Date.now();
  * The main diagramming canvas powered by React Flow.
  * Handles node/edge initialization, drag-and-drop from sidebar, keyboard shortcuts,
  * and integration with the canvas store for persistence and history.
+ *
+ * @returns ReactFlow Diagram Canvas component
  */
 export default function DiagramCanvas() {
   const { resolvedTheme } = useTheme();
@@ -161,14 +168,11 @@ export default function DiagramCanvas() {
       if (!raw) return;
       const template: NodeTemplate = JSON.parse(raw);
 
-      // Use screenToFlowPosition to correctly translate screen coordinates to the canvas
       const position = screenToFlowPosition({
         x: e.clientX,
         y: e.clientY,
       });
 
-      // Adjust position to center the node under the cursor
-      // Nodes typically have a fixed or estimated size, we'll offset by a reasonable default
       position.x -= 75;
       position.y -= 40;
 

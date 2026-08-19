@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Global footer component displaying copyright, legal links, and social portfolio links.
+ */
+
 import { Link } from "@tanstack/react-router";
 import {
   IconBrandGithub,
@@ -7,6 +11,11 @@ import {
   IconHeartFilled,
 } from "@tabler/icons-react";
 
+/**
+ * Global application footer component.
+ *
+ * @returns Footer navigation element
+ */
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 

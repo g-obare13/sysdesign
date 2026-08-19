@@ -1,11 +1,20 @@
+/**
+ * @fileoverview Route for the Shapes library feature (`/shapes`).
+ */
+
 import { createFileRoute } from "@tanstack/react-router";
 import { IconShape } from "@tabler/icons-react";
-import ComingSoon from "../components/layout/ComingSoon";
+import ComingSoon from "@/components/layout/ComingSoon";
 
 export const Route = createFileRoute("/shapes")({
   component: ShapesPage,
 });
 
+/**
+ * Shapes library page placeholder component.
+ *
+ * @returns Shapes view element
+ */
 function ShapesPage() {
   return (
     <ComingSoon

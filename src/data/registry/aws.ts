@@ -1,6 +1,12 @@
-import type { NodeTemplate } from '../../types/diagram'
+/**
+ * @fileoverview Component catalog for Amazon Web Services (AWS) cloud architecture nodes.
+ */
 
-/** AWS cloud components. */
+import type { NodeTemplate } from '@/types/diagram'
+
+/**
+ * AWS cloud component catalog.
+ */
 export const AWS_REGISTRY: NodeTemplate[] = [
   // Compute
   { subtype: 'aws-ec2', label: 'Amazon EC2', category: 'cloud', icon: 'IconServer', description: 'Elastic Compute Cloud' },

@@ -1,19 +1,32 @@
+/**
+ * @fileoverview TanStack Store for managing diagram canvas state, node/edge manipulation,
+ * history stack (undo/redo), auto-layout, and dual-persistence (Supabase & localStorage).
+ */
+
 import { Store } from '@tanstack/store'
 import { useState, useEffect } from 'react'
 import dagre from '@dagrejs/dagre'
 import { applyNodeChanges, applyEdgeChanges, MarkerType } from '@xyflow/react'
 import type { NodeChange, EdgeChange, Connection } from '@xyflow/react'
-import type { DiagramNode, DiagramEdge, C4Level } from '../types/diagram'
+import type { DiagramNode, DiagramEdge, C4Level } from '@/types/diagram'
 import { projectStore, createProject, type ProjectType } from './project.store'
-import { supabase } from '../lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 let activeProjectId = projectStore.state.activeProjectId
 
-/** When true, the next project switch skips reloading canvas data (used when
- * a scratchpad is being promoted into a freshly-created project). */
+/**
+ * When true, the next project switch skips reloading canvas data (used when
+ * a scratchpad is being promoted into a freshly-created project).
+ */
 let skipNextLoad = false
 
-function getStorageKey(mode: 'architecture' | 'c4' = (canvasStore?.state?.diagramMode ?? 'architecture')) {
+/**
+ * Resolves the localStorage key for the given diagram mode and active project.
+ *
+ * @param mode - Diagramming mode ('architecture' | 'c4')
+ * @returns LocalStorage key string
+ */
+function getStorageKey(mode: 'architecture' | 'c4' = (canvasStore?.state?.diagramMode ?? 'architecture')): string {
   const suffix = mode === 'c4' ? '-c4' : ''
   return activeProjectId ? `sysdesign-diagram-${activeProjectId}${suffix}` : `sysdesign-v2${suffix}`
 }
@@ -72,6 +85,12 @@ const DEFAULT_CANVAS_STATE: CanvasState = {
   saveStatus: 'idle',
 }
 
+/**
+ * Loads canvas state asynchronously from Supabase or localStorage.
+ *
+ * @param mode - Diagramming mode
+ * @returns Loaded canvas state fragment
+ */
 async function load(mode: 'architecture' | 'c4' = (canvasStore?.state?.diagramMode ?? 'architecture')): Promise<Partial<CanvasState>> {
   if (typeof window === 'undefined') return {}
   
@@ -101,8 +120,10 @@ async function load(mode: 'architecture' | 'c4' = (canvasStore?.state?.diagramMo
   } catch { return {} }
 }
 
-/** Where a queued save should be written. Captured at schedule time so a
- * project switch or auth change can't redirect the write to the wrong place. */
+/**
+ * Where a queued save should be written. Captured at schedule time so a
+ * project switch or auth change cannot redirect the write to the wrong place.
+ */
 type SaveTarget =
   | { kind: 'cloud'; projectId: string }
   | { kind: 'local'; key: string }
@@ -116,7 +137,12 @@ interface PendingSave {
 let pendingSave: PendingSave | null = null
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-function setSaveStatus(status: CanvasState['saveStatus']) {
+/**
+ * Updates the save status indicator on the canvas store.
+ *
+ * @param status - Save status value
+ */
+function setSaveStatus(status: CanvasState['saveStatus']): void {
   canvasStore.setState((s) =>
     s.saveStatus === status ? s : { ...s, saveStatus: status },
   )
@@ -124,7 +150,9 @@ function setSaveStatus(status: CanvasState['saveStatus']) {
 
 /**
  * Persists a queued save to Supabase or LocalStorage.
- * Returns true on success, false on failure.
+ *
+ * @param job - Pending save job descriptor
+ * @returns Promise resolving to true on success, false on failure
  */
 async function persist(job: PendingSave): Promise<boolean> {
   if (typeof window === 'undefined') return true
@@ -164,8 +192,10 @@ async function persist(job: PendingSave): Promise<boolean> {
  * coalesce into a single write instead of firing one Supabase UPDATE per
  * frame. The save target is captured up-front so it stays correct even if
  * the active project changes before the debounce fires.
+ *
+ * @param s - Canvas state to persist
  */
-function save(s: CanvasState) {
+function save(s: CanvasState): void {
   const user = projectStore.state.user
   pendingSave = {
     state: s,
@@ -186,9 +216,9 @@ function save(s: CanvasState) {
 
 /**
  * Immediately flushes any pending debounced save. Call before switching
- * projects or leaving the page so the latest edits aren't lost.
+ * projects or leaving the page so the latest edits are not lost.
  */
-export function flushSave() {
+export function flushSave(): void {
   if (saveTimer) {
     clearTimeout(saveTimer)
     saveTimer = null
@@ -250,11 +280,10 @@ projectStore.subscribe(() => {
   }
 })
 
-
 /**
  * Toggles the grid snapping feature on the canvas and persists the change.
  */
-export function toggleSnap() {
+export function toggleSnap(): void {
   canvasStore.setState((s) => {
     const next = { ...s, snapToGrid: !s.snapToGrid }
     save(next)
@@ -262,6 +291,12 @@ export function toggleSnap() {
   })
 }
 
+/**
+ * Appends a state snapshot to the undo history buffer.
+ *
+ * @param s - Updated canvas state
+ * @returns State with updated history array and historyIndex
+ */
 function pushHistory(s: CanvasState): CanvasState {
   const snap: Snapshot = {
     nodes: JSON.parse(JSON.stringify(s.nodes)),
@@ -274,9 +309,10 @@ function pushHistory(s: CanvasState): CanvasState {
 
 /**
  * Applies a set of node changes (position, selection, etc.) to the store.
+ *
  * @param changes - Array of changes to apply to nodes
  */
-export function applyNodeChangesToStore(changes: NodeChange[]) {
+export function applyNodeChangesToStore(changes: NodeChange[]): void {
   canvasStore.setState((s) => {
     const nodes = applyNodeChanges(changes, s.nodes) as DiagramNode[]
     const next = { ...s, nodes }
@@ -287,9 +323,10 @@ export function applyNodeChangesToStore(changes: NodeChange[]) {
 
 /**
  * Applies a set of edge changes (selection, deletion, etc.) to the store.
+ *
  * @param changes - Array of changes to apply to edges
  */
-export function applyEdgeChangesToStore(changes: EdgeChange[]) {
+export function applyEdgeChangesToStore(changes: EdgeChange[]): void {
   canvasStore.setState((s) => {
     const edges = applyEdgeChanges(changes, s.edges)
     const next = { ...s, edges }
@@ -300,9 +337,10 @@ export function applyEdgeChangesToStore(changes: EdgeChange[]) {
 
 /**
  * Creates a new connection between two nodes on the canvas.
+ *
  * @param connection - The connection details (source, target, handles)
  */
-export function connectNodes(connection: Connection) {
+export function connectNodes(connection: Connection): void {
   canvasStore.setState((s) => {
     const isC4 = s.diagramMode === 'c4'
     const edge: DiagramEdge = {
@@ -325,10 +363,11 @@ export function connectNodes(connection: Connection) {
 
 /**
  * Updates an existing edge with a new connection path.
+ *
  * @param oldEdge - The edge being updated
  * @param newConnection - The new connection details
  */
-export function updateEdgeConnection(oldEdge: DiagramEdge, newConnection: Connection) {
+export function updateEdgeConnection(oldEdge: DiagramEdge, newConnection: Connection): void {
   canvasStore.setState((s) => {
     const edges = s.edges.map(e => {
       if (e.id === oldEdge.id) {
@@ -350,9 +389,10 @@ export function updateEdgeConnection(oldEdge: DiagramEdge, newConnection: Connec
 
 /**
  * Adds a new node to the diagram.
+ *
  * @param node - The node object to add
  */
-export function addNode(node: DiagramNode) {
+export function addNode(node: DiagramNode): void {
   canvasStore.setState((s) => {
     const next = pushHistory({ ...s, nodes: [...s.nodes, node] })
     save(next)
@@ -363,10 +403,11 @@ export function addNode(node: DiagramNode) {
 /**
  * Replaces the entire canvas with AI-generated nodes and edges.
  * Records to undo history so users can Ctrl+Z back to what they had.
+ *
  * @param nodes - Fully formed DiagramNode array from AI output parser
  * @param edges - Fully formed DiagramEdge array from AI output parser
  */
-export function setDiagramFromAI(nodes: DiagramNode[], edges: DiagramEdge[]) {
+export function setDiagramFromAI(nodes: DiagramNode[], edges: DiagramEdge[]): void {
   canvasStore.setState((s) => {
     const next = pushHistory({ ...s, nodes, edges })
     save(next)
@@ -376,10 +417,11 @@ export function setDiagramFromAI(nodes: DiagramNode[], edges: DiagramEdge[]) {
 
 /**
  * Updates the text label displayed on a specific node.
+ *
  * @param id - The unique ID of the node
  * @param label - The new label text
  */
-export function updateNodeLabel(id: string, label: string) {
+export function updateNodeLabel(id: string, label: string): void {
   canvasStore.setState((s) => {
     const nodes = s.nodes.map((n) => n.id === id ? { ...n, data: { ...n.data, label } } : n)
     const next = pushHistory({ ...s, nodes })
@@ -390,10 +432,11 @@ export function updateNodeLabel(id: string, label: string) {
 
 /**
  * Updates metadata (notes, owner, etc.) for a specific node.
+ *
  * @param id - The unique ID of the node
  * @param meta - Partial node data object containing updates
  */
-export function updateNodeMeta(id: string, meta: Partial<DiagramNode['data']>) {
+export function updateNodeMeta(id: string, meta: Partial<DiagramNode['data']>): void {
   canvasStore.setState((s) => {
     const nodes = s.nodes.map((n) => n.id === id ? { ...n, data: { ...n.data, ...meta } } : n)
     const next = pushHistory({ ...s, nodes })
@@ -404,10 +447,11 @@ export function updateNodeMeta(id: string, meta: Partial<DiagramNode['data']>) {
 
 /**
  * Updates metadata for a specific edge.
+ *
  * @param id - The unique ID of the edge
  * @param meta - Metadata containing the new label and animation state
  */
-export function updateEdgeMeta(id: string, meta: { label: string; animated?: boolean }) {
+export function updateEdgeMeta(id: string, meta: { label: string; animated?: boolean }): void {
   canvasStore.setState((s) => {
     const edges = s.edges.map((e) => e.id === id ? { ...e, data: { ...e.data, ...meta }, label: meta.label } : e)
     const next = pushHistory({ ...s, edges })
@@ -419,7 +463,7 @@ export function updateEdgeMeta(id: string, meta: { label: string; animated?: boo
 /**
  * Deletes all currently selected nodes and edges from the canvas.
  */
-export function deleteSelected() {
+export function deleteSelected(): void {
   canvasStore.setState((s) => {
     const nodes = s.nodes.filter((n) => !n.selected)
     const edges = s.edges.filter((e) => !e.selected)
@@ -433,7 +477,7 @@ export function deleteSelected() {
 /**
  * Reverts the canvas to the previous state in the history stack.
  */
-export function undo() {
+export function undo(): void {
   canvasStore.setState((s) => {
     if (s.historyIndex <= 0) return s
     const idx = s.historyIndex - 1
@@ -447,7 +491,7 @@ export function undo() {
 /**
  * Restores the canvas to the next state in the history stack.
  */
-export function redo() {
+export function redo(): void {
   canvasStore.setState((s) => {
     if (s.historyIndex >= s.history.length - 1) return s
     const idx = s.historyIndex + 1
@@ -461,7 +505,7 @@ export function redo() {
 /**
  * Clears all nodes and edges from the canvas and resets history.
  */
-export function clearCanvas() {
+export function clearCanvas(): void {
   canvasStore.setState((s) => {
     const next: CanvasState = {
       ...s,
@@ -476,6 +520,7 @@ export function clearCanvas() {
 /**
  * Promotes the current scratchpad canvas into a brand-new project, carrying
  * over any nodes/edges the user already drew on the landing editor.
+ *
  * @param name - The name of the new project
  * @param type - The project type (design or c4)
  * @param description - Optional description
@@ -485,7 +530,7 @@ export function createProjectFromScratchpad(
   name: string,
   type: ProjectType = "design",
   description?: string,
-) {
+): Project | null {
   const nodes = canvasStore.state.nodes
   const edges = canvasStore.state.edges
   const edgeCounter = canvasStore.state.edgeCounter
@@ -521,7 +566,7 @@ export function createProjectFromScratchpad(
  * Auto-arranges root nodes on the canvas using a Dagre top-to-bottom layout.
  * Nodes inside groups keep their relative placement; only top-level nodes move.
  */
-export function autoLayout() {
+export function autoLayout(): void {
   const graph = new dagre.graphlib.Graph()
   graph.setDefaultEdgeLabel(() => ({}))
   graph.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 90 })
@@ -571,9 +616,10 @@ export function autoLayout() {
 
 /**
  * Clears the current canvas and loads a pre-defined architecture template.
- * @param template - The template object containing nodes and edges
+ *
+ * @param template - The template object containing nodes, edges, and optional category
  */
-export function loadTemplate(template: { nodes: any[]; edges: any[]; category?: 'architecture' | 'c4' }) {
+export function loadTemplate(template: { nodes: any[]; edges: any[]; category?: 'architecture' | 'c4' }): void {
   const mode = template.category ?? canvasStore.state.diagramMode
   const next: CanvasState = {
     ...canvasStore.state,
@@ -592,15 +638,14 @@ export function loadTemplate(template: { nodes: any[]; edges: any[]; category?: 
 
 /**
  * Groups selected nodes into a new container node.
+ *
  * @param explicitNodes - Optional array of nodes to group directly (bypasses store selection)
  */
-export function groupSelected(explicitNodes?: any[]) {
+export function groupSelected(explicitNodes?: any[]): void {
   canvasStore.setState((s) => {
-    // Identify which nodes to group: either passed explicitly or those selected in state
     const targetNodes = explicitNodes || s.nodes.filter((n) => n.selected && !n.parentId);
     if (targetNodes.length < 1) return s;
 
-    // Calculate bounding box using explicit defaults for unmeasured nodes
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
     targetNodes.forEach((n) => {
@@ -618,7 +663,7 @@ export function groupSelected(explicitNodes?: any[]) {
       id: groupId,
       type: "group",
       position: { x: minX - pad, y: minY - pad },
-      selected: false, // Explicitly false to prevent "group within group" visual box
+      selected: false,
       style: {
         width: maxX - minX + pad * 2,
         height: maxY - minY + pad * 2 + 20,
@@ -629,13 +674,12 @@ export function groupSelected(explicitNodes?: any[]) {
       data: { label: "New Group", category: "flow" },
     };
 
-    // Construct the new nodes array with updated parents and relative positions
     const updatedNodes = s.nodes.map((n) => {
       const isTarget = targetNodes.some((tn) => tn.id === n.id);
       if (isTarget) {
         return {
           ...n,
-          selected: false, // Deselect nodes once they are grouped
+          selected: false,
           parentId: groupId,
           position: {
             x: n.position.x - (minX - pad),
@@ -659,21 +703,22 @@ export function groupSelected(explicitNodes?: any[]) {
 
 /**
  * Sets the current node being edited, or null to close all editors.
+ *
  * @param id - The unique ID of the node, or null
  */
-export function setEditingNodeId(id: string | null) {
+export function setEditingNodeId(id: string | null): void {
   canvasStore.setState((s) => ({ ...s, editingNodeId: id }));
 }
 
 /**
  * Sets the current diagramming mode and smoothly loads that mode's canvas data.
- * @param mode - 'architecture' | 'c4'
+ *
+ * @param mode - Target mode ('architecture' | 'c4')
  */
-export async function setDiagramMode(mode: 'architecture' | 'c4') {
+export async function setDiagramMode(mode: 'architecture' | 'c4'): Promise<void> {
   const current = canvasStore.state;
   if (current.diagramMode === mode) return;
 
-  // Flush pending save for current mode before switching
   if (pendingSave) {
     await persist(pendingSave);
     pendingSave = null;
@@ -698,32 +743,33 @@ export async function setDiagramMode(mode: 'architecture' | 'c4') {
 
 /**
  * Sets the active C4 Model level (L1 Context, L2 Container, L3 Component, L4 Code).
- * @param level - C4Level
+ *
+ * @param level - C4Level value
  */
-export function setC4Level(level: C4Level) {
+export function setC4Level(level: C4Level): void {
   canvasStore.setState((s) => ({ ...s, c4Level: level }));
 }
 
 /**
  * Sets the exporting state of the canvas.
+ *
  * @param exporting - Whether the canvas is being exported
  */
-export function setExportingState(exporting: boolean) {
+export function setExportingState(exporting: boolean): void {
   canvasStore.setState((s) => ({ ...s, isExporting: exporting }))
 }
 
 /**
  * Custom hook to consume the canvas store in a React component.
  * Ensures hydration safety by returning default state initially and syncing on mount.
+ *
  * @param selector - Function to select specific data from the store
  * @returns The selected portion of the state
  */
 export function useCanvasStore<T>(selector: (state: CanvasState) => T): T {
-  // Always start with default state for hydration matching
   const [value, setValue] = useState<T>(() => selector(DEFAULT_CANVAS_STATE));
 
   useEffect(() => {
-    // Sync with actual client state on mount
     setValue(selector(canvasStore.state));
     const sub = canvasStore.subscribe(() => {
       setValue(selector(canvasStore.state));

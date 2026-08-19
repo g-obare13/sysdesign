@@ -1,18 +1,25 @@
+/**
+ * @fileoverview Root route layout and HTML document structure for the application.
+ */
+
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { useLocation } from "@tanstack/react-router";
 import { IconHome, IconLinkOff } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { initConsole } from "@/lib/console";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-import appCss from "../globals.css?url";
-import Toolbar from "../components/toolbar/Toolbar";
-import Footer from "../components/layout/Footer";
-import MobileBlock from "../components/layout/MobileBlock";
-import { useCanvasStore } from "../store/canvas.store";
+import appCss from "@/globals.css?url";
+import Toolbar from "@/components/toolbar/Toolbar";
+import Footer from "@/components/layout/Footer";
+import MobileBlock from "@/components/layout/MobileBlock";
+import { useCanvasStore } from "@/store/canvas.store";
+
+initConsole();
 
 /**
  * The root route configuration for the entire application.
@@ -64,10 +71,20 @@ export const Route = createRootRoute({
     ],
 
     links: [
-      { rel: "preload", href: "/fonts/MonaSans.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+      {
+        rel: "preload",
+        href: "/fonts/MonaSans.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap",
@@ -86,8 +103,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const isExporting = useCanvasStore((s) => s.isExporting);
   const location = useLocation();
 
-  // Marketing/content routes keep the footer; the canvas editor hides it to
-  // maximize vertical space. Mirrors the toolbar's canvas-route detection.
   const contentRoutes = [
     "/projects",
     "/templates",
@@ -108,7 +123,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="relative" suppressHydrationWarning>
         <ThemeProvider>
           <TooltipProvider delay={300}>
-            {/* The editor needs a desktop; content pages stay readable on mobile */}
             {isCanvasRoute && <MobileBlock />}
             <ReactFlowProvider>
               <div className="flex flex-col h-screen overflow-hidden bg-background">
@@ -126,6 +140,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
+
 /**
  * Professional Not Found (404) view.
  * Styled to match the SysDesign professional aesthetic.

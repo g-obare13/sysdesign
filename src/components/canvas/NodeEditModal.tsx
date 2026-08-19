@@ -1,27 +1,39 @@
+/**
+ * @fileoverview Modal dialog for editing diagram node metadata (label, tech stack, C4 level, ownership, notes).
+ */
+
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { setEditingNodeId, updateNodeMeta } from "../../store/canvas.store";
-import type { NodeMeta } from "../../types/diagram";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { setEditingNodeId, updateNodeMeta } from "@/store/canvas.store";
+import type { NodeMeta } from "@/types/diagram";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { Textarea } from "../ui/textarea";
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import * as TablerIcons from "@tabler/icons-react";
-import { Label } from "../ui/label";
+import { Label } from "@/components/ui/label";
 
 type Status = "existing" | "planned" | "deprecated" | "";
 
 interface NodeEditModalProps {
+  /** Unique ID of the node being edited */
   nodeId: string;
+  /** Current metadata state of the node */
   meta: NodeMeta;
 }
 
+/**
+ * Node property configuration modal dialog.
+ *
+ * @param props - NodeEditModalProps
+ * @returns Portaled modal dialog element
+ */
 export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);

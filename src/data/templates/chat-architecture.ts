@@ -1,5 +1,12 @@
-import type { Template } from "../templates";
+/**
+ * @fileoverview System architecture template for a Real-Time Chat and Messaging Engine.
+ */
 
+import type { Template } from "@/data/templates";
+
+/**
+ * Real-Time Chat & Messaging platform architecture template.
+ */
 export const CHAT_TEMPLATE: Template = {
   id: "realtime-chat-platform",
   name: "Real-Time Chat & Messaging Engine",
@@ -7,7 +14,7 @@ export const CHAT_TEMPLATE: Template = {
   description:
     "Low-latency real-time collaboration engine featuring WebSocket gateway clusters, distributed message broker, presence caching, and ScyllaDB history storage.",
   nodes: [
-    // ── Group 1: Client Ingress & Load Balancing ─────────────────────
+    // Group 1: Client Ingress & Load Balancing
     {
       id: "grp-chat-ingress",
       type: "group",
@@ -64,7 +71,7 @@ export const CHAT_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 2: Core Messaging Services ─────────────────────────────
+    // Group 2: Core Messaging Services
     {
       id: "grp-chat-core",
       type: "group",
@@ -134,7 +141,7 @@ export const CHAT_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 3: Event Stream & PubSub ───────────────────────────────
+    // Group 3: Event Stream & PubSub
     {
       id: "grp-chat-stream",
       type: "group",
@@ -191,7 +198,7 @@ export const CHAT_TEMPLATE: Template = {
       },
     },
 
-    // ── Group 4: Storage & Caching ───────────────────────────────────
+    // Group 4: Storage & Caching
     {
       id: "grp-chat-storage",
       type: "group",

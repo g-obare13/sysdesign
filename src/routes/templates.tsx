@@ -1,14 +1,18 @@
+/**
+ * @fileoverview Architecture & C4 Template gallery route (`/templates`).
+ */
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { TEMPLATES, type Template } from "../data/templates";
-import { loadTemplate } from "../store/canvas.store";
-import { useProjectStore } from "../store/project.store";
+import { TEMPLATES, type Template } from "@/data/templates";
+import { loadTemplate } from "@/store/canvas.store";
+import { useProjectStore } from "@/store/project.store";
 import { useState } from "react";
-import ConfirmModal from "../components/ui/ConfirmModal";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import {
   IconCompass,
   IconBrain,
 } from "@tabler/icons-react";
-import { Button } from "#/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/templates")({
@@ -17,6 +21,11 @@ export const Route = createFileRoute("/templates")({
 
 type FilterCategory = "all" | "architecture" | "c4";
 
+/**
+ * Templates gallery browsing page allowing users to preview and load architectural patterns.
+ *
+ * @returns Templates gallery view element
+ */
 function TemplatesPage() {
   const navigate = useNavigate();
   const activeProjectId = useProjectStore((s) => s.activeProjectId);

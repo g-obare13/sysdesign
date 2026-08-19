@@ -1,6 +1,12 @@
-import type { NodeTemplate } from '../../types/diagram'
+/**
+ * @fileoverview Component catalog for Microsoft Azure cloud architecture nodes.
+ */
 
-/** Microsoft Azure components. */
+import type { NodeTemplate } from '@/types/diagram'
+
+/**
+ * Microsoft Azure cloud component catalog.
+ */
 export const AZURE_REGISTRY: NodeTemplate[] = [
   // Compute
   { subtype: 'azure-vm', label: 'Virtual Machines', category: 'cloud', icon: 'IconServer', description: 'Linux and Windows VMs' },

@@ -1,5 +1,9 @@
+/**
+ * @fileoverview Privacy policy document page (`/privacy`).
+ */
+
 import { createFileRoute, Link } from "@tanstack/react-router";
-import Container from "#/components/ui/container";
+import Container from "@/components/ui/container";
 import { IconShieldCheck, IconChevronLeft } from "@tabler/icons-react";
 
 /**
@@ -11,6 +15,8 @@ export const Route = createFileRoute("/privacy")({
 
 /**
  * Static page component displaying the privacy policy.
+ *
+ * @returns Privacy policy page element
  */
 function PrivacyPage() {
   return (

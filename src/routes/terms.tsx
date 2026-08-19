@@ -1,5 +1,9 @@
+/**
+ * @fileoverview Terms of Service page route (`/terms`).
+ */
+
 import { createFileRoute, Link } from "@tanstack/react-router";
-import Container from "#/components/ui/container";
+import Container from "@/components/ui/container";
 import { IconScale, IconChevronLeft } from "@tabler/icons-react";
 
 /**
@@ -11,6 +15,8 @@ export const Route = createFileRoute("/terms")({
 
 /**
  * Static page component displaying the terms of service.
+ *
+ * @returns Terms of service view element
  */
 function TermsPage() {
   return (
