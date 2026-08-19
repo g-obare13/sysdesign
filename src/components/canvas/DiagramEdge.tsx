@@ -6,10 +6,11 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import { updateEdgeMeta } from "../../store/canvas.store";
+import { cn } from "../../lib/utils";
 
 /**
  * Custom edge component for the diagram.
- * Renders a bezier path with an editable label in the center.
+ * Renders an animated bezier path with an editable label in the center.
  */
 export default function DiagramEdge({
   id,
@@ -22,6 +23,8 @@ export default function DiagramEdge({
   data,
   style,
   markerEnd,
+  selected,
+  animated = true,
 }: EdgeProps) {
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -56,14 +59,21 @@ export default function DiagramEdge({
     updateEdgeMeta(id, { label: labelDraft });
   };
 
+  const isAnimated = animated || (data?.animated as boolean) !== false;
+
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
+        className={cn(
+          isAnimated && "edge-animated",
+          selected && "edge-glow",
+        )}
         style={{
           stroke: "var(--primary)",
-          strokeWidth: 1.5,
+          strokeWidth: selected ? 2 : 1.5,
+          opacity: selected ? 1 : 0.85,
           ...style,
         }}
         markerEnd={markerEnd}
@@ -79,9 +89,12 @@ export default function DiagramEdge({
             pointerEvents: "all",
             cursor: "pointer",
             zIndex: 10,
-            maxWidth: "150px",
+            maxWidth: "160px",
           }}
-          className="nodrag nopan rounded-md px-2.5 py-1 border text-[8px]!"
+          className={cn(
+            "nodrag nopan rounded-full px-2.5 py-0.5 border border-border/80 text-[10px] font-mono shadow-xs transition-all",
+            selected && "border-primary ring-2 ring-primary/20",
+          )}
           onPointerDown={(e) => {
             e.stopPropagation();
           }}
@@ -95,7 +108,7 @@ export default function DiagramEdge({
               ref={textareaRef}
               autoFocus
               rows={1}
-              className="nodrag w-full resize-none overflow-hidden bg-transparent text-[8px] p-0 outline-none border-none focus:ring-0 shadow-none"
+              className="nodrag w-full resize-none overflow-hidden bg-transparent text-[10px] font-mono p-0 outline-none border-none focus:ring-0 shadow-none text-center"
               value={labelDraft}
               onChange={(e) => setLabelDraft(e.target.value)}
               onBlur={commitEdit}
@@ -111,9 +124,11 @@ export default function DiagramEdge({
               }}
             />
           ) : (
-            <span className="block w-full text-center text-[8px]! break-words">
+            <span className="block w-full text-center truncate">
               {(data?.label as string) || (
-                <span className="opacity-75 text-[10px]">+ label</span>
+                <span className="text-muted-foreground/60 text-[9px]">
+                  + label
+                </span>
               )}
             </span>
           )}

@@ -125,12 +125,15 @@ export function exportStructurizr(nodes: DiagramNode[], edges: DiagramEdge[]): v
     else if (subtype.includes('component') || ['c4-controller', 'c4-service', 'c4-repository', 'c4-gateway'].includes(subtype)) keyword = 'component'
     else if (n.type === 'group') keyword = 'container'
 
+    const tech = ((n.data.technology as string) || "").replace(/"/g, "'")
+    const techArg = tech ? ` "${tech}"` : ""
+
     if (children.length > 0) {
-      modelLines.push(`${indent}${id} = ${keyword} "${label}" "${desc}" {`)
+      modelLines.push(`${indent}${id} = ${keyword} "${label}" "${desc}"${techArg} {`)
       children.forEach(child => renderNode(child, depth + 1))
       modelLines.push(`${indent}}`)
     } else {
-      modelLines.push(`${indent}${id} = ${keyword} "${label}" "${desc}"`)
+      modelLines.push(`${indent}${id} = ${keyword} "${label}" "${desc}"${techArg}`)
     }
   }
 

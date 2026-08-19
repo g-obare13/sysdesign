@@ -39,11 +39,13 @@ import {
   loadTemplate,
   redo,
   setDiagramMode,
+  setC4Level,
   setExportingState,
   toggleSnap,
   undo,
   useCanvasStore,
 } from "../../store/canvas.store";
+import type { C4Level } from "../../types/diagram";
 import {
   createProject,
   login,
@@ -88,6 +90,13 @@ const EXPORT_OPTIONS = [
   { key: "dsl", label: "Structurizr", desc: "C4 architecture (.dsl)" },
 ];
 
+const C4_LEVELS: { id: C4Level; label: string; tooltip: string }[] = [
+  { id: "context", label: "L1: Context", tooltip: "User personas, system boundaries & external systems" },
+  { id: "container", label: "L2: Containers", tooltip: "Deployable apps, APIs, databases & queues" },
+  { id: "component", label: "L3: Components", tooltip: "Internal services, controllers & data access modules" },
+  { id: "code", label: "L4: Code", tooltip: "Class structures, interfaces & domain models" },
+];
+
 const TOP_NAV_ITEMS = [
   {
     id: "components",
@@ -119,6 +128,7 @@ export default function Toolbar() {
   const isExporting = useCanvasStore((s) => s.isExporting);
   const saveStatus = useCanvasStore((s) => s.saveStatus);
   const diagramMode = useCanvasStore((s) => s.diagramMode);
+  const c4Level = useCanvasStore((s) => s.c4Level);
 
   const user = useProjectStore((s) => s.user);
   const loading = useProjectStore((s) => s.loading);
@@ -133,7 +143,6 @@ export default function Toolbar() {
   const [createProjectModalOpen, setCreateProjectModalOpen] = useState(false);
   const [templateConfirm, setTemplateConfirm] = useState<Template | null>(null);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
-  const [switchConfirmTab, setSwitchConfirmTab] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("hide-canvas-hint") !== "true";
@@ -222,18 +231,6 @@ export default function Toolbar() {
       return;
     }
 
-    const isSwitchingToC4 = item.id === "c4" && diagramMode !== "c4";
-    const isSwitchingToArch =
-      item.id === "components" && diagramMode !== "architecture";
-
-    if (
-      (isSwitchingToC4 || isSwitchingToArch) &&
-      (nodes.length > 0 || edges.length > 0)
-    ) {
-      setSwitchConfirmTab(item.id);
-      return;
-    }
-
     if (item.id === "c4") {
       setDiagramMode("c4");
       if (activeProject) {
@@ -280,35 +277,6 @@ export default function Toolbar() {
           onConfirm={() => {
             clearCanvas();
             setClearConfirmOpen(false);
-          }}
-        />
-
-        <ConfirmModal
-          open={!!switchConfirmTab}
-          isDestructive
-          title="Clear Canvas?"
-          description={`Switching to ${switchConfirmTab === "c4" ? "C4 Model" : "Architecture"} mode will clear your current canvas.`}
-          confirmText="Clear & Switch"
-          onClose={() => setSwitchConfirmTab(null)}
-          onConfirm={() => {
-            if (switchConfirmTab) {
-              clearCanvas();
-              setDiagramMode(switchConfirmTab === "c4" ? "c4" : "architecture");
-              if (switchConfirmTab === "c4") {
-                if (activeProject)
-                  navigate({
-                    to: "/$slug/c4",
-                    params: { slug: activeProject.slug } as any,
-                  });
-              } else {
-                if (activeProject)
-                  navigate({
-                    to: "/$slug",
-                    params: { slug: activeProject.slug } as any,
-                  });
-              }
-              setSwitchConfirmTab(null);
-            }
           }}
         />
 
@@ -449,37 +417,35 @@ export default function Toolbar() {
           )}
         </div>
 
-        {/* Center — Top Navigation Pill Bar */}
-        <nav className="hidden lg:flex items-center gap-1.5 p-1 rounded-full">
-          {TOP_NAV_ITEMS.map((item) => {
-            const isActive = activeNavTab === item.id;
-            const Icon = item.icon;
-            return (
-              <Button
-                key={item.id}
-                variant={isActive ? "shiny" : "ghost"}
-                onClick={() => handleNavClick(item)}
-                className={"rounded-full"}
-                icon={
-                  <Icon
-                    size={15}
-                    stroke={1.8}
-                    className={
-                      isActive
-                        ? "text-neutral-50 shrink-0"
-                        : "text-muted-foreground shrink-0"
-                    }
-                  />
-                }
-              >
-                <span>{item.label}</span>
-              </Button>
-            );
-          })}
-        </nav>
-
-        {/* Right — Settings & User Profile Shadcn Dropdown */}
-        <div className="flex items-center gap-2">
+        {/* Right — Top Navigation & Settings Dropdown */}
+        <div className="flex items-center gap-3">
+          <nav className="hidden lg:flex items-center gap-1.5 p-1 rounded-full">
+            {TOP_NAV_ITEMS.map((item) => {
+              const isActive = activeNavTab === item.id;
+              const Icon = item.icon;
+              return (
+                <Button
+                  key={item.id}
+                  variant={isActive ? "shiny" : "ghost"}
+                  onClick={() => handleNavClick(item)}
+                  className="rounded-full"
+                  icon={
+                    <Icon
+                      size={15}
+                      stroke={1.8}
+                      className={
+                        isActive
+                          ? "text-neutral-50 shrink-0"
+                          : "text-muted-foreground shrink-0"
+                      }
+                    />
+                  }
+                >
+                  <span>{item.label}</span>
+                </Button>
+              );
+            })}
+          </nav>
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-muted/30  text-foreground transition-all cursor-pointer outline-none">
               {user?.user_metadata?.avatar_url ? (
@@ -593,6 +559,46 @@ export default function Toolbar() {
           </DropdownMenu>
         </div>
       </header>
+
+      {/* Floating C4 Level Breadcrumbs Toolbar — Centered Below Header */}
+      {isCanvasRoute && (diagramMode === "c4" || activeNavTab === "c4") && !isExporting && (
+        <div className="fixed top-18 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 px-3.5 py-1.5 bg-card/90 backdrop-blur-md border border-border/70 rounded-full shadow-xl animate-in fade-in slide-in-from-top-3 duration-300">
+          <span className="text-[11px] font-mono font-semibold text-muted-foreground mr-1 select-none flex items-center gap-1">
+            <IconBrain size={14} className="text-primary" />
+            C4 Level:
+          </span>
+          {C4_LEVELS.map((lvl, idx) => {
+            const isCurrent = (c4Level || "context") === lvl.id;
+            return (
+              <div key={lvl.id} className="flex items-center">
+                {idx > 0 && (
+                  <span className="text-[10px] text-muted-foreground/35 mx-1 select-none">
+                    /
+                  </span>
+                )}
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <button
+                        onClick={() => setC4Level(lvl.id)}
+                        className={cn(
+                          "px-3 py-1 rounded-full text-xs font-mono transition-all cursor-pointer select-none",
+                          isCurrent
+                            ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/70",
+                        )}
+                      >
+                        {lvl.label}
+                      </button>
+                    }
+                  />
+                  <TooltipContent side="bottom">{lvl.tooltip}</TooltipContent>
+                </Tooltip>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Floating Bottom Toolbar — Floating Center Dock */}
       {isCanvasRoute && !isExporting && (
@@ -740,7 +746,7 @@ export default function Toolbar() {
                     <Button
                       icon={IconGridDots}
                       onClick={toggleSnap}
-                      variant={snapToGrid ? "default" : "outline"}
+                      variant={snapToGrid ? "outline" : "outline"}
                       loading={loading}
                       size="sm"
                       className="rounded-full"
@@ -782,9 +788,9 @@ export default function Toolbar() {
               <DropdownMenuContent
                 align="end"
                 side="top"
-                className="min-w-[200px] rounded-2xl p-1.5 shadow-2xl space-y-0.5"
+                className="min-w-60 rounded-lg p-1.5  space-y-0.5"
               >
-                <DropdownMenuLabel className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider select-none">
+                <DropdownMenuLabel className="px-3 py-1.5 text-sm font-medium text-foreground">
                   Export Format
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -792,7 +798,7 @@ export default function Toolbar() {
                   <DropdownMenuItem
                     key={opt.key}
                     onClick={() => handleExport(opt.key)}
-                    className="w-full flex flex-col items-start px-3 py-2 rounded-xl hover:bg-muted transition-colors cursor-pointer"
+                    className="w-full flex flex-col items-start px-3 py-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                   >
                     <span className="text-xs font-semibold text-foreground">
                       {opt.label}
@@ -810,42 +816,33 @@ export default function Toolbar() {
           <div className="relative">
             {showHint && (
               <div className="absolute bottom-full right-0 mb-3 animate-in slide-in-from-bottom-2 fade-in duration-300 z-50">
-                <div className="relative bg-card border border-border rounded-2xl p-5 shadow-2xl w-72 overflow-hidden">
-                  <button
-                    onClick={toggleHint}
-                    className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer rounded-full"
-                  >
-                    <IconX size={14} />
-                  </button>
-
+                <div className="relative bg-card border rounded-lg p-5 w-72 overflow-hidden">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="p-1.5 bg-primary/10 rounded-lg">
-                      <IconMouse size={16} className="text-primary" />
-                    </div>
-                    <h4 className="text-xs font-semibold tracking-tight">
-                      Navigation Tips
-                    </h4>
+                    <h6>Navigation Tips</h6>
                   </div>
 
                   <div className="space-y-3.5">
                     <div className="flex items-start gap-3">
                       <div className="p-1.5 bg-muted/50 rounded-lg shrink-0">
-                        <IconMouse size={14} className="text-muted-foreground" />
+                        <IconMouse
+                          size={14}
+                          className="text-muted-foreground"
+                        />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[11px] font-bold">
+                        <div className="text-base font-bold">
                           Canvas Control
                         </div>
-                        <div className="text-[10px] text-muted-foreground leading-relaxed">
-                          <span className="block font-medium text-foreground/80">
+                        <div className=" text-muted-foreground text-[11px] leading-relaxed">
+                          <span className="block font-medium text-[11px] text-foreground/80">
                             Right-click + Drag
                           </span>{" "}
                           Pan the design board
-                          <span className="block font-medium text-foreground/80 mt-1">
+                          <span className="block font-medium text-[11px] text-foreground/80 mt-1">
                             Left-click + Drag
                           </span>{" "}
                           Draw box to Auto-Group
-                          <span className="block font-medium text-foreground/80 mt-1">
+                          <span className="block font-medium text-[11px] text-foreground/80 mt-1">
                             Scroll Wheel
                           </span>{" "}
                           Zoom in and out
@@ -861,15 +858,15 @@ export default function Toolbar() {
                         />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[11px] font-bold">Shortcuts</div>
+                        <div className="text-base font-bold">Shortcuts</div>
                         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-1">
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                             <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
                               ^G
                             </kbd>
                             <span>Group</span>
                           </div>
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                             <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[9px] font-mono leading-none">
                               F
                             </kbd>
@@ -899,16 +896,19 @@ export default function Toolbar() {
 
                     <div className="flex items-start gap-3">
                       <div className="p-1.5 bg-muted/50 rounded-lg shrink-0">
-                        <IconClick size={14} className="text-muted-foreground" />
+                        <IconClick
+                          size={14}
+                          className="text-muted-foreground"
+                        />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[11px] font-bold">Editing</div>
-                        <div className="text-[10px] text-muted-foreground leading-relaxed">
-                          <span className="block font-medium text-foreground/80">
+                        <div className="text-base font-bold">Editing</div>
+                        <div className="text-[11px] text-muted-foreground leading-relaxed">
+                          <span className="block text-[11px] font-medium text-foreground/80">
                             Double-click
                           </span>{" "}
                           Edit node or edge
-                          <span className="block font-medium text-foreground/80 mt-1">
+                          <span className="block font-medium text-[11px] text-foreground/80 mt-1">
                             Drag Handles
                           </span>{" "}
                           Connect nodes
@@ -917,14 +917,14 @@ export default function Toolbar() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-border/40">
+                  <div className="mt-4 pt-3 ">
                     <Button
                       onClick={toggleHint}
                       variant="outline"
                       size="sm"
-                      className="w-full text-xs rounded-lg"
+                      className=" text-xs rounded-lg"
                     >
-                      Hide for now
+                      Close
                     </Button>
                   </div>
                 </div>

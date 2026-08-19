@@ -13,6 +13,9 @@ export interface NodeMeta extends Record<string, unknown> {
   description: string
   /** For C4 nodes: which diagram level this node belongs to */
   c4Level?: C4Level
+  technology?: string
+  isExternal?: boolean
+  containerRef?: string
   status?: string // e.g. "planned", "existing", "deprecated"
   owner?: string
   notes?: string

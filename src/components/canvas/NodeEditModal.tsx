@@ -32,6 +32,15 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
   const [draftSubtype, setDraftSubtype] = React.useState(
     (meta.subtype as string) ?? "",
   );
+  const [draftTechnology, setDraftTechnology] = React.useState(
+    (meta.technology as string) ?? "",
+  );
+  const [draftC4Level, setDraftC4Level] = React.useState(
+    (meta.c4Level as string) ?? "",
+  );
+  const [draftIsExternal, setDraftIsExternal] = React.useState(
+    Boolean(meta.isExternal),
+  );
   const [draftOwner, setDraftOwner] = React.useState(
     (meta.owner as string) ?? "",
   );
@@ -51,6 +60,9 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
     updateNodeMeta(nodeId, {
       label: finalLabel,
       subtype: draftSubtype.trim() || undefined,
+      technology: draftTechnology.trim() || undefined,
+      c4Level: (draftC4Level as any) || undefined,
+      isExternal: draftIsExternal,
       owner: draftOwner.trim() || undefined,
       notes: draftNotes.trim() || undefined,
       status: draftStatus || undefined,
@@ -98,14 +110,54 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label>Technology / Subtype</Label>
-            <Input
-              className="w-full font-mono text-xs"
-              placeholder="e.g. PostgreSQL, Redis, Node.js"
-              value={draftSubtype}
-              onChange={(e) => setDraftSubtype(e.target.value)}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-2">
+              <Label>Technology / Stack</Label>
+              <Input
+                className="w-full font-mono text-xs"
+                placeholder="e.g. Go, React, PostgreSQL"
+                value={draftTechnology || draftSubtype}
+                onChange={(e) => {
+                  setDraftTechnology(e.target.value);
+                  setDraftSubtype(e.target.value);
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>C4 Model Level</Label>
+              <Select
+                value={draftC4Level}
+                onValueChange={(val) => setDraftC4Level(val ?? "")}
+              >
+                <SelectTrigger className="w-full text-xs!">
+                  <SelectValue placeholder="Level (Auto)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Standard Node</SelectItem>
+                  <SelectItem value="context">L1 — System Context</SelectItem>
+                  <SelectItem value="container">L2 — Container</SelectItem>
+                  <SelectItem value="component">L3 — Component</SelectItem>
+                  <SelectItem value="code">L4 — Code / Class</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 py-0.5">
+            <input
+              type="checkbox"
+              id="is-external-cb"
+              checked={draftIsExternal}
+              onChange={(e) => setDraftIsExternal(e.target.checked)}
+              className="accent-primary rounded size-3.5 cursor-pointer"
             />
+            <label
+              htmlFor="is-external-cb"
+              className="text-xs text-foreground cursor-pointer select-none font-medium"
+            >
+              External System / Actor (Outside system boundary)
+            </label>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

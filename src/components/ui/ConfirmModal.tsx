@@ -1,5 +1,6 @@
 import { IconAlertTriangle, IconCancel, IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./button";
 
 interface ConfirmModalProps {
@@ -23,9 +24,14 @@ export default function ConfirmModal({
   onClose,
   onConfirm,
 }: ConfirmModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  if (!open) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!open || !mounted) return null;
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -34,7 +40,7 @@ export default function ConfirmModal({
     onClose();
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
@@ -43,7 +49,7 @@ export default function ConfirmModal({
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-sm bg-card border border-border rounded-3xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 p-6 flex flex-col gap-6">
+      <div className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 p-6 flex flex-col gap-6">
         <div className="flex items-start gap-4">
           <div
             className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center ${isDestructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}
@@ -77,6 +83,7 @@ export default function ConfirmModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

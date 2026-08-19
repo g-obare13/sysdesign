@@ -6,9 +6,10 @@
 
 @font-face {
   font-family: "Mona Sans";
-  src: url("/fonts/MonaSans.woff2") format("woff2 supports variations"),
-       url("/fonts/MonaSans.woff2") format("woff2-variations"),
-       url("/fonts/MonaSans.woff2") format("woff2");
+  src:
+    url("/fonts/MonaSans.woff2") format("woff2 supports variations"),
+    url("/fonts/MonaSans.woff2") format("woff2-variations"),
+    url("/fonts/MonaSans.woff2") format("woff2");
   font-weight: 200 900;
   font-stretch: 75% 125%;
   font-style: normal;
@@ -331,4 +332,34 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/30;
   }
+}
+
+@keyframes edgeFlow {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.react-flow__edge.animated path.react-flow__edge-path,
+path.react-flow__edge-path.edge-animated {
+  stroke-dasharray: 6 4;
+  animation: edgeFlow 2.4s linear infinite;
+}
+
+.edge-glow {
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, var(--primary) 50%, transparent)
+  );
+}
+
+.react-flow__handle {
+  border-color: var(--primary) !important;
+  background-color: var(--card) !important;
+}
+
+.react-flow__handle:hover {
+  background-color: var(--primary) !important;
 }

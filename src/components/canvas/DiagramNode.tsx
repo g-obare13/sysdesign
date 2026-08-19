@@ -7,6 +7,7 @@ import { cn } from "../../lib/utils";
 import {
   updateNodeMeta,
   setEditingNodeId,
+  setC4Level,
   useCanvasStore,
   applyNodeChangesToStore,
 } from "../../store/canvas.store";
@@ -29,15 +30,6 @@ function getIcon(name: string): TablerIconComponent {
 }
 
 type Status = "existing" | "planned" | "deprecated" | "";
-
-const STATUS_CONFIG: Record<
-  Exclude<Status, "">,
-  { label: string; className: string }
-> = {
-  existing: { label: "Existing", className: "bg-[#0ea5e9] text-white" },
-  planned: { label: "Planned", className: "bg-[#c57642] text-white" },
-  deprecated: { label: "Deprecated", className: "bg-[#da1e28] text-white" },
-};
 
 //  C4 abstraction styles — formal tones
 interface C4Style {
@@ -122,7 +114,10 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
   const meta = data as NodeMeta;
   const category = meta.category || "microservice";
   const subtype = meta.subtype || "";
-  const isC4 = category === "c4";
+  const isC4 =
+    category === "c4" ||
+    subtype.startsWith("c4-") ||
+    meta.c4Level !== undefined;
 
   // For C4 nodes use C4 style config; for others use CATEGORY_STYLE
   const c4Style = isC4 ? getC4Style(subtype) : null;
@@ -188,53 +183,11 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     width: 6,
     height: 6,
     background: "var(--card)",
-    border: `1.5px solid ${style.color}`,
+    border: "1.5px solid var(--primary)",
     borderRadius: "10px",
   };
 
-  const status = (meta.status as Status) || "";
-  const statusCfg = status ? STATUS_CONFIG[status] : null;
-
-  const isShape = subtype.startsWith("sh-");
   const isGroup = type === "group";
-  const isFlow =
-    (meta.category === "flow" || meta.category === "shape") &&
-    !isGroup &&
-    !isC4;
-
-  //  Shape geometry
-  let shapeClass = "rounded-xs";
-  let shapeStyle: React.CSSProperties = {};
-
-  if (!isC4 && !isFlow && !isGroup) {
-    if (subtype === "sh-flow-diamond") {
-      shapeClass = "";
-      shapeStyle = { clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)" };
-    } else if (subtype === "sh-flow-circle") {
-      shapeClass =
-        "rounded-full aspect-square flex flex-col items-center justify-center p-4";
-    } else if (subtype === "sh-flow-para") {
-      shapeClass = "";
-      shapeStyle = { clipPath: "polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%)" };
-    } else if (subtype === "sh-flow-hex") {
-      shapeClass = "";
-      shapeStyle = {
-        clipPath:
-          "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)",
-      };
-    } else if (subtype === "sh-flow-oval") {
-      shapeClass = "rounded-full px-6";
-    } else if (subtype === "sh-sticky") {
-      shapeClass = "rounded-none rotate-1 shadow-md p-4";
-      shapeStyle = {
-        background: "#fef9c3",
-        color: "#161616",
-        borderColor: "#facc15",
-      };
-    } else if (subtype === "sh-flow-cylinder") {
-      shapeClass = "rounded-[30%]";
-    }
-  }
 
   //  Group node
   if (isGroup) {
@@ -341,17 +294,35 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     [id],
   );
 
+  const isContainer =
+    meta.subtype === "c4-container" || meta.c4Level === "container";
+  const isExternal = Boolean(meta.isExternal);
+
+  let c4BadgeText = "";
+  if (isC4) {
+    if (meta.subtype === "c4-person")
+      c4BadgeText = isExternal ? "[External Person]" : "[Person]";
+    else if (meta.subtype === "c4-system")
+      c4BadgeText = isExternal ? "[External System]" : "[Software System]";
+    else if (meta.subtype === "c4-container")
+      c4BadgeText = `[Container${meta.technology ? `: ${meta.technology}` : ""}]`;
+    else if (meta.subtype === "c4-component")
+      c4BadgeText = `[Component${meta.technology ? `: ${meta.technology}` : ""}]`;
+    else if (meta.c4Level) c4BadgeText = `[${meta.c4Level.toUpperCase()}]`;
+  }
+
   return (
     <>
       <div
         className={cn(
-          "group relative flex items-center gap-3.5 px-4 py-3 bg-card text-foreground rounded-2xl border transition-all duration-200 min-w-[210px] max-w-[250px] select-none cursor-pointer",
+          "group relative flex items-center gap-3.5 px-4 py-3 bg-card text-foreground rounded-2xl border transition-all duration-200 min-w-[210px] max-w-[260px] select-none cursor-pointer",
+          isExternal && "border-dashed opacity-85",
           selected
             ? "border-primary ring-3 ring-primary/20 shadow-md z-20"
             : "border-border/80 hover:border-border hover:shadow-md shadow-xs",
         )}
       >
-        {/* Floating Actions on Hover & Select: Edit and Delete buttons */}
+        {/* Floating Actions on Hover & Select: Edit, Drilldown, and Delete buttons */}
         <div
           className={cn(
             "absolute -top-3.5 -right-2 flex items-center gap-1 z-30 transition-all duration-150",
@@ -360,6 +331,18 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
               : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-hover:scale-100 scale-95",
           )}
         >
+          {isContainer && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setC4Level("component");
+              }}
+              title="Drill down to Components (L3)"
+              className="w-7 h-7 rounded-lg bg-card border border-border shadow-md flex items-center justify-center cursor-pointer text-primary hover:bg-primary/10 transition-all hover:scale-105"
+            >
+              <TablerIcons.IconHierarchy size={13} stroke={1.8} />
+            </button>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -441,9 +424,14 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
 
         {/* Node Labels Column */}
         <div className="flex flex-col min-w-0 flex-1">
+          {c4BadgeText && (
+            <span className="font-mono text-[9px] text-primary/85 font-semibold tracking-tight truncate leading-none mb-0.5">
+              {c4BadgeText}
+            </span>
+          )}
           <h6 className="text-sm truncate">{meta.label || style.label}</h6>
           <span className="font-mono text-xs text-muted-foreground leading-tight truncate">
-            {meta.subtype || style.label}
+            {meta.technology || meta.subtype || style.label}
           </span>
         </div>
       </div>

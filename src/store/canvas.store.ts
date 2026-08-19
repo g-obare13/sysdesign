@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import dagre from '@dagrejs/dagre'
 import { applyNodeChanges, applyEdgeChanges, MarkerType } from '@xyflow/react'
 import type { NodeChange, EdgeChange, Connection } from '@xyflow/react'
-import type { DiagramNode, DiagramEdge } from '../types/diagram'
+import type { DiagramNode, DiagramEdge, C4Level } from '../types/diagram'
 import { projectStore, createProject, type ProjectType } from './project.store'
 import { supabase } from '../lib/supabase'
 
@@ -13,8 +13,9 @@ let activeProjectId = projectStore.state.activeProjectId
  * a scratchpad is being promoted into a freshly-created project). */
 let skipNextLoad = false
 
-function getStorageKey() {
-  return activeProjectId ? `sysdesign-diagram-${activeProjectId}` : 'sysdesign-v2'
+function getStorageKey(mode: 'architecture' | 'c4' = (canvasStore?.state?.diagramMode ?? 'architecture')) {
+  const suffix = mode === 'c4' ? '-c4' : ''
+  return activeProjectId ? `sysdesign-diagram-${activeProjectId}${suffix}` : `sysdesign-v2${suffix}`
 }
 
 const MAX_HISTORY = 40
@@ -49,6 +50,8 @@ export interface CanvasState {
   editingNodeId: string | null
   /** The current diagramming mode (affects palette and styles) */
   diagramMode: 'architecture' | 'c4'
+  /** Current C4 level view */
+  c4Level: C4Level
   /** Whether the canvas is currently being exported (hides UI) */
   isExporting: boolean
   /** Status of the last persistence attempt, shown in the toolbar save indicator */
@@ -64,15 +67,16 @@ const DEFAULT_CANVAS_STATE: CanvasState = {
   snapToGrid: false,
   editingNodeId: null,
   diagramMode: 'architecture',
+  c4Level: 'context',
   isExporting: false,
   saveStatus: 'idle',
 }
 
-async function load(): Promise<Partial<CanvasState>> {
+async function load(mode: 'architecture' | 'c4' = (canvasStore?.state?.diagramMode ?? 'architecture')): Promise<Partial<CanvasState>> {
   if (typeof window === 'undefined') return {}
   
   const user = projectStore.state.user
-  if (user && activeProjectId) {
+  if (user && activeProjectId && mode === 'architecture') {
     const { data, error } = await supabase
       .from('projects')
       .select('nodes, edges, edge_counter')
@@ -92,7 +96,7 @@ async function load(): Promise<Partial<CanvasState>> {
   }
 
   try {
-    const raw = localStorage.getItem(getStorageKey())
+    const raw = localStorage.getItem(getStorageKey(mode))
     return raw ? JSON.parse(raw) : {}
   } catch { return {} }
 }
@@ -165,9 +169,9 @@ function save(s: CanvasState) {
   const user = projectStore.state.user
   pendingSave = {
     state: s,
-    target: user && activeProjectId
+    target: user && activeProjectId && s.diagramMode === 'architecture'
       ? { kind: 'cloud', projectId: activeProjectId }
-      : { kind: 'local', key: getStorageKey() },
+      : { kind: 'local', key: getStorageKey(s.diagramMode) },
   }
   // Defer the "saving" indicator until after the current store update settles.
   queueMicrotask(() => setSaveStatus('saving'))
@@ -660,11 +664,42 @@ export function setEditingNodeId(id: string | null) {
 }
 
 /**
- * Sets the current diagramming mode.
+ * Sets the current diagramming mode and smoothly loads that mode's canvas data.
  * @param mode - 'architecture' | 'c4'
  */
-export function setDiagramMode(mode: 'architecture' | 'c4') {
-  canvasStore.setState((s) => ({ ...s, diagramMode: mode }));
+export async function setDiagramMode(mode: 'architecture' | 'c4') {
+  const current = canvasStore.state;
+  if (current.diagramMode === mode) return;
+
+  // Flush pending save for current mode before switching
+  if (pendingSave) {
+    await persist(pendingSave);
+    pendingSave = null;
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+  }
+
+  const loaded = await load(mode);
+  canvasStore.setState((s) => ({
+    ...s,
+    diagramMode: mode,
+    nodes: loaded.nodes ?? [],
+    edges: loaded.edges ?? [],
+    edgeCounter: loaded.edgeCounter ?? 0,
+    history: [{ nodes: loaded.nodes ?? [], edges: loaded.edges ?? [] }],
+    historyIndex: 0,
+    saveStatus: 'idle',
+  }));
+}
+
+/**
+ * Sets the active C4 Model level (L1 Context, L2 Container, L3 Component, L4 Code).
+ * @param level - C4Level
+ */
+export function setC4Level(level: C4Level) {
+  canvasStore.setState((s) => ({ ...s, c4Level: level }));
 }
 
 /**

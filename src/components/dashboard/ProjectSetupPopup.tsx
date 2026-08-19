@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { IconFolderPlus, IconX, IconFolder } from "@tabler/icons-react";
+import { IconFolderPlus, IconX } from "@tabler/icons-react";
 import {
   useProjectStore,
   MAX_PROJECTS,

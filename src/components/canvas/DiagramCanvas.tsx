@@ -1,9 +1,9 @@
 import { useCallback, useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
 import {
   ReactFlow,
   Background,
-  Controls,
   MiniMap,
   SelectionMode,
   ConnectionLineType,
@@ -35,12 +35,8 @@ import { CATEGORY_STYLE, type NodeTemplate } from "../../types/diagram";
 import type { DiagramNode, DiagramEdge } from "../../types/diagram";
 import DiagramNodeComponent from "./DiagramNode";
 import DiagramEdgeComponent from "./DiagramEdge";
-import {
-  IconX,
-  IconCancel,
-  IconTrash,
-} from "@tabler/icons-react";
-import { Button } from "../ui/button";
+import { IconX } from "@tabler/icons-react";
+import ConfirmModal from "../ui/ConfirmModal";
 
 const nodeTypes: NodeTypes = { diagram: DiagramNodeComponent };
 const edgeTypes: EdgeTypes = { smoothstep: DiagramEdgeComponent };
@@ -244,7 +240,6 @@ export default function DiagramCanvas() {
         snapGrid={[20, 20]}
       >
         {!isExporting && <Background color="var(--border)" gap={20} size={1} />}
-        {!isExporting && <Controls />}
         {!isExporting && (
           <MiniMap
             pannable
@@ -255,95 +250,73 @@ export default function DiagramCanvas() {
                 ? CATEGORY_STYLE[cat as keyof typeof CATEGORY_STYLE]
                 : null;
               if (!catStyle) return "#aaa";
-              return (isDark && catStyle.dark?.color) || catStyle.color || "#aaa";
+              return (
+                (isDark && catStyle.dark?.color) || catStyle.color || "#aaa"
+              );
             }}
           />
         )}
       </ReactFlow>
 
       {/* Delete Confirmation Modal */}
-      {showDelete && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-card border border-border rounded-[--radius] shadow-2xl p-6 max-w-sm w-full animate-in zoom-in-95 duration-200 flex flex-col gap-4">
-            <div>
-              <h2 className="text-sm font-medium">Delete items?</h2>
-              <p className="text-xs">
-                {" "}
-                Are you sure you want to delete {selectedCount} selected item
-                {selectedCount !== 1 ? "s" : ""}? This action can be undone
-                later with Ctrl+Z.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-end gap-2.5 mt-2">
-              <Button
-                icon={IconCancel}
-                iconPlacement="left"
-                variant="outline"
-                onClick={() => setShowDelete(false)}
-              >
-                Cancel
-              </Button>
-
-              <Button
-                icon={IconTrash}
-                iconPlacement="left"
-                variant="destructive"
-                onClick={() => {
-                  deleteSelected();
-                  setShowDelete(false);
-                }}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={showDelete}
+        title="Delete items?"
+        description={`Are you sure you want to delete ${selectedCount} selected item${selectedCount !== 1 ? "s" : ""}? This action can be undone later with Ctrl+Z.`}
+        confirmText="Delete"
+        isDestructive
+        onClose={() => setShowDelete(false)}
+        onConfirm={() => {
+          deleteSelected();
+          setShowDelete(false);
+        }}
+      />
       {/* Keyboard Shortcuts Modal */}
-      {showShortcuts && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-card border border-border rounded-[--radius] shadow-2xl p-6 w-full max-w-sm animate-in zoom-in-95 duration-200 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium">Keyboard Shortcuts</h2>
-              <button
-                onClick={() => setShowShortcuts(false)}
-                className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer rounded-none"
-                aria-label="Close shortcuts"
-              >
-                <IconX size={14} />
-              </button>
-            </div>
-            <div className="flex flex-col text-xs">
-              {[
-                ["⌘/Ctrl + Z", "Undo"],
-                ["⌘/Ctrl + Y", "Redo"],
-                ["⌘/Ctrl + Shift + Z", "Redo"],
-                ["⌘/Ctrl + G", "Group selection"],
-                ["Delete / Backspace", "Delete selection"],
-                ["F", "Fit view"],
-                ["?", "Show this help"],
-              ].map(([keys, desc]) => (
-                <div
-                  key={`${keys}-${desc}`}
-                  className="flex items-center justify-between gap-4 py-1.5 border-b border-border/40 last:border-0"
+      {showShortcuts &&
+        createPortal(
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-background/40 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+            <div className="bg-card border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-in zoom-in-95 duration-200 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h6 className="text-sm font-medium">Keyboard Shortcuts</h6>
+                <button
+                  onClick={() => setShowShortcuts(false)}
+                  className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer rounded-full"
+                  aria-label="Close shortcuts"
                 >
-                  <kbd className="text-[10px] font-semibold text-foreground bg-muted px-1.5 py-0.5 rounded-sm border border-border">
-                    {keys}
-                  </kbd>
-                  <span className="text-[11px] text-muted-foreground">
-                    {desc}
-                  </span>
-                </div>
-              ))}
-              <p className="text-[10px] text-muted-foreground/70 pt-2">
-                Tip: drag components from the sidebar, double-click a node to
-                edit it.
-              </p>
+                  <IconX size={14} />
+                </button>
+              </div>
+              <div className="flex flex-col text-xs">
+                {[
+                  ["⌘/Ctrl + Z", "Undo"],
+                  ["⌘/Ctrl + Y", "Redo"],
+                  ["⌘/Ctrl + Shift + Z", "Redo"],
+                  ["⌘/Ctrl + G", "Group selection"],
+                  ["Delete / Backspace", "Delete selection"],
+                  ["F", "Fit view"],
+                  ["?", "Show this help"],
+                ].map(([keys, desc]) => (
+                  <div
+                    key={`${keys}-${desc}`}
+                    className="flex items-center justify-between gap-4 py-1.5 border-b border-border/40 last:border-0"
+                  >
+                    <kbd className="text-[10px] font-semibold text-foreground bg-muted px-1.5 py-0.5 rounded-sm border border-border">
+                      {keys}
+                    </kbd>
+                    <span className="text-[11px] text-muted-foreground">
+                      {desc}
+                    </span>
+                  </div>
+                ))}
+                <p className="text-[10px] text-muted-foreground/70 pt-2">
+                  Tip: drag components from the sidebar, double-click a node to
+                  edit it.
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

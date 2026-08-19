@@ -10,18 +10,11 @@ import {
 
 import { useProjectStore } from "../../store/project.store";
 import { useCanvasStore } from "../../store/canvas.store";
-import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useNavigate, useLocation } from "@tanstack/react-router";
-import ConfirmModal from "../ui/ConfirmModal";
-import { setDiagramMode, clearCanvas } from "../../store/canvas.store";
-import { setPrompt as setAIPrompt, useAIKeys } from "../../store/ai.store";
+import { useAIKeys } from "../../store/ai.store";
 import AIPanel from "../ai/AIPanel";
-import AISettings from "../ai/AISettings";
+import { cn } from "@/lib/utils";
+import { useLocation } from "@tanstack/react-router";
+import { Input } from "../ui/input";
 
 type TablerIcon = React.FC<{
   size?: number;
@@ -122,16 +115,10 @@ type TabId =
  * Left component palette drawer with searchable node registry.
  */
 export default function Sidebar() {
-  const navigate = useNavigate();
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const projects = useProjectStore((s) => s.projects);
-  const activeProject = projects.find((p) => p.id === activeProjectId);
 
   const canDrag = !!activeProjectId || projects.length === 0;
-
-  const nodes = useCanvasStore((s) => s.nodes);
-  const edges = useCanvasStore((s) => s.edges);
-  const diagramMode = useCanvasStore((s) => s.diagramMode);
 
   const location = useLocation();
   const currentPath = location.pathname;
@@ -282,12 +269,12 @@ export default function Sidebar() {
               size={14}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
             />
-            <input
+            <Input
               type="text"
               placeholder="Search nodes & shapes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-8 pl-8 pr-7 bg-muted/50 border border-border/40 rounded-full text-[11px] placeholder:text-muted-foreground/60 focus:ring-1 focus:ring-primary/20 outline-none transition-all"
+              className="w-full border text-sm placeholder:text-xs! outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -306,7 +293,8 @@ export default function Sidebar() {
             <div className="flex flex-col py-1 gap-1">
               <div className="px-3 pb-2">
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  C4 Model abstractions — Person, Software System, Container, and Component.
+                  C4 Model abstractions — Person, Software System, Container,
+                  and Component.
                 </p>
               </div>
               {[
