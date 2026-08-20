@@ -3,48 +3,55 @@
  * Manages viewport panning, drag-and-drop node placement, hotkeys, connections, and selection modals.
  */
 
-import { useCallback, useRef, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
 import {
-  ReactFlow,
   Background,
-  MiniMap,
-  SelectionMode,
   ConnectionLineType,
+  
   MarkerType,
-  useReactFlow,
-  type OnNodesChange,
-  type OnEdgesChange,
-  type OnConnect,
-  type NodeTypes,
-  type EdgeTypes,
+  MiniMap,
+  
+  
+  
+  
+  ReactFlow,
+  SelectionMode,
+  useReactFlow
 } from "@xyflow/react";
+import type {EdgeTypes, NodeTypes, OnConnect, OnEdgesChange, OnNodesChange} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import {
-  canvasStore,
-  applyNodeChangesToStore,
-  applyEdgeChangesToStore,
-  connectNodes,
   addNode,
+  applyEdgeChangesToStore,
+  applyNodeChangesToStore,
+  canvasStore,
+  connectNodes,
   deleteSelected,
-  undo,
-  redo,
   groupSelected,
-  updateEdgeConnection,
+  redo,
   setEditingNodeId,
+  undo,
+  updateEdgeConnection,
   useCanvasStore,
 } from "@/store/canvas.store";
-import { CATEGORY_STYLE, type NodeTemplate } from "@/types/diagram";
-import type { DiagramNode, DiagramEdge } from "@/types/diagram";
+import { CATEGORY_STYLE  } from "@/types/diagram";
+import type {DiagramEdge, DiagramNode, NodeTemplate } from "@/types/diagram";
 import DiagramNodeComponent from "./DiagramNode";
 import DiagramEdgeComponent from "./DiagramEdge";
 import { IconX } from "@tabler/icons-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
 const nodeTypes: NodeTypes = { diagram: DiagramNodeComponent };
-const edgeTypes: EdgeTypes = { smoothstep: DiagramEdgeComponent };
+const edgeTypes: EdgeTypes = {
+  default: DiagramEdgeComponent,
+  smoothstep: DiagramEdgeComponent,
+  bezier: DiagramEdgeComponent,
+  step: DiagramEdgeComponent,
+  straight: DiagramEdgeComponent,
+};
 let nodeCounter = Date.now();
 
 /**
@@ -106,8 +113,8 @@ export default function DiagramCanvas() {
         e.preventDefault();
         const selectedNodes = canvasStore.state.nodes.filter((n) => n.selected);
         if (selectedNodes.length > 0)
-          fitView({ nodes: selectedNodes, duration: 400, maxZoom: 1 });
-        else fitView({ duration: 400, maxZoom: 1 });
+          fitView({ nodes: selectedNodes, duration: 350, maxZoom: 1 });
+        else fitView({ duration: 350, maxZoom: 1 });
       }
       if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
         e.preventDefault();
@@ -166,30 +173,36 @@ export default function DiagramCanvas() {
       e.preventDefault();
       const raw = e.dataTransfer.getData("application/sysdesign");
       if (!raw) return;
-      const template: NodeTemplate = JSON.parse(raw);
 
-      const position = screenToFlowPosition({
-        x: e.clientX,
-        y: e.clientY,
-      });
+      try {
+        const template: NodeTemplate = JSON.parse(raw);
+        const position = screenToFlowPosition({
+          x: e.clientX,
+          y: e.clientY,
+        });
 
-      position.x -= 75;
-      position.y -= 40;
+        const newNode: DiagramNode = {
+          id: `node-${++nodeCounter}`,
+          type: "diagram",
+          position: {
+            x: Math.round(position.x / 20) * 20,
+            y: Math.round(position.y / 20) * 20,
+          },
+          data: {
+            label: template.label,
+            category: template.category,
+            subtype: template.subtype,
+            icon: template.icon,
+            description: template.description,
+            technology: (template as { technology?: string }).technology,
+            c4Level: template.category === "c4" ? "component" : undefined,
+          },
+        };
 
-      nodeCounter++;
-      const node: DiagramNode = {
-        id: `node-${nodeCounter}`,
-        type: "diagram",
-        position,
-        data: {
-          label: template.label,
-          category: template.category,
-          subtype: template.subtype,
-          icon: template.icon,
-          description: template.description,
-        },
-      };
-      addNode(node);
+        addNode(newNode);
+      } catch (err) {
+        console.error("Drop failed:", err);
+      }
     },
     [screenToFlowPosition],
   );
@@ -224,7 +237,7 @@ export default function DiagramCanvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
-        fitViewOptions={{ padding: 0.25, maxZoom: 1 }}
+        fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         minZoom={0.2}
         maxZoom={2}
@@ -234,28 +247,36 @@ export default function DiagramCanvas() {
         selectionMode={SelectionMode.Partial}
         panOnScroll={true}
         selectionOnDrag={true}
-        connectionLineStyle={{ stroke: "var(--primary)", strokeWidth: 2 }}
+        connectionLineStyle={{ stroke: "var(--edge-stroke, #8e9584)", strokeWidth: 1.5 }}
         connectionLineType={ConnectionLineType.SmoothStep}
         defaultEdgeOptions={{
-          style: { stroke: "var(--primary)", strokeWidth: 1.5 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: "var(--primary)" },
+          type: "smoothstep",
+          style: { stroke: "var(--edge-stroke, #8e9584)", strokeWidth: 1.5 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: "var(--edge-stroke, #8e9584)" },
         }}
         snapToGrid={snapToGrid}
         snapGrid={[20, 20]}
       >
-        {!isExporting && <Background color="var(--border)" gap={20} size={1} />}
+        {!isExporting && (
+          <Background
+            color={isDark ? "rgba(255,255,255,0.05)" : "rgba(32,34,30,0.08)"}
+            gap={20}
+            size={1}
+          />
+        )}
         {!isExporting && (
           <MiniMap
             pannable
             zoomable
+            className="!rounded-xs !border !border-border !bg-card/90"
             nodeColor={(n) => {
               const cat = (n.data as { category?: string })?.category;
               const catStyle = cat
                 ? CATEGORY_STYLE[cat as keyof typeof CATEGORY_STYLE]
                 : null;
-              if (!catStyle) return "#aaa";
+              if (!catStyle) return "#888";
               return (
-                (isDark && catStyle.dark?.color) || catStyle.color || "#aaa"
+                (isDark && catStyle.dark?.color) || catStyle.color || "#888"
               );
             }}
           />
@@ -266,7 +287,7 @@ export default function DiagramCanvas() {
       <ConfirmModal
         open={showDelete}
         title="Delete items?"
-        description={`Are you sure you want to delete ${selectedCount} selected item${selectedCount !== 1 ? "s" : ""}? This action can be undone later with Ctrl+Z.`}
+        description={`Are you sure you want to delete ${selectedCount} selected item${selectedCount !== 1 ? "s" : ""}? This action can be undone later with ⌘Z.`}
         confirmText="Delete"
         isDestructive
         onClose={() => setShowDelete(false)}
@@ -275,16 +296,17 @@ export default function DiagramCanvas() {
           setShowDelete(false);
         }}
       />
+
       {/* Keyboard Shortcuts Modal */}
       {showShortcuts &&
         createPortal(
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-background/40 backdrop-blur-sm animate-in fade-in duration-200 p-4">
-            <div className="bg-card border border-border rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-in zoom-in-95 duration-200 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h6 className="text-sm font-medium">Keyboard Shortcuts</h6>
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-background/60 backdrop-blur-xs animate-in fade-in duration-150 p-4">
+            <div className="bg-card border border-border rounded-md shadow-xl p-4.5 w-full max-w-sm animate-in zoom-in-98 duration-150 flex flex-col gap-3">
+              <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                <h6 className="text-xs font-semibold text-foreground">Keyboard Shortcuts</h6>
                 <button
                   onClick={() => setShowShortcuts(false)}
-                  className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer rounded-full"
+                  className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer rounded"
                   aria-label="Close shortcuts"
                 >
                   <IconX size={14} />
@@ -297,14 +319,14 @@ export default function DiagramCanvas() {
                   ["⌘/Ctrl + Shift + Z", "Redo"],
                   ["⌘/Ctrl + G", "Group selection"],
                   ["Delete / Backspace", "Delete selection"],
-                  ["F", "Fit view"],
-                  ["?", "Show this help"],
+                  ["F", "Fit to canvas"],
+                  ["?", "Shortcuts guide"],
                 ].map(([keys, desc]) => (
                   <div
                     key={`${keys}-${desc}`}
                     className="flex items-center justify-between gap-4 py-1.5 border-b border-border/40 last:border-0"
                   >
-                    <kbd className="text-[10px] font-semibold text-foreground bg-muted px-1.5 py-0.5 rounded-sm border border-border">
+                    <kbd className="text-[10px] font-mono font-medium text-foreground bg-muted px-1.5 py-0.5 rounded-xs border border-border">
                       {keys}
                     </kbd>
                     <span className="text-[11px] text-muted-foreground">
@@ -312,9 +334,8 @@ export default function DiagramCanvas() {
                     </span>
                   </div>
                 ))}
-                <p className="text-[10px] text-muted-foreground/70 pt-2">
-                  Tip: drag components from the sidebar, double-click a node to
-                  edit it.
+                <p className="text-[10px] font-mono text-muted-foreground/70 pt-2">
+                  Tip: drag components from palette, double-click to edit.
                 </p>
               </div>
             </div>

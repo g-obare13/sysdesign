@@ -4,21 +4,29 @@
 
 import * as React from "react";
 import * as TablerIcons from "@tabler/icons-react";
-import { useTheme } from "next-themes";
 import { REGISTRY } from "@/data/registry";
 import {
-  CATEGORY_STYLE,
-  type NodeCategory,
-  type NodeTemplate,
+  CATEGORY_STYLE
+  
+  
 } from "@/types/diagram";
+import type {NodeCategory, NodeTemplate} from "@/types/diagram";
 
 import { useProjectStore } from "@/store/project.store";
 import { useCanvasStore } from "@/store/canvas.store";
 import { useAIKeys } from "@/store/ai.store";
 import AIPanel from "@/components/ai/AIPanel";
+import { getC4Style } from "@/components/canvas/DiagramNode";
 import { cn } from "@/lib/utils";
 import { useLocation } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 type TablerIcon = React.FC<{
   size?: number;
@@ -32,17 +40,18 @@ function getIcon(name: string): TablerIcon {
   return (icons[name] as TablerIcon) ?? TablerIcons.IconBox;
 }
 
-const CATEGORY_ORDER: NodeCategory[] = [
-  "microservice",
+const CATEGORY_ORDER: Array<NodeCategory> = [
+  "ai",
   "cloud",
   "database",
-  "frontend",
-  "networking",
-  "security",
-  "observability",
-  "ai",
   "devops",
+  "frontend",
   "flow",
+  "microservice",
+  "networking",
+  "observability",
+  "security",
+  "shape",
   "c4",
 ];
 
@@ -58,13 +67,13 @@ function NodeItem({
   isCustom?: boolean;
   disabled?: boolean;
 }) {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
-  const isDark = mounted && resolvedTheme === "dark";
-  const style = CATEGORY_STYLE[template.category];
-  const accent = (isDark && style?.dark?.color) || style?.color || "#888888";
   const Icon = isCustom ? null : getIcon(template.icon);
+  const categoryStyle =
+    CATEGORY_STYLE[template.category] || CATEGORY_STYLE.microservice;
+  const isC4 = template.category === "c4";
+  const c4Style = isC4 ? getC4Style(template.subtype) : null;
+  const iconColor = c4Style?.color || categoryStyle?.color || "#59634b";
+  const iconBg = c4Style?.pill || categoryStyle?.pill || "#f1f3ec";
 
   const onDragStart = (e: React.DragEvent) => {
     if (disabled) {
@@ -80,25 +89,24 @@ function NodeItem({
       draggable
       onDragStart={onDragStart}
       className={cn(
-        "flex items-center gap-2.5 px-3 py-2 mx-1 rounded-2xl cursor-grab select-none transition-colors duration-100 group border border-transparent hover:border-border/40",
-        disabled
-          ? "opacity-40 cursor-not-allowed filter grayscale-[0.5]"
-          : "hover:bg-muted/60",
+        "flex items-center gap-2 px-2 py-1.5 rounded-xs cursor-grab select-none transition-colors group border border-transparent hover:border-border/70 hover:bg-muted/50",
+        disabled && "opacity-30 cursor-not-allowed filter grayscale",
       )}
     >
       <div
-        className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border border-border/50"
+        className="size-6 rounded-full flex items-center justify-center shrink-0"
         style={{
-          background: `color-mix(in srgb, ${accent} 12%, var(--card))`,
+          backgroundColor: iconBg,
+          color: iconColor,
         }}
       >
-        {Icon && <Icon size={14} stroke={1.5} color={accent} />}
+        {Icon && <Icon size={13} stroke={2} />}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[12px] font-medium text-foreground leading-tight truncate">
+        <div className="text-[12px] font-medium text-foreground  truncate">
           {template.label}
         </div>
-        <div className="text-[10px] text-muted-foreground leading-tight truncate">
+        <div className="text-[10px] text-muted-foreground  truncate">
           {template.description}
         </div>
       </div>
@@ -164,12 +172,9 @@ export default function Sidebar() {
 
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const toggleCategory = (cat: NodeCategory) => {
-    setExpanded((prev) => ({ ...prev, [cat]: !prev[cat] }));
-  };
 
   const filteredGrouped = React.useMemo(() => {
-    const items: Record<NodeCategory, NodeTemplate[]> = {
+    const items: Record<NodeCategory, Array<NodeTemplate>> = {
       microservice: [],
       cloud: [],
       database: [],
@@ -227,30 +232,35 @@ export default function Sidebar() {
     <div className="select-none z-30">
       {/* Floating Toggle Button when Collapsed */}
       {isCollapsed && (
-        <button
+        <Button
+          variant="outline"
+          size="sm"
+          icon={
+            <TablerIcons.IconLayoutSidebar size={14} className="text-primary" />
+          }
+          iconPlacement="left"
           onClick={() => setIsCollapsed(false)}
-          className="absolute top-4 left-4 z-40 flex items-center gap-2 px-3.5 py-2 rounded-full bg-card/90 backdrop-blur-md border border-border/80 shadow-lg hover:bg-muted font-sans font-bold transition-all"
+          className="absolute top-3 left-3 z-40 bg-card/95 backdrop-blur-xs shadow-xs text-xs font-medium"
         >
-          <TablerIcons.IconLayoutSidebar size={16} className="text-primary" />
-          <span>Palette</span>
-        </button>
+          Palette
+        </Button>
       )}
 
-      {/* Main Component Palette Panel (Floating Studio Panel) */}
+      {/* Main Component Palette Tool Window */}
       <aside
         className={cn(
-          "absolute top-4 left-4 bottom-4 w-[280px] rounded-3xl bg-card/90 backdrop-blur-xl border border-border/80 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out z-30",
+          "absolute top-3 left-3 bottom-3 w-62.5 rounded-md bg-card border border-border shadow-xs flex flex-col overflow-hidden transition-all duration-200 z-30",
           isCollapsed
-            ? "-translate-x-[320px] opacity-0 pointer-events-none"
+            ? "-translate-x-70 opacity-0 pointer-events-none"
             : "translate-x-0 opacity-100",
         )}
       >
         {/* Panel Header */}
-        <div className="shrink-0 px-4 py-3 border-b border-border/50">
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="size-2 rounded-full bg-primary" />
-              <h2 className="text-[13px] font-bold text-foreground tracking-tight">
+        <div className="shrink-0 p-2.5 border-b border-border/60">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-primary" />
+              <h6 className="text-xs font-semibold text-foreground tracking-tight">
                 {activeTab === "components"
                   ? "Architecture Nodes"
                   : activeTab === "c4"
@@ -258,49 +268,49 @@ export default function Sidebar() {
                     : activeTab === "shapes"
                       ? "Technical Shapes"
                       : "Palette"}
-              </h2>
+              </h6>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              icon={<TablerIcons.IconChevronLeft size={14} />}
               onClick={() => setIsCollapsed(true)}
-              className="p-1 rounded-full hover:bg-muted text-muted-foreground transition-colors"
-              title="Collapse Panel"
-            >
-              <TablerIcons.IconChevronLeft size={16} />
-            </button>
+              className="size-6 text-muted-foreground hover:text-foreground"
+              title="Collapse Palette"
+            />
           </div>
 
           {/* Search Input */}
-          <div className="relative group">
-            <TablerIcons.IconSearch
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors"
-            />
+          <div className="relative">
             <Input
               type="text"
-              placeholder="Search nodes & shapes..."
+              size="lg"
+              placeholder="Search components…"
+              leftIcon={<TablerIcons.IconSearch size={12} />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border text-sm placeholder:text-xs! outline-none transition-all"
+              className="w-full text-xs placeholder:text-[11px]"
             />
             {searchQuery && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
+                icon={<TablerIcons.IconX size={11} />}
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
-              >
-                <TablerIcons.IconX size={12} />
-              </button>
+                className="absolute right-1 top-1/2 -translate-y-1/2 size-5 text-muted-foreground hover:text-foreground p-0"
+              />
             )}
           </div>
         </div>
 
         {/* Scrollable Node Categories */}
-        <div className="flex-1 overflow-y-auto py-2 px-1 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar space-y-1">
           {activeTab === "c4" ? (
-            <div className="flex flex-col py-1 gap-1">
-              <div className="px-3 pb-2">
+            <div className="flex flex-col py-0.5 gap-0.5">
+              <div className="px-2 pb-1.5">
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  C4 Model abstractions — Person, Software System, Container,
-                  and Component.
+                  C4 abstractions — Person, Software System, Container, and
+                  Component.
                 </p>
               </div>
               {[
@@ -309,28 +319,24 @@ export default function Sidebar() {
                   label: "Person",
                   desc: "User, actor, or persona interacting with system",
                   icon: "IconUser",
-                  color: "#3B82F6",
                 },
                 {
                   subtype: "c4-software-system",
                   label: "Software System",
                   desc: "Top-level software system boundary",
                   icon: "IconBox",
-                  color: "#10B981",
                 },
                 {
                   subtype: "c4-container",
                   label: "Container",
-                  desc: "Executables, microservices, applications, database",
+                  desc: "Executables, microservices, databases",
                   icon: "IconServer",
-                  color: "#8B5CF6",
                 },
                 {
                   subtype: "c4-component",
                   label: "Component",
                   desc: "Internal modular component or module",
                   icon: "IconComponents",
-                  color: "#F59E0B",
                 },
               ].map((item) => (
                 <NodeItem
@@ -347,85 +353,88 @@ export default function Sidebar() {
               ))}
             </div>
           ) : (
-            CATEGORY_ORDER.map((cat) => {
-              const templates = filteredGrouped[cat] || [];
-              if (templates.length === 0) return null;
-              const isExpanded = expanded[cat];
-              const style = CATEGORY_STYLE[cat];
+            <Accordion
+              multiple
+              value={CATEGORY_ORDER.filter((cat) => expanded[cat])}
+              onValueChange={(val) => {
+                const selected = new Set(val as Array<string>);
+                setExpanded((prev) => {
+                  const next = { ...prev };
+                  CATEGORY_ORDER.forEach((cat) => {
+                    next[cat] = selected.has(cat);
+                  });
+                  return next;
+                });
+              }}
+              className="w-full space-y-0.5"
+            >
+              {CATEGORY_ORDER.map((cat) => {
+                const rawTemplates = filteredGrouped[cat] || [];
+                if (rawTemplates.length === 0) return null;
+                const templates = rawTemplates
+                  .slice()
+                  .sort((a, b) => a.label.localeCompare(b.label));
+                const style = CATEGORY_STYLE[cat];
 
-              return (
-                <div key={cat} className="mb-1">
-                  <button
-                    onClick={() => toggleCategory(cat)}
-                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-left hover:bg-muted/40 transition-colors group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="size-2 rounded-full"
-                        style={{ backgroundColor: style?.color ?? "#888888" }}
-                      />
-                      <span className="text-xs font-bold capitalize text-foreground/90">
-                        {cat}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-semibold bg-muted/60 px-1.5 py-0.2 rounded-full">
+                return (
+                  <AccordionItem key={cat} value={cat} className="border-none">
+                    <AccordionTrigger className="w-full py-1.5 px-2 hover:bg-muted/60 rounded-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="size-2 rounded-full shrink-0"
+                          style={{ backgroundColor: style?.color || "#59634b" }}
+                        />
+                        <span className="text-xs font-semibold text-foreground truncate">
+                          {style?.label || cat}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-mono text-foreground px-1.5 py-0.5 rounded-full bg-muted border border-border/40 ml-auto mr-1.5">
                         {templates.length}
                       </span>
-                    </div>
-                    <TablerIcons.IconChevronDown
-                      size={14}
-                      className={cn(
-                        "text-muted-foreground transition-transform duration-200",
-                        isExpanded && "rotate-180",
-                      )}
-                    />
-                  </button>
+                    </AccordionTrigger>
 
-                  {isExpanded && (
-                    <div className="mt-1 space-y-0.5 pl-1">
-                      {templates.map((tpl) => (
-                        <NodeItem
-                          key={tpl.subtype}
-                          template={tpl}
-                          disabled={!canDrag}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })
+                    <AccordionContent className="pt-0.5 pb-1">
+                      <div className="flex flex-col pl-1.5 gap-0.5">
+                        {templates.map((template) => (
+                          <NodeItem
+                            key={template.subtype}
+                            template={template}
+                            disabled={!canDrag}
+                          />
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
           )}
         </div>
 
-        {/* Custom Node Palette Footer */}
-        {activeTab === "components" && (
-          <div className="shrink-0 p-2 border-t border-border/40 bg-muted/20 rounded-b-2xl">
-            <NodeItem
-              isCustom
-              disabled={!canDrag}
-              template={{
-                subtype: `custom-node-${Date.now()}`,
-                label: "Custom Node",
-                category: "cloud",
-                icon: "IconBox",
-                description: "Drag generic block onto canvas",
-              }}
+        {/* Panel Footer Metadata */}
+        <div className="shrink-0 p-2 border-t border-border/60 bg-muted/20 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span
+              className={cn(
+                "size-1.5 rounded-full",
+                canDrag ? "bg-primary" : "bg-muted-foreground/50",
+              )}
             />
+            <span className="text-[10px] font-mono text-muted-foreground">
+              {canDrag ? "Canvas ready" : "Read-only"}
+            </span>
           </div>
-        )}
+          <span className="text-[10px] font-mono text-muted-foreground/70">
+            v0.0.3
+          </span>
+        </div>
       </aside>
 
       {/* Floating AI Panel */}
       {showAIPanel && hasAIKey && (
         <div
           ref={aiPanelRef}
-          className="fixed z-50"
-          style={{
-            left: isCollapsed ? 16 : 286,
-            top: "50%",
-            transform: "translateY(-50%)",
-            maxHeight: "calc(100vh - 64px)",
-          }}
+          className="absolute top-16 left-[270px] z-50 animate-in fade-in slide-in-from-left-2 duration-150"
         >
           <AIPanel onClose={() => setShowAIPanel(false)} />
         </div>

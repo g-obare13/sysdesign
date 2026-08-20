@@ -19,7 +19,7 @@ function IntegrationsPage() {
   return (
     <ComingSoon
       title="Integrations Hub"
-      description="Connect SysDesign to your existing infrastructure stack. GitHub, Supabase, AWS, Kubernetes and more — currently being optimized."
+      description="Connect SysDesign to your existing infrastructure stack. GitHub, Supabase, AWS, Kubernetes and more - currently being optimized."
       icon={IconPuzzle}
     />
   );

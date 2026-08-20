@@ -355,8 +355,8 @@ export const FINTECH_TEMPLATE: Template = {
 
     // Settlement & Ledger Recording (Horizontal & Vertical)
     {
-      id: "e-fin-intent-acq",
-      source: "node-fin-intent",
+      id: "e-fin-idem-acq",
+      source: "node-fin-idempotency",
       target: "node-fin-acquirer",
       sourceHandle: "bottom-s",
       targetHandle: "top-t",

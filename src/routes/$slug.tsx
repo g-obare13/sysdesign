@@ -3,14 +3,14 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import DiagramCanvas from "@/components/canvas/DiagramCanvas";
 import CanvasErrorBoundary from "@/components/canvas/CanvasErrorBoundary";
 import {
   createProject,
-  useProjectStore,
   setActiveProject,
+  useProjectStore,
 } from "@/store/project.store";
 import ProjectSetupPopup from "@/components/dashboard/ProjectSetupPopup";
 import Container from "@/components/ui/container";
@@ -68,15 +68,15 @@ function SlugPage() {
   if (!project) {
     return (
       <Container>
-        <div className="flex flex-col gap-3 h-screen items-center justify-center bg-background p-4">
-          <h1>Project not found</h1>
-          <p>The project you're looking for doesn't exist or has been moved.</p>
+        <div className="flex flex-col gap-2.5 h-screen items-center justify-center bg-background p-4 text-center">
+          <h1 className="text-lg font-semibold text-foreground">Project not found</h1>
+          <p className="text-xs text-muted-foreground mb-2">The requested project does not exist or has been removed.</p>
 
           <Button
             icon={IconFolderPlus}
-            iconPlacement="right"
-            variant={"shiny"}
-            size="pill"
+            iconPlacement="left"
+            variant="default"
+            size="sm"
             onClick={() => navigate({ to: "/projects" })}
           >
             Browse Projects

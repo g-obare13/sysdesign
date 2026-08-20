@@ -2,7 +2,8 @@
  * @fileoverview React Error Boundary isolating runtime failures in the Diagram Canvas.
  */
 
-import { Component, type ReactNode } from "react";
+import { Component  } from "react";
+import type {ReactNode} from "react";
 import { IconAlertTriangle, IconReload } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 

@@ -1,5 +1,5 @@
-import { IconAlertTriangle, IconCancel, IconTrash } from "@tabler/icons-react";
-import { useState, useEffect } from "react";
+import { IconAlertTriangle } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "./button";
 
@@ -44,28 +44,35 @@ export default function ConfirmModal({
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-background/60 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-background/60 backdrop-blur-xs animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 p-6 flex flex-col gap-6">
-        <div className="flex items-start gap-4">
+      <div className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-lg animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-4">
+        <div className="flex items-start gap-3">
           <div
-            className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center ${isDestructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}
+            className={`size-8 rounded-md shrink-0 flex items-center justify-center ${
+              isDestructive
+                ? "bg-destructive/10 text-destructive border border-destructive/20"
+                : "bg-primary/10 text-primary border border-primary/20"
+            }`}
           >
-            <IconAlertTriangle size={20} stroke={2} />
+            <IconAlertTriangle size={16} stroke={1.8} />
           </div>
-          <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-medium">{title}</h2>
-            <p className="text-xs text-muted-foreground">{description}</p>
+          <div className="flex flex-col gap-1 min-w-0">
+            <h6 className="text-sm font-semibold text-foreground leading-snug">
+              {title}
+            </h6>
+            <p className="text-xs text-muted-foreground leading-normal">
+              {description}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
           <Button
-            icon={IconCancel}
-            iconPlacement="left"
+            size="sm"
             variant="outline"
             onClick={onClose}
           >
@@ -73,11 +80,10 @@ export default function ConfirmModal({
           </Button>
 
           <Button
-            icon={IconTrash}
-            iconPlacement="left"
+            size="sm"
             onClick={handleConfirm}
-            disabled={loading}
-            variant="destructive"
+            loading={loading}
+            variant={isDestructive ? "destructive" : "default"}
           >
             {confirmText}
           </Button>

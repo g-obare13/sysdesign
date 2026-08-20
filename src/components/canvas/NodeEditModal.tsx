@@ -85,33 +85,34 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-card text-foreground rounded-2xl border border-border shadow-2xl overflow-hidden p-6 flex flex-col gap-4 animate-in zoom-in-95 duration-150 select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-md bg-card text-foreground rounded-md border border-border shadow-xl overflow-hidden p-4.5 flex flex-col gap-3 animate-in zoom-in-98 duration-150 select-none">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-border/40">
-          <div className="flex items-center gap-2">
-            <TablerIcons.IconAdjustmentsHorizontal
-              size={18}
-              className="text-primary"
-            />
-            <h6>Configure Component</h6>
+        <div className="flex items-center justify-between pb-2 border-b border-border/60">
+          <div className="flex items-center gap-1.5">
+            <div className="size-5 rounded-xs bg-primary/10 flex items-center justify-center text-primary">
+              <TablerIcons.IconAdjustmentsHorizontal size={13} />
+            </div>
+            <h6 className="text-xs font-semibold text-foreground">
+              Configure Node
+            </h6>
           </div>
-          <Button
-            variant={"outline"}
+          <button
             onClick={handleClose}
-            className="text-foreground cursor-pointer transition-colors rounded-full"
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
           >
-            <TablerIcons.IconX size={16} />
-          </Button>
+            <TablerIcons.IconX size={14} />
+          </button>
         </div>
 
         {/* Modal Body / Form Fields */}
-        <div className="space-y-3">
-          <div className="flex flex-col gap-2">
-            <Label>Component Name / Title</Label>
+        <div className="space-y-2.5">
+          <div className="flex flex-col gap-1">
+            <Label className="text-[11px]">Component Name</Label>
             <Input
               autoFocus
-              className="w-full font-sans"
+              size="sm"
+              className="w-full text-xs"
               placeholder="e.g. Primary DB"
               value={draftLabel}
               onChange={(e) => setDraftLabel(e.target.value)}
@@ -123,11 +124,12 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col gap-2">
-              <Label>Technology / Stack</Label>
+            <div className="flex flex-col gap-1">
+              <Label className="text-[11px]">Technology / Stack</Label>
               <Input
+                size="sm"
                 className="w-full font-mono text-xs"
-                placeholder="e.g. Go, React, PostgreSQL"
+                placeholder="e.g. PostgreSQL, Redis"
                 value={draftTechnology || draftSubtype}
                 onChange={(e) => {
                   setDraftTechnology(e.target.value);
@@ -136,21 +138,21 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label>C4 Model Level</Label>
+            <div className="flex flex-col gap-1">
+              <Label className="text-[11px]">C4 Model Level</Label>
               <Select
                 value={draftC4Level}
                 onValueChange={(val) => setDraftC4Level(val ?? "")}
               >
-                <SelectTrigger className="w-full text-xs!">
+                <SelectTrigger size="sm" className="w-full text-xs">
                   <SelectValue placeholder="Level (Auto)" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Standard Node</SelectItem>
-                  <SelectItem value="context">L1 — System Context</SelectItem>
-                  <SelectItem value="container">L2 — Container</SelectItem>
-                  <SelectItem value="component">L3 — Component</SelectItem>
-                  <SelectItem value="code">L4 — Code / Class</SelectItem>
+                  <SelectItem value="context">L1 - System Context</SelectItem>
+                  <SelectItem value="container">L2 - Container</SelectItem>
+                  <SelectItem value="component">L3 - Component</SelectItem>
+                  <SelectItem value="code">L4 - Code / Class</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -166,30 +168,31 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
             />
             <label
               htmlFor="is-external-cb"
-              className="text-xs text-foreground cursor-pointer select-none font-medium"
+              className="text-xs text-foreground/80 cursor-pointer select-none font-medium"
             >
-              External System / Actor (Outside system boundary)
+              External System / Actor
             </label>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col gap-2">
-              <Label>Owner</Label>
+            <div className="flex flex-col gap-1">
+              <Label className="text-[11px]">Owner / Team</Label>
               <Input
-                className="w-full font-sans text-xs"
-                placeholder="Team / Service"
+                size="sm"
+                className="w-full text-xs"
+                placeholder="Team or Service"
                 value={draftOwner}
                 onChange={(e) => setDraftOwner(e.target.value)}
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label>Status</Label>
+            <div className="flex flex-col gap-1">
+              <Label className="text-[11px]">Status</Label>
               <Select
                 value={draftStatus}
                 onValueChange={(val) => setDraftStatus(val as Status)}
               >
-                <SelectTrigger className="w-full text-xs!">
+                <SelectTrigger size="sm" className="w-full text-xs">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -202,24 +205,24 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label>Notes & Guidance</Label>
+          <div className="flex flex-col gap-1">
+            <Label className="text-[11px]">Notes & Guidance</Label>
             <Textarea
               placeholder="Additional documentation notes…"
               rows={3}
               value={draftNotes}
               onChange={(e) => setDraftNotes(e.target.value)}
-              className="w-full resize-none font-sans text-xs"
+              className="w-full resize-none text-xs"
             />
           </div>
         </div>
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-end gap-2 pt-2 ">
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
           <Button variant="outline" size="sm" onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="shiny" size="sm" onClick={handleSave}>
+          <Button variant="default" size="sm" onClick={handleSave}>
             Save Changes
           </Button>
         </div>

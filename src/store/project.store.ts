@@ -4,10 +4,10 @@
  */
 
 import { Store } from "@tanstack/store";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/lib/supabase";
-import type { User, Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 
 /**
  * Supported project diagram types.
@@ -39,7 +39,7 @@ export interface Project {
  */
 export interface ProjectState {
   /** List of all available projects */
-  projects: Project[];
+  projects: Array<Project>;
   /** ID of the currently active project */
   activeProjectId: string | null;
   /** Currently authenticated Supabase user */
@@ -235,7 +235,7 @@ export async function logout(): Promise<void> {
  * @param user - Authenticated Supabase user
  * @param localProjects - Array of local projects to migrate
  */
-async function migrateLocalToSupabase(user: User, localProjects: Project[]): Promise<void> {
+async function migrateLocalToSupabase(user: User, localProjects: Array<Project>): Promise<void> {
   if (localProjects.length === 0) return;
 
   for (const p of localProjects) {

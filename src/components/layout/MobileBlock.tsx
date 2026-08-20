@@ -2,7 +2,7 @@
  * @fileoverview Fullscreen blocker view informing mobile users that desktop browsers are required for diagramming.
  */
 
-import { IconDeviceLaptop, IconDeviceDesktop } from "@tabler/icons-react";
+import { IconDeviceDesktop, IconDeviceLaptop } from "@tabler/icons-react";
 
 /**
  * Mobile blocker overlay component visible on small screens.
@@ -11,30 +11,28 @@ import { IconDeviceLaptop, IconDeviceDesktop } from "@tabler/icons-react";
  */
 export default function MobileBlock() {
   return (
-    <div className="flex lg:hidden fixed inset-0 z-9999 flex-col items-center justify-center p-6 text-center bg-background/95 backdrop-blur-md overflow-hidden">
-      <div className="relative mb-8 flex items-center justify-center">
-        <div className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center animate-pulse">
-          <IconDeviceLaptop className="w-12 h-12 text-primary" stroke={1.5} />
+    <div className="flex lg:hidden fixed inset-0 z-[9999] flex-col items-center justify-center p-6 text-center bg-background/95 backdrop-blur-xs overflow-hidden">
+      <div className="relative mb-6 flex items-center justify-center">
+        <div className="size-16 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-xs">
+          <IconDeviceLaptop className="size-8 text-primary" stroke={1.5} />
         </div>
-        <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center border-4 border-background">
-          <IconDeviceDesktop className="w-6 h-6 text-secondary-foreground" />
+        <div className="absolute -bottom-1.5 -right-1.5 size-7 rounded-md bg-card border border-border flex items-center justify-center shadow-sm">
+          <IconDeviceDesktop className="size-4 text-foreground" />
         </div>
       </div>
 
-      <h1 className="font-display text-2xl font-bold text-foreground mb-3 tracking-tight">
-        Desktop Required
+      <h1 className="text-lg font-semibold text-foreground mb-2 tracking-tight">
+        Desktop Workspace Required
       </h1>
 
-      <p className="text-muted-foreground text-[15px] max-w-[280px] leading-relaxed mb-10">
-        SysDesign is built for complex diagramming. Please access the project
-        using a <strong>desktop</strong> or <strong>laptop</strong> browser for
-        the best experience.
+      <p className="text-muted-foreground text-xs max-w-xs leading-relaxed mb-8">
+        SysDesign is designed for precise, dense system architecture modeling. Please access your workspace on a desktop or laptop display.
       </p>
 
-      <div className="mt-auto pb-10">
-        <div className="text-[12px] font-medium text-primary/80 flex items-center gap-2">
-          <span>https://sysdesign.obare27.com</span>
-        </div>
+      <div className="mt-auto pb-6">
+        <span className="text-[11px] font-mono text-muted-foreground">
+          sysdesign.obare27.com
+        </span>
       </div>
     </div>
   );

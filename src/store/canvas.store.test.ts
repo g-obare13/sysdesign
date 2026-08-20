@@ -2,7 +2,19 @@
  * @fileoverview Unit tests for Canvas Store (node operations, undo/redo, auto-layout, scratchpad promotion).
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  addNode,
+  autoLayout,
+  canvasStore,
+  clearCanvas,
+  createProjectFromScratchpad,
+  redo,
+  undo,
+} from "./canvas.store";
+import { projectStore } from "./project.store";
+import type { DiagramNode } from "@/types/diagram";
 
 vi.mock("@/lib/supabase", () => ({
   supabase: {
@@ -27,18 +39,6 @@ vi.mock("@/lib/supabase", () => ({
     })),
   },
 }));
-
-import {
-  canvasStore,
-  addNode,
-  undo,
-  redo,
-  clearCanvas,
-  autoLayout,
-  createProjectFromScratchpad,
-} from "./canvas.store";
-import { projectStore } from "./project.store";
-import type { DiagramNode } from "@/types/diagram";
 
 /**
  * Creates a mock test diagram node.

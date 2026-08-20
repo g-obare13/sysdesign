@@ -20,3 +20,4 @@ function Textarea({ className, size, ...props }: TextareaProps) {
 }
 
 export { Textarea };
+export type { AutosizeTextAreaRef } from "./autosize-textarea";

@@ -4,12 +4,13 @@
  */
 
 import { Store } from '@tanstack/store'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import dagre from '@dagrejs/dagre'
-import { applyNodeChanges, applyEdgeChanges, MarkerType } from '@xyflow/react'
-import type { NodeChange, EdgeChange, Connection } from '@xyflow/react'
-import type { DiagramNode, DiagramEdge, C4Level } from '@/types/diagram'
-import { projectStore, createProject, type ProjectType } from './project.store'
+import { MarkerType, applyEdgeChanges, applyNodeChanges } from '@xyflow/react'
+import type { Connection, EdgeChange, NodeChange } from '@xyflow/react'
+import type { C4Level, DiagramEdge, DiagramNode } from '@/types/diagram'
+import {   createProject, projectStore } from './project.store'
+import type {Project, ProjectType} from './project.store';
 import { supabase } from '@/lib/supabase'
 
 let activeProjectId = projectStore.state.activeProjectId
@@ -38,9 +39,9 @@ const MAX_HISTORY = 40
  */
 export interface Snapshot {
   /** The collection of nodes in this snapshot */
-  nodes: DiagramNode[]
+  nodes: Array<DiagramNode>
   /** The collection of edges in this snapshot */
-  edges: DiagramEdge[]
+  edges: Array<DiagramEdge>
 }
 
 /**
@@ -48,13 +49,13 @@ export interface Snapshot {
  */
 export interface CanvasState {
   /** Current nodes on the canvas */
-  nodes: DiagramNode[]
+  nodes: Array<DiagramNode>
   /** Current edges on the canvas */
-  edges: DiagramEdge[]
+  edges: Array<DiagramEdge>
   /** Counter used to generate unique edge IDs */
   edgeCounter: number
   /** History of snapshots for undo/redo functionality */
-  history: Snapshot[]
+  history: Array<Snapshot>
   /** Current index in the history stack */
   historyIndex: number
   /** Whether nodes should snap to the grid when moved */
@@ -108,8 +109,8 @@ async function load(mode: 'architecture' | 'c4' = (canvasStore?.state?.diagramMo
     }
     
     return {
-      nodes: data.nodes as DiagramNode[],
-      edges: data.edges as DiagramEdge[],
+      nodes: data.nodes as Array<DiagramNode>,
+      edges: data.edges as Array<DiagramEdge>,
       edgeCounter: data.edge_counter as number,
     }
   }
@@ -312,9 +313,9 @@ function pushHistory(s: CanvasState): CanvasState {
  *
  * @param changes - Array of changes to apply to nodes
  */
-export function applyNodeChangesToStore(changes: NodeChange[]): void {
+export function applyNodeChangesToStore(changes: Array<NodeChange>): void {
   canvasStore.setState((s) => {
-    const nodes = applyNodeChanges(changes, s.nodes) as DiagramNode[]
+    const nodes = applyNodeChanges(changes, s.nodes) as Array<DiagramNode>
     const next = { ...s, nodes }
     save(next)
     return next
@@ -326,7 +327,7 @@ export function applyNodeChangesToStore(changes: NodeChange[]): void {
  *
  * @param changes - Array of changes to apply to edges
  */
-export function applyEdgeChangesToStore(changes: EdgeChange[]): void {
+export function applyEdgeChangesToStore(changes: Array<EdgeChange>): void {
   canvasStore.setState((s) => {
     const edges = applyEdgeChanges(changes, s.edges)
     const next = { ...s, edges }
@@ -407,7 +408,7 @@ export function addNode(node: DiagramNode): void {
  * @param nodes - Fully formed DiagramNode array from AI output parser
  * @param edges - Fully formed DiagramEdge array from AI output parser
  */
-export function setDiagramFromAI(nodes: DiagramNode[], edges: DiagramEdge[]): void {
+export function setDiagramFromAI(nodes: Array<DiagramNode>, edges: Array<DiagramEdge>): void {
   canvasStore.setState((s) => {
     const next = pushHistory({ ...s, nodes, edges })
     save(next)
@@ -619,7 +620,7 @@ export function autoLayout(): void {
  *
  * @param template - The template object containing nodes, edges, and optional category
  */
-export function loadTemplate(template: { nodes: any[]; edges: any[]; category?: 'architecture' | 'c4' }): void {
+export function loadTemplate(template: { nodes: Array<any>; edges: Array<any>; category?: 'architecture' | 'c4' }): void {
   const mode = template.category ?? canvasStore.state.diagramMode
   const next: CanvasState = {
     ...canvasStore.state,
@@ -641,7 +642,7 @@ export function loadTemplate(template: { nodes: any[]; edges: any[]; category?: 
  *
  * @param explicitNodes - Optional array of nodes to group directly (bypasses store selection)
  */
-export function groupSelected(explicitNodes?: any[]): void {
+export function groupSelected(explicitNodes?: Array<any>): void {
   canvasStore.setState((s) => {
     const targetNodes = explicitNodes || s.nodes.filter((n) => n.selected && !n.parentId);
     if (targetNodes.length < 1) return s;

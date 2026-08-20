@@ -3,12 +3,13 @@
  */
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Sidebar from '@/components/sidebar/Sidebar'
 import DiagramCanvas from '@/components/canvas/DiagramCanvas'
 import CanvasErrorBoundary from '@/components/canvas/CanvasErrorBoundary'
 import { createProjectFromScratchpad } from '@/store/canvas.store'
-import { useProjectStore, type ProjectType } from '@/store/project.store'
+import {  useProjectStore } from '@/store/project.store'
+import type {ProjectType} from '@/store/project.store';
 import ProjectSetupPopup from '@/components/dashboard/ProjectSetupPopup'
 import { Button } from "@/components/ui/button";
 import { IconSparkles } from "@tabler/icons-react";
@@ -66,9 +67,9 @@ function HomePage() {
   if (loading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-medium animate-pulse text-muted-foreground">Synthesizing your workspace...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-medium text-muted-foreground">Initializing workspace…</p>
         </div>
       </div>
     );
@@ -82,15 +83,14 @@ function HomePage() {
         {/* Scratchpad banner — shown until the first project is saved */}
         {!hasProjects && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50">
-            <div className="flex items-center gap-2.5 bg-card border border-border rounded-[--radius] shadow-lg px-3 py-2 animate-in slide-in-from-top-2 fade-in duration-300">
-              <IconSparkles size={14} className="text-primary shrink-0" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                Scratchpad — saved in this browser
+            <div className="flex items-center gap-2 bg-card/95 backdrop-blur-xs border border-border rounded-md shadow-md px-3 py-1.5 animate-in slide-in-from-top-1 fade-in duration-200">
+              <IconSparkles size={13} className="text-primary shrink-0" />
+              <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap">
+                Scratchpad mode
               </span>
               <Button
-                size="sm"
+                size="xs"
                 variant="default"
-                className="h-6 text-[10px]"
                 onClick={() => setModalOpen(true)}
               >
                 Save as Project

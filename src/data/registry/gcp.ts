@@ -7,7 +7,7 @@ import type { NodeTemplate } from '@/types/diagram'
 /**
  * Google Cloud Platform component catalog.
  */
-export const GCP_REGISTRY: NodeTemplate[] = [
+export const GCP_REGISTRY: Array<NodeTemplate> = [
   // Compute
   { subtype: 'gcp-compute-engine', label: 'Compute Engine', category: 'cloud', icon: 'IconServer', description: 'Virtual Machines' },
   { subtype: 'gcp-functions', label: 'Cloud Functions', category: 'cloud', icon: 'IconBolt', description: 'Event-driven Serverless' },

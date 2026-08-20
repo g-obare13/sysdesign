@@ -2,7 +2,14 @@
  * @fileoverview Unit tests for Project Store (creation, slugification, limits, and renaming).
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  MAX_PROJECTS,
+  createProject,
+  projectStore,
+  updateProject,
+} from "./project.store";
 
 // Supabase is only used for cloud persistence; unit tests run as a guest.
 vi.mock("@/lib/supabase", () => ({
@@ -28,13 +35,6 @@ vi.mock("@/lib/supabase", () => ({
     })),
   },
 }));
-
-import {
-  projectStore,
-  createProject,
-  MAX_PROJECTS,
-  updateProject,
-} from "./project.store";
 
 describe("project.store", () => {
   beforeEach(() => {

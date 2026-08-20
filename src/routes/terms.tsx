@@ -2,9 +2,9 @@
  * @fileoverview Terms of Service page route (`/terms`).
  */
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import Container from "@/components/ui/container";
-import { IconScale, IconChevronLeft } from "@tabler/icons-react";
+import { IconChevronLeft, IconScale } from "@tabler/icons-react";
 
 /**
  * Route for the application terms of service.
@@ -21,95 +21,61 @@ export const Route = createFileRoute("/terms")({
 function TermsPage() {
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <Container className="max-w-3xl py-12 px-6 text-foreground/90">
+      <Container className="max-w-2xl py-10 px-6">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-8 group"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6 group"
         >
           <IconChevronLeft
-            size={16}
+            size={14}
             className="group-hover:-translate-x-0.5 transition-transform"
           />
           Back to Editor
         </Link>
 
-        <header className="mb-12">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
-            <IconScale size={28} />
+        <header className="mb-8 border-b border-border/60 pb-6">
+          <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-xs">
+            <IconScale size={20} />
           </div>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-foreground mb-4">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground mb-1">
             Terms of Service
           </h1>
-          <p className="text-muted-foreground">
-            Effective as of March 22, 2026. Please read these terms carefully.
+          <p className="text-xs text-muted-foreground">
+            Effective March 2026. Please review these terms of use.
           </p>
         </header>
 
-        <div className="prose prose-olive dark:prose-invert max-w-none space-y-8">
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
-              1. Your Acceptance
+        <div className="space-y-6 text-xs text-foreground/85 leading-relaxed">
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">
+              1. Acceptance of Terms
             </h2>
-            <p className="leading-relaxed">
-              By using SysDesign, you agree to these legal terms. If you do not
-              agree to these terms, you must not use our software or platform.
+            <p>
+              By accessing SysDesign, you agree to these terms. If you disagree with any portion, you should discontinue use of the platform.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
-              2. Usage Rights
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">
+              2. Intellectual Property & Ownership
             </h2>
-            <p className="leading-relaxed">
-              We grant you a non-exclusive, revocable license to use our
-              platform to design, visualize, and export diagram data. All
-              diagrams created are your property.
-            </p>
-            <p className="mt-4">
-              We reserve the right to modify or terminate the service for any
-              reason, without notice, at any time.
+            <p>
+              You retain full ownership and intellectual property rights over all architectural diagrams, data flows, and exported code (Mermaid, Terraform, Structurizr DSL) created using SysDesign.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
-              3. Prohibited Conduct
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">
+              3. Service Availability
             </h2>
-            <p className="leading-relaxed">
-              Users agree not to utilize the platform for any unlawful purpose
-              or to distribute malicious content. Unauthorized attempts to
-              exploit the platform's authentication and data storage layers are
-              strictly forbidden.
+            <p>
+              SysDesign is provided on an "as is" and "as available" basis. While we strive for continuous reliability, we advise regular local exports of mission-critical architecture specifications.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
-              4. Disclaimers
-            </h2>
-            <p className="leading-relaxed">
-              SysDesign is provided "as is" and "as available". We do not
-              warrant that the service will be uninterrupted or error-free. We
-              are not responsible for any data loss, and users are encouraged to
-              regularly export their work.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
-              5. Third-Party Links & Tools
-            </h2>
-            <p className="leading-relaxed">
-              Our platform uses third-party services including, but not limited
-              to, Supabase and Google. Your use of these services is also
-              governed by their respective terms and privacy policies.
-            </p>
-          </section>
-
-          <footer className="pt-12 border-t mt-16 pb-8">
-            <p className="text-sm text-muted-foreground">
-              For any legal inquiries, please reach out to us at
-              info@obare27.com
+          <footer className="pt-8 border-t border-border/50 text-muted-foreground">
+            <p>
+              For legal questions, please reach out to <span className="font-mono text-foreground">info@obare27.com</span>
             </p>
           </footer>
         </div>

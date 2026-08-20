@@ -56,7 +56,7 @@ async function extractError(res: Response, prefix: string): Promise<string> {
  */
 async function callOpenAI(
   key: string,
-  messages: AIMessage[],
+  messages: Array<AIMessage>,
 ): Promise<AIResponse> {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -86,7 +86,7 @@ async function callOpenAI(
  */
 async function callAnthropic(
   key: string,
-  messages: AIMessage[],
+  messages: Array<AIMessage>,
 ): Promise<AIResponse> {
   const systemMsg = messages.find((m) => m.role === "system")?.content ?? "";
   const userMsgs = messages
@@ -124,7 +124,7 @@ async function callAnthropic(
  */
 async function callGemini(
   key: string,
-  messages: AIMessage[],
+  messages: Array<AIMessage>,
 ): Promise<AIResponse> {
   const systemMsg = messages.find((m) => m.role === "system")?.content ?? "";
   const userMsgs = messages.filter(
@@ -175,7 +175,7 @@ async function callGemini(
  */
 export async function callAI(
   provider: AIProvider,
-  messages: AIMessage[],
+  messages: Array<AIMessage>,
 ): Promise<AIResponse> {
   const keyRecord = getKeyForProvider(provider);
   if (!keyRecord) throw new Error(`No API key configured for ${provider}`);

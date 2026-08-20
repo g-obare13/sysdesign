@@ -7,7 +7,7 @@ import type { NodeTemplate } from '@/types/diagram'
 /**
  * AWS cloud component catalog.
  */
-export const AWS_REGISTRY: NodeTemplate[] = [
+export const AWS_REGISTRY: Array<NodeTemplate> = [
   // Compute
   { subtype: 'aws-ec2', label: 'Amazon EC2', category: 'cloud', icon: 'IconServer', description: 'Elastic Compute Cloud' },
   { subtype: 'aws-lambda', label: 'AWS Lambda', category: 'cloud', icon: 'IconBolt', description: 'Serverless Compute' },

@@ -4,12 +4,13 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { IconFolderPlus, IconX } from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
 import {
-  useProjectStore,
   MAX_PROJECTS,
-  type ProjectType,
+  
+  useProjectStore
 } from "@/store/project.store";
+import type {ProjectType} from "@/store/project.store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,91 +60,102 @@ export default function ProjectSetupPopup({
       setDescription("");
       setType("design");
       setLoading(false);
-    }, 400);
+    }, 250);
   };
 
   return createPortal(
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-background/60 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-background/60 backdrop-blur-xs animate-in fade-in duration-150"
         onClick={canClose ? onClose : undefined}
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-card border border-border/80 rounded-3xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 p-6 flex flex-col gap-5 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col items-start gap-2">
-            <h4>Create New Project</h4>
-            <p>Start by naming your architecture design</p>
+      <div className="relative w-full max-w-md bg-card border border-border rounded-md shadow-xl animate-in zoom-in-98 duration-150 p-4.5 flex flex-col gap-3.5 z-10">
+        <div className="flex items-center justify-between pb-2 border-b border-border/60">
+          <div className="flex flex-col gap-0.5">
+            <h6 className="text-xs font-semibold text-foreground">Create New Project</h6>
+            <p className="text-[11px] text-muted-foreground">
+              Define your system architecture workspace
+            </p>
           </div>
           {canClose && (
             <button
               onClick={onClose}
               type="button"
-              className="p-1.5 rounded-full hover:bg-muted text-muted-foreground transition-colors cursor-pointer"
+              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
-              <IconX size={18} />
+              <IconX size={15} />
             </button>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Project Name</Label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="name" className="text-[11px]">Project Name</Label>
             <Input
               autoFocus
               id="name"
-              size={"lg"}
+              size="sm"
               placeholder="e.g. Payments Engine"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label>Project Type</Label>
+          <div className="flex flex-col gap-1">
+            <Label className="text-[11px]">Project Type</Label>
             <Tabs
               value={type}
               onValueChange={(val) => setType(val as ProjectType)}
               className="w-full"
             >
-              <TabsList className="w-full grid grid-cols-2 border">
+              <TabsList className="w-full grid grid-cols-2">
                 <TabsTrigger value="design">Architecture</TabsTrigger>
                 <TabsTrigger value="c4">C4 Model</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="desc">Description (Optional)</Label>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="desc" className="text-[11px]">Description (Optional)</Label>
             <Textarea
               id="desc"
               rows={2}
               placeholder="Brief description of the system architecture..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              className="text-xs resize-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 mt-2">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
+            {canClose && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+            )}
             <Button
-              icon={IconFolderPlus}
-              iconPlacement="right"
-              size={"pill"}
-              variant={"shiny"}
+              size="sm"
+              variant="default"
               type="submit"
               disabled={!name.trim() || loading || isLimitReached}
               className={cn(
-                "w-full ",
-                isLimitReached ? "bg-muted pointer-events-none" : "",
+                "min-w-28",
+                isLimitReached && "bg-muted pointer-events-none text-muted-foreground",
               )}
               loading={loading}
             >
               {loading ? (
-                <>Initialising Project...</>
+                "Initializing…"
               ) : isLimitReached ? (
-                "Project Limit Reached"
+                "Limit Reached"
               ) : (
                 "Create Project"
               )}

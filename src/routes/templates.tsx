@@ -3,14 +3,15 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { TEMPLATES, type Template } from "@/data/templates";
+import { TEMPLATES  } from "@/data/templates";
+import type {Template} from "@/data/templates";
 import { loadTemplate } from "@/store/canvas.store";
 import { useProjectStore } from "@/store/project.store";
 import { useState } from "react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import {
-  IconCompass,
   IconBrain,
+  IconCompass,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -69,103 +70,107 @@ function TemplatesPage() {
   };
 
   return (
-    <main className="min-h-screen pt-24 pb-20 px-6 max-w-7xl mx-auto animate-in fade-in duration-500">
+    <main className="min-h-screen pt-8 pb-14 px-6 max-w-6xl mx-auto w-full animate-in fade-in duration-200">
       <ConfirmModal
         open={!!selectedTemplate}
         title={`Load ${selectedTemplate?.name}?`}
-        description={`This will load the "${selectedTemplate?.name}" design onto your canvas.`}
+        description={`This will clear your current canvas and load "${selectedTemplate?.name}".`}
         confirmText="Load Template"
         onClose={() => setSelectedTemplate(null)}
         onConfirm={handleConfirmLoad}
       />
 
-      <div className="text-center mb-10">
-        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-linear-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
-          System & C4 Design Templates
+      <div className="text-center mb-6">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground mb-1.5">
+          Architecture & C4 Templates
         </h1>
-        <p className="max-w-2xl mx-auto text-base md:text-lg text-muted-foreground leading-relaxed">
-          Production-grade system architectures and C4 Model templates with
-          tiered groupings, labeled flows, and industry-standard abstractions.
+        <p className="max-w-xl mx-auto text-xs text-muted-foreground leading-relaxed">
+          Production-grade system architectures and C4 Model templates with tiered groupings, labeled flows, and industry-standard abstractions.
         </p>
 
         {/* Filter Tabs */}
-        <div className="flex items-center justify-center gap-2 mt-8">
+        <div className="inline-flex items-center gap-0.5 p-0.5 rounded-md bg-muted/60 border border-border/60 mt-4">
           <button
+            type="button"
             onClick={() => setSelectedCategory("all")}
             className={cn(
-              "px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer select-none",
+              "px-2.5 py-1 rounded-xs text-xs font-medium transition-colors cursor-pointer select-none border",
               selectedCategory === "all"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted",
+                ? "bg-primary/12 text-primary border-primary/30 font-semibold shadow-none"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-transparent",
             )}
           >
             All Templates ({TEMPLATES.length})
           </button>
           <button
+            type="button"
             onClick={() => setSelectedCategory("architecture")}
             className={cn(
-              "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer select-none",
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs font-medium transition-colors cursor-pointer select-none border",
               selectedCategory === "architecture"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted",
+                ? "bg-primary/12 text-primary border-primary/30 font-semibold shadow-none"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-transparent",
             )}
           >
-            <IconCompass size={14} />
+            <IconCompass size={12} />
             Architecture (3)
           </button>
           <button
+            type="button"
             onClick={() => setSelectedCategory("c4")}
             className={cn(
-              "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer select-none",
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-xs text-xs font-medium transition-colors cursor-pointer select-none border",
               selectedCategory === "c4"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted",
+                ? "bg-primary/12 text-primary border-primary/30 font-semibold shadow-none"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-transparent",
             )}
           >
-            <IconBrain size={14} />
+            <IconBrain size={12} />
             C4 Model (3)
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {filteredTemplates.map((tpl) => (
           <div
             key={tpl.id}
-            className="group relative flex flex-col bg-card border border-border/60 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 hover:border-primary/40"
+            className="group relative flex flex-col justify-between bg-card border border-border rounded-md p-4 transition-colors hover:border-border-strong shadow-none"
           >
-            {/* Category badge */}
-            <div className="flex items-center justify-between mb-3">
-              <span
-                className={cn(
-                  "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-tight uppercase",
-                  tpl.category === "c4"
-                    ? "bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20"
-                    : "bg-primary/10 text-primary border border-primary/20",
-                )}
-              >
-                {tpl.category === "c4" ? "C4 Model" : "Architecture"}
-              </span>
-              <span className="text-[11px] font-mono text-muted-foreground">
-                {tpl.nodes.length} nodes · {tpl.edges.length} edges
-              </span>
+            <div>
+              {/* Category badge */}
+              <div className="flex items-center justify-between mb-2.5">
+                <span
+                  className={cn(
+                    "px-1.5 py-0.5 rounded-xs text-[9.5px] font-mono font-medium tracking-tight uppercase border",
+                    tpl.category === "c4"
+                      ? "bg-muted text-foreground border-border"
+                      : "bg-primary/10 text-primary border-primary/20",
+                  )}
+                >
+                  {tpl.category === "c4" ? "C4 Model" : "Architecture"}
+                </span>
+                <span className="text-[10.5px] font-mono text-muted-foreground">
+                  {tpl.nodes.length} nodes · {tpl.edges.length} edges
+                </span>
+              </div>
+
+              <h6 className="text-xs font-semibold text-foreground mb-1">
+                {tpl.name}
+              </h6>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                {tpl.description}
+              </p>
             </div>
 
-            <h2 className="text-xl font-bold mb-2.5 text-foreground">
-              {tpl.name}
-            </h2>
-            <p className="text-muted-foreground text-xs leading-relaxed mb-6 grow">
-              {tpl.description}
-            </p>
-
-            <div className="flex flex-col gap-3 mt-auto">
+            <div className="pt-2.5 border-t border-border/60 mt-auto">
               <Button
                 onClick={() => setSelectedTemplate(tpl)}
-                size="lg"
-                variant="shiny"
-                className="text-xs w-full justify-center rounded-full"
+                size="sm"
+                variant="default"
+                className="w-full justify-center text-xs"
               >
-                <span>Load Template</span>
+                Load Template
               </Button>
             </div>
           </div>

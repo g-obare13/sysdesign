@@ -2,9 +2,9 @@
  * @fileoverview Privacy policy document page (`/privacy`).
  */
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import Container from "@/components/ui/container";
-import { IconShieldCheck, IconChevronLeft } from "@tabler/icons-react";
+import { IconChevronLeft, IconShieldCheck } from "@tabler/icons-react";
 
 /**
  * Route for the application privacy policy.
@@ -21,116 +21,77 @@ export const Route = createFileRoute("/privacy")({
 function PrivacyPage() {
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <Container className="max-w-3xl py-12 px-6">
+      <Container className="max-w-2xl py-10 px-6">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-8 group"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6 group"
         >
           <IconChevronLeft
-            size={16}
+            size={14}
             className="group-hover:-translate-x-0.5 transition-transform"
           />
           Back to Editor
         </Link>
 
-        <header className="mb-12">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
-            <IconShieldCheck size={28} />
+        <header className="mb-8 border-b border-border/60 pb-6">
+          <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-xs">
+            <IconShieldCheck size={20} />
           </div>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-foreground mb-4">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground mb-1">
             Privacy Policy
           </h1>
-          <p className="text-muted-foreground">
-            Last updated March 22, 2026. Your privacy is our priority.
+          <p className="text-xs text-muted-foreground">
+            Effective March 2026. Your privacy and diagram data sovereignty are fundamental.
           </p>
         </header>
 
-        <div className="prose prose-olive dark:prose-invert max-w-none space-y-8 text-foreground/90">
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
+        <div className="space-y-6 text-xs text-foreground/85 leading-relaxed">
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">
               1. Information We Collect
             </h2>
-            <p className="leading-relaxed">
-              We collect information to provide a better experience to our
-              users. This includes:
+            <p>
+              We collect minimal information necessary to deliver system diagramming capabilities:
             </p>
-            <ul className="list-disc pl-6 space-y-2 mt-4">
+            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
               <li>
-                <strong>Account Information:</strong> When you sign in with
-                Google, we receive your name, email address, and profile
-                picture.
+                <strong className="text-foreground">Authentication Data:</strong> When signing in with Google OAuth, we receive your account identifier, email address, and profile picture.
               </li>
               <li>
-                <strong>Project Data:</strong> We store the diagrams and
-                architecture layouts you create on our platform.
+                <strong className="text-foreground">Diagram Data:</strong> Architecture components, nodes, edges, C4 hierarchies, and notes are saved to your project space.
               </li>
               <li>
-                <strong>Usage Data:</strong> We collect anonymous analytics to
-                understand how the platform is used and where we can improve.
+                <strong className="text-foreground">Local AI Keys:</strong> API keys for OpenAI, Anthropic, or Google Gemini are stored locally on your device in browser localStorage and never transmitted to our servers.
               </li>
             </ul>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
-              2. How We Use Your Data
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">
+              2. How Your Data Is Used
             </h2>
-            <p className="leading-relaxed">
-              Your data is used specifically for the following purposes:
+            <p>
+              Your data is exclusively utilized to:
             </p>
-            <ul className="list-disc pl-6 space-y-2 mt-4">
-              <li>
-                To save and sync your architecture diagrams across devices.
-              </li>
-              <li>
-                To personalize your experience and manage your user account.
-              </li>
-              <li>
-                To improve our tools and add new features based on popular usage
-                patterns.
-              </li>
+            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+              <li>Persist and sync your architecture diagrams across devices.</li>
+              <li>Authenticate your workspace access securely.</li>
+              <li>Export diagrams to PNG, SVG, Mermaid, Terraform, and Structurizr formats.</li>
             </ul>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-foreground">
               3. Data Storage & Security
             </h2>
-            <p className="leading-relaxed">
-              We use Supabase (a secure PostgreSQL-based platform) for data
-              persistence. While we take industry-standard measures to protect
-              your information, no service is 100% secure. You are also
-              encouraged to use local storage mode if you prefer not to store
-              data online.
+            <p>
+              We utilize Supabase PostgreSQL with Row Level Security (RLS) for cloud persistence. You may also operate without signing in to keep all diagram assets in local browser memory.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 border-b pb-2">
-              4. Third-Party Services
-            </h2>
-            <p className="leading-relaxed">
-              We use the following third-party sub-processors:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 mt-4">
-              <li>
-                <strong>Supabase:</strong> For authentication and database
-                hosting.
-              </li>
-              <li>
-                <strong>Google OAuth:</strong> To allow seamless social login.
-              </li>
-              <li>
-                <strong>Vercel:</strong> For hosting and infrastructure
-                services.
-              </li>
-            </ul>
-          </section>
-
-          <footer className="pt-12 border-t mt-16 pb-8">
-            <p className="text-sm text-muted-foreground">
-              If you have any questions about this policy, please contact us at
-              info@obare27.com
+          <footer className="pt-8 border-t border-border/50 text-muted-foreground">
+            <p>
+              For inquiries regarding data protection, contact: <span className="font-mono text-foreground">info@obare27.com</span>
             </p>
           </footer>
         </div>

@@ -1,10 +1,11 @@
 /**
- * @fileoverview TanStack Store for managing local AI provider keys and prompt state.
+ * @fileoverview TanStack Store for managing local AI provider keys, prompt state,
+ * chat drawer visibility, and message history.
  * Encapsulates localStorage persistence and custom React subscription hooks.
  */
 
 import { Store } from "@tanstack/store";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Supported AI provider service names.
@@ -24,13 +25,32 @@ export interface AIKey {
 }
 
 /**
+ * Single AI Chat message entity in conversational history.
+ */
+export interface AIChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp: number;
+  diagramGenerated?: {
+    nodeCount: number;
+    edgeCount: number;
+    title?: string;
+  };
+}
+
+/**
  * Internal state for the AI store.
  */
 interface AIState {
   /** Collection of configured provider keys */
-  keys: AIKey[];
+  keys: Array<AIKey>;
   /** Pending user prompt in the UI */
   pendingPrompt: string;
+  /** Whether the AI chat drawer is currently open */
+  isDrawerOpen: boolean;
+  /** List of chat messages in the active session */
+  messages: Array<AIChatMessage>;
 }
 
 const STORAGE_KEY = "sysdesign-ai-keys";
@@ -40,7 +60,7 @@ const STORAGE_KEY = "sysdesign-ai-keys";
  *
  * @returns Array of stored AIKey objects
  */
-function loadKeys(): AIKey[] {
+function loadKeys(): Array<AIKey> {
   try {
     if (typeof window === "undefined") return [];
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -55,7 +75,7 @@ function loadKeys(): AIKey[] {
  *
  * @param keys - Array of AIKey objects to store
  */
-function saveKeys(keys: AIKey[]): void {
+function saveKeys(keys: Array<AIKey>): void {
   try {
     if (typeof window === "undefined") return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
@@ -106,6 +126,8 @@ export function maskKey(key: string): string {
 export const aiStore = new Store<AIState>({
   keys: loadKeys(),
   pendingPrompt: "",
+  isDrawerOpen: false,
+  messages: [],
 });
 
 /**
@@ -115,6 +137,44 @@ export const aiStore = new Store<AIState>({
  */
 export function setPrompt(prompt: string): void {
   aiStore.setState((s) => ({ ...s, pendingPrompt: prompt }));
+}
+
+/**
+ * Sets the drawer open/close state.
+ */
+export function setAIDrawerOpen(open: boolean): void {
+  aiStore.setState((s) => ({ ...s, isDrawerOpen: open }));
+}
+
+/**
+ * Toggles the AI drawer open/close state.
+ */
+export function toggleAIDrawer(): void {
+  aiStore.setState((s) => ({ ...s, isDrawerOpen: !s.isDrawerOpen }));
+}
+
+/**
+ * Appends a new message to the chat history.
+ */
+export function addChatMessage(msg: Omit<AIChatMessage, "id" | "timestamp"> & { id?: string; timestamp?: number }): void {
+  const newMsg: AIChatMessage = {
+    id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    timestamp: msg.timestamp || Date.now(),
+    role: msg.role,
+    content: msg.content,
+    diagramGenerated: msg.diagramGenerated,
+  };
+  aiStore.setState((s) => ({
+    ...s,
+    messages: [...s.messages, newMsg],
+  }));
+}
+
+/**
+ * Clears all chat messages from store.
+ */
+export function clearChatMessages(): void {
+  aiStore.setState((s) => ({ ...s, messages: [] }));
 }
 
 /**
@@ -157,7 +217,7 @@ export function getKeyForProvider(provider: AIProvider): AIKey | undefined {
  * @returns Object with keys array, add action, remove action, and hasAny flag
  */
 export function useAIKeys() {
-  const [keys, setKeys] = useState<AIKey[]>(aiStore.state.keys);
+  const [keys, setKeys] = useState<Array<AIKey>>(aiStore.state.keys);
 
   useEffect(() => {
     const sub = aiStore.subscribe(() => {
@@ -190,4 +250,46 @@ export function useAIPrompt() {
   }, []);
 
   return { prompt, setPrompt };
+}
+
+/**
+ * React hook providing reactive access to AI drawer visibility state.
+ */
+export function useAIDrawer() {
+  const [isOpen, setIsOpen] = useState(aiStore.state.isDrawerOpen);
+
+  useEffect(() => {
+    const sub = aiStore.subscribe(() => {
+      setIsOpen(aiStore.state.isDrawerOpen);
+    });
+    return () => sub.unsubscribe();
+  }, []);
+
+  return {
+    isOpen,
+    open: () => setAIDrawerOpen(true),
+    close: () => setAIDrawerOpen(false),
+    toggle: toggleAIDrawer,
+    setOpen: setAIDrawerOpen,
+  };
+}
+
+/**
+ * React hook providing reactive access to chat history.
+ */
+export function useAIChatMessages() {
+  const [messages, setMessages] = useState<Array<AIChatMessage>>(aiStore.state.messages);
+
+  useEffect(() => {
+    const sub = aiStore.subscribe(() => {
+      setMessages(aiStore.state.messages);
+    });
+    return () => sub.unsubscribe();
+  }, []);
+
+  return {
+    messages,
+    addMessage: addChatMessage,
+    clearMessages: clearChatMessages,
+  };
 }

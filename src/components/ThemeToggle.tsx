@@ -7,7 +7,7 @@ import { useTheme } from "next-themes";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
 /**
- * Animated toggle button switching between light and dark visual themes.
+ * Clean, compact toggle button switching between light and dark visual themes.
  *
  * @returns Theme toggle button element
  */
@@ -21,41 +21,29 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button
-        onClick={() => setIsDark(!isDark)}
-        className="relative h-9 w-16 overflow-hidden rounded-full border-input bg-muted/50 p-0"
-      >
-        <div className="flex w-full items-center justify-between px-2 opacity-40">
-          <IconSun className="size-3" />
-          <IconMoon className="size-3" />
-        </div>
-        <div className="absolute top-1 left-1 flex size-7 items-center justify-center rounded-full border-input bg-background shadow-sm">
-          <IconSun className="h-4 w-4 text-primary" />
-        </div>
-      </button>
+      <div className="relative h-6 w-11 rounded-full border border-border bg-muted/60" />
     );
   }
 
   const isDark = resolvedTheme === "dark";
-  const setIsDark = (val: boolean) => setTheme(val ? "dark" : "light");
+  const toggleTheme = () => setTheme(isDark ? "light" : "dark");
 
   return (
     <button
-      onClick={() => setIsDark(!isDark)}
-      className="relative h-9 w-16 overflow-hidden rounded-full border border-input bg-muted/50 p-0 transition-colors duration-300 hover:bg-muted"
+      type="button"
+      onClick={toggleTheme}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className="relative h-6 w-11 cursor-pointer rounded-full border border-border bg-muted/60 p-0.5 transition-colors duration-150 hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring outline-none"
     >
-      <div className="flex w-full items-center justify-between px-2 opacity-40">
-        <IconSun className="size-3" />
-        <IconMoon className="size-3" />
-      </div>
-
       <div
-        className={`absolute top-1 left-1 flex size-7 items-center justify-center rounded-full border bg-background shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isDark ? "translate-x-7" : "translate-x-0"} `}
+        className={`flex size-4.5 items-center justify-center rounded-full bg-card shadow-xs transition-transform duration-150 ${
+          isDark ? "translate-x-5 text-primary" : "translate-x-0 text-muted-foreground"
+        }`}
       >
         {isDark ? (
-          <IconMoon className="h-4 w-4 text-primary" />
+          <IconMoon className="size-3" stroke={1.8} />
         ) : (
-          <IconSun className="h-4 w-4 text-primary" />
+          <IconSun className="size-3" stroke={1.8} />
         )}
       </div>
     </button>

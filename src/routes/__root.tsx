@@ -2,8 +2,7 @@
  * @fileoverview Root route layout and HTML document structure for the application.
  */
 
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { useLocation } from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRoute, useLocation  } from "@tanstack/react-router";
 import { IconHome, IconLinkOff } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { ReactFlowProvider } from "@xyflow/react";
@@ -30,65 +29,47 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SysDesign - Professional Systems Architecture Tool" },
+      { title: "SysDesign — Systems Architecture & C4 Modeling" },
       {
         name: "description",
         content:
-          "The most powerful way to visualize and design your system architectures. Cloud-native components, real-time collaboration, and professional layouts.",
+          "Professional system architecture and C4 diagramming tool with cloud-native components, keyboard navigation, and export support.",
       },
       {
         name: "keywords",
         content:
-          "system design, architecture diagrams, cloud infra, AWS, GCP, Azure, microservices, diagramming tool",
+          "system design, architecture diagrams, cloud infra, AWS, GCP, Azure, microservices, C4 model, diagramming tool",
       },
       {
         name: "og:title",
-        content: "SysDesign - Professional Systems Architecture Tool",
+        content: "SysDesign — Systems Architecture & C4 Modeling",
       },
       {
         name: "og:description",
         content:
-          "Visualize your entire backend, cloud, and microservice architectures with ease. Professional-grade diagramming for high-scale teams.",
+          "Visualize distributed systems and microservice architectures with ease.",
       },
       { name: "og:type", content: "website" },
-      {
-        name: "og:image",
-        content:
-          "https://pprstys1m6xjtdrw.public.blob.vercel-storage.com/og-image.png",
-      },
-      { name: "twitter:card", content: "summary_large_image" },
-      {
-        name: "twitter:title",
-        content: "SysDesign - Systems Design Visualizer",
-      },
-      {
-        name: "twitter:description",
-        content:
-          "Visualize your entire backend, cloud, and microservice architectures with ease.",
-      },
-      { name: "theme-color", content: "#c57642" },
+      { name: "theme-color", content: "#59634b" },
       { name: "robots", content: "index, follow" },
     ],
 
     links: [
       {
         rel: "preload",
-        href: "/fonts/MonaSans.woff2",
+        href: "/fonts/texgyreheros-regular.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: "/fonts/texgyreheros-bold.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      {
-        rel: "preconnect",
-        href: "https://fonts.gstatic.com",
-        crossOrigin: "anonymous",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap",
-      },
     ],
   }),
   shellComponent: RootDocument,
@@ -120,7 +101,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="relative" suppressHydrationWarning>
+      <body className="relative font-sans text-foreground bg-background antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <TooltipProvider delay={300}>
             {isCanvasRoute && <MobileBlock />}
@@ -147,48 +128,38 @@ function RootDocument({ children }: { children: React.ReactNode }) {
  */
 function NotFound() {
   return (
-    <main className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95 duration-500">
-      <div className="relative mb-8">
-        <div className="size-24 rounded-3xl bg-primary/10 flex items-center justify-center text-primary rotate-12 animate-bounce duration-2000">
-          <IconLinkOff size={48} stroke={1.5} />
-        </div>
-        <div className="absolute -bottom-2 -right-2 size-10 rounded-2xl bg-background border border-border flex items-center justify-center shadow-lg">
-          <span className="text-sm font-black tracking-tighter">404</span>
-        </div>
+    <main className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-200">
+      <div className="size-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 shadow-xs">
+        <IconLinkOff size={22} stroke={1.5} />
       </div>
 
-      <h1 className="font-display text-4xl font-bold tracking-tight mb-3 bg-linear-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
-        Lost in the Cloud?
+      <span className="text-[10px] font-mono font-medium text-muted-foreground uppercase tracking-widest mb-1">
+        404 · Route Not Found
+      </span>
+      <h1 className="text-xl font-semibold text-foreground mb-2">
+        Page Not Found
       </h1>
-      <p className="max-w-md mx-auto text-muted-foreground mb-10 leading-relaxed font-medium">
-        The route you're looking for doesn't exist in our architecture registry.
-        It might have been renamed or moved to a different region.
+      <p className="max-w-sm mx-auto text-xs text-muted-foreground mb-6 leading-relaxed">
+        The route you requested does not exist in the architecture registry or has been relocated.
       </p>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button
           href="/"
           variant="default"
-          size="lg"
-          className="rounded-lg gap-2 h-12 px-8 min-w-[160px]"
+          size="sm"
+          className="gap-1.5"
         >
-          <IconHome size={18} />
-          Go to Editor
+          <IconHome size={14} />
+          Editor
         </Button>
         <Button
           href="/projects"
-          variant="secondary"
-          size="lg"
-          className="rounded-lg h-12 px-8 border-border/40"
+          variant="outline"
+          size="sm"
         >
-          My Projects
+          Projects
         </Button>
-      </div>
-
-      <div className="mt-16 pt-8 border-t border-border/20 w-full max-w-xs opacity-40">
-        <div className="text-[10px] font-bold tracking-widest uppercase">
-          SysDesign Internal Error Registry
-        </div>
       </div>
     </main>
   );

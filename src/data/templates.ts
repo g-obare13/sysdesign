@@ -3,7 +3,7 @@
  * Aggregates prebuilt reference diagrams for e-commerce, chat, fintech, banking, telehealth, and ride-hailing.
  */
 
-import type { DiagramNode, DiagramEdge } from "@/types/diagram";
+import type { DiagramEdge, DiagramNode } from "@/types/diagram";
 import { ECOMMERCE_TEMPLATE } from "./templates/ecommerce-architecture";
 import { CHAT_TEMPLATE } from "./templates/chat-architecture";
 import { FINTECH_TEMPLATE } from "./templates/fintech-architecture";
@@ -24,15 +24,15 @@ export interface Template {
   /** Descriptive overview of the template architecture */
   description: string;
   /** Nodes that populate the canvas */
-  nodes: DiagramNode[];
+  nodes: Array<DiagramNode>;
   /** Edges connecting the nodes */
-  edges: DiagramEdge[];
+  edges: Array<DiagramEdge>;
 }
 
 /**
  * Collection of production system architecture templates.
  */
-export const ARCHITECTURE_TEMPLATES: Template[] = [
+export const ARCHITECTURE_TEMPLATES: Array<Template> = [
   ECOMMERCE_TEMPLATE,
   CHAT_TEMPLATE,
   FINTECH_TEMPLATE,
@@ -41,7 +41,7 @@ export const ARCHITECTURE_TEMPLATES: Template[] = [
 /**
  * Collection of C4 Model context/container/component templates.
  */
-export const C4_TEMPLATES: Template[] = [
+export const C4_TEMPLATES: Array<Template> = [
   BANKING_C4_TEMPLATE,
   TELEHEALTH_C4_TEMPLATE,
   RIDEHAILING_C4_TEMPLATE,
@@ -50,7 +50,7 @@ export const C4_TEMPLATES: Template[] = [
 /**
  * Full list of available diagram templates across all categories.
  */
-export const TEMPLATES: Template[] = [
+export const TEMPLATES: Array<Template> = [
   ...ARCHITECTURE_TEMPLATES,
   ...C4_TEMPLATES,
 ];

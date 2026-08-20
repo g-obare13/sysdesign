@@ -2,9 +2,9 @@
  * @fileoverview Unit tests for diagram export formats (Mermaid, Terraform, Structurizr DSL).
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { exportMermaid, exportTerraform, exportStructurizr } from "./exportUtils";
-import type { DiagramNode, DiagramEdge } from "@/types/diagram";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { exportMermaid, exportStructurizr, exportTerraform } from "./exportUtils";
+import type { DiagramEdge, DiagramNode } from "@/types/diagram";
 
 function node(id: string, label: string, subtype = "service"): DiagramNode {
   return {

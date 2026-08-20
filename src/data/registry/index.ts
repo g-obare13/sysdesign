@@ -13,7 +13,7 @@ export { AWS_REGISTRY, GCP_REGISTRY, AZURE_REGISTRY, OTHER_REGISTRY }
 /**
  * The full component registry array containing all cloud provider and generic node templates.
  */
-export const REGISTRY: NodeTemplate[] = [
+export const REGISTRY: Array<NodeTemplate> = [
   ...AWS_REGISTRY,
   ...GCP_REGISTRY,
   ...AZURE_REGISTRY,

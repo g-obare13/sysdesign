@@ -3,7 +3,7 @@
  */
 
 import { toPng, toSvg } from 'html-to-image'
-import type { DiagramNode, DiagramEdge } from '@/types/diagram'
+import type { DiagramEdge, DiagramNode } from '@/types/diagram'
 
 /**
  * Exports the current diagram container as a high-resolution PNG image.
@@ -52,7 +52,7 @@ export async function exportSvgFile(): Promise<void> {
  * @param nodes - Current collection of diagram nodes
  * @param edges - Current collection of diagram edges
  */
-export function exportMermaid(nodes: DiagramNode[], edges: DiagramEdge[]): void {
+export function exportMermaid(nodes: Array<DiagramNode>, edges: Array<DiagramEdge>): void {
   const lines = ['flowchart TD']
   nodes.forEach((n) => {
     const id = n.id.replace(/-/g, '_')
@@ -72,7 +72,7 @@ export function exportMermaid(nodes: DiagramNode[], edges: DiagramEdge[]): void 
  * @param nodes - Current collection of diagram nodes
  * @param edges - Current collection of diagram edges (used for commentary only)
  */
-export function exportTerraform(nodes: DiagramNode[], edges: DiagramEdge[]): void {
+export function exportTerraform(nodes: Array<DiagramNode>, edges: Array<DiagramEdge>): void {
   type Gen = (n: DiagramNode) => string
   const map: Record<string, Gen> = {
     'api-gateway': (n) => tfBlock('aws_api_gateway_rest_api', n, `name = "${n.data.label as string}"`),
@@ -112,9 +112,9 @@ export function exportTerraform(nodes: DiagramNode[], edges: DiagramEdge[]): voi
  * @param nodes - Collection of diagram nodes
  * @param edges - Collection of diagram edges
  */
-export function exportStructurizr(nodes: DiagramNode[], edges: DiagramEdge[]): void {
+export function exportStructurizr(nodes: Array<DiagramNode>, edges: Array<DiagramEdge>): void {
   const rootNodes = nodes.filter(n => !n.parentId)
-  const modelLines: string[] = []
+  const modelLines: Array<string> = []
 
   const renderNode = (n: DiagramNode, depth: number) => {
     const indent = '    '.repeat(depth)

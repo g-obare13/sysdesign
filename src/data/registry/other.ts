@@ -8,7 +8,7 @@ import type { NodeTemplate } from '@/types/diagram'
 /**
  * Provider-agnostic components: databases, frontends, patterns, flows, and shapes.
  */
-export const OTHER_REGISTRY: NodeTemplate[] = [
+export const OTHER_REGISTRY: Array<NodeTemplate> = [
   // Generic Databases / Data Stores
   { subtype: 'db-postgres', label: 'PostgreSQL', category: 'database', icon: 'IconDatabase', description: 'Relational Database system' },
   { subtype: 'db-mysql', label: 'MySQL', category: 'database', icon: 'IconDatabase', description: 'Relational Database system' },

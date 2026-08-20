@@ -19,7 +19,7 @@ function ShapesPage() {
   return (
     <ComingSoon
       title="Infinite Geometry Library"
-      description="Process, decision, swimlane, queue shapes and more — the full technical shape library is currently being built."
+      description="Process, decision, swimlane, queue shapes and more - the full technical shape library is currently being built."
       icon={IconShape}
     />
   );

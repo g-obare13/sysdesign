@@ -10,16 +10,21 @@ import { memo, useCallback, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import {
-  updateNodeMeta,
-  setEditingNodeId,
-  setC4Level,
-  useCanvasStore,
   applyNodeChangesToStore,
+  setC4Level,
+  setEditingNodeId,
+  updateNodeMeta,
+  useCanvasStore,
 } from "@/store/canvas.store";
 import type { NodeMeta } from "@/types/diagram";
 import { CATEGORY_STYLE } from "@/types/diagram";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import NodeEditModal from "./NodeEditModal";
 
 type TablerIconComponent = React.FC<{
@@ -45,50 +50,50 @@ interface C4Style {
   dark: { color: string; pill: string; text: string };
 }
 
-const C4_STYLES: Record<string, C4Style> = {
+export const C4_STYLES: Record<string, C4Style> = {
   "c4-person": {
-    color: "#c57642",
-    pill: "#edf5ff",
-    text: "#c57642",
+    color: "#0284c7",
+    pill: "#e0f2fe",
+    text: "#0369a1",
     label: "Person",
     icon: "IconUser",
-    dark: { color: "#E9A87E", pill: "#3A2A20", text: "#F0C4A0" },
+    dark: { color: "#38bdf8", pill: "#0c4a6e30", text: "#e0f2fe" },
   },
   "c4-system": {
-    color: "#c57642",
-    pill: "#edf5ff",
-    text: "#c57642",
+    color: "#1d70b8",
+    pill: "#e0edfa",
+    text: "#154e80",
     label: "System",
     icon: "IconBox",
-    dark: { color: "#E9A87E", pill: "#3A2A20", text: "#F0C4A0" },
+    dark: { color: "#60a5fa", pill: "#1e3a8a30", text: "#dbeafe" },
   },
   "c4-container": {
-    color: "#198038",
-    pill: "#defbe6",
-    text: "#0e6027",
+    color: "#0d9488",
+    pill: "#e0f5f3",
+    text: "#096960",
     label: "Container",
     icon: "IconStack2",
-    dark: { color: "#42BE65", pill: "#14301E", text: "#7FE0A0" },
+    dark: { color: "#2dd4bf", pill: "#134e4a30", text: "#ccfbf1" },
   },
   "c4-component": {
-    color: "#d12771",
-    pill: "#fff0f7",
-    text: "#9f1853",
+    color: "#7c3aed",
+    pill: "#eee6fb",
+    text: "#5521b5",
     label: "Component",
     icon: "IconPuzzle",
-    dark: { color: "#EE6FA8", pill: "#3A2030", text: "#F5A8CC" },
+    dark: { color: "#a78bfa", pill: "#4c1d9530", text: "#ede9fe" },
   },
   "c4-external-system": {
-    color: "#525252",
-    pill: "#f4f4f4",
-    text: "#161616",
+    color: "#64748b",
+    pill: "#eaf0f4",
+    text: "#334155",
     label: "External",
     icon: "IconBox",
-    dark: { color: "#A8A8A8", pill: "#2E2E2E", text: "#C6C6C6" },
+    dark: { color: "#94a3b8", pill: "#33415530", text: "#f1f5f9" },
   },
 };
 
-function getC4Style(subtype: string): C4Style {
+export function getC4Style(subtype: string): C4Style {
   if (subtype.includes("external")) return C4_STYLES["c4-external-system"];
   if (subtype.includes("person")) return C4_STYLES["c4-person"];
   if (
@@ -141,7 +146,7 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
   const darkVariant =
     baseStyle && "dark" in baseStyle ? baseStyle.dark : undefined;
   const style = {
-    color: (isDark && darkVariant?.color) || baseStyle?.color || "#888888",
+    color: (isDark && darkVariant?.color) || baseStyle?.color || "#5e6a50",
     pill: (isDark && darkVariant?.pill) || baseStyle?.pill || "var(--muted)",
     text:
       (isDark && darkVariant?.text) || baseStyle?.text || "var(--foreground)",
@@ -187,11 +192,11 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
   }, [id, draft, draftNotes, draftOwner, draftStatus, meta.label]);
 
   const handleStyle: React.CSSProperties = {
-    width: 6,
-    height: 6,
+    width: 7,
+    height: 7,
     background: "var(--card)",
-    border: "1.5px solid var(--primary)",
-    borderRadius: "10px",
+    border: "1px solid var(--primary)",
+    borderRadius: "50%",
   };
 
   const isGroup = type === "group";
@@ -200,11 +205,11 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     return (
       <div
         className={cn(
-          "relative w-full h-full p-4! transition-all duration-150 rounded-[--radius]",
+          "relative w-full h-full p-2.5 transition-colors duration-150 rounded-md",
           diagramMode === "c4"
-            ? "bg-muted/10 border-2 border-dashed border-muted-foreground/40"
-            : "bg-muted/5 border border-dashed border-muted-foreground/30",
-          selected && "border-primary/60 bg-primary/5",
+            ? "bg-muted/10 border border-dashed border-border/50"
+            : "bg-muted/5 border border-dashed border-border/40",
+          selected && "border-primary/60 bg-primary/5 ring-1 ring-primary/20",
         )}
       >
         <Handle
@@ -257,14 +262,14 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
         />
         <div
           onDoubleClick={openEdit}
-          className="flex items-start w-full opacity-60"
+          className="flex items-start w-full opacity-70"
         >
           {editing ? (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <Input
                 autoFocus
                 size="xs"
-                className="nodrag py-1! text-[10px]!"
+                className="nodrag text-[10px] h-5"
                 placeholder="Group name"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -275,17 +280,16 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
               />
               <Button
                 onClick={commitEdit}
-                variant="default"
-                size="sm"
-                className="text-[9px]! h-5 nodrag cursor-pointer"
+                size="xs"
+                className="h-5 text-[9px] nodrag cursor-pointer"
               >
                 Save
               </Button>
             </div>
           ) : (
-            <h6 className="text-[9px] font-medium uppercase tracking-widest cursor-text text-foreground wrap-break-word leading-tight">
+            <span className="text-[10px] font-mono font-medium uppercase tracking-wider cursor-text text-foreground/70 truncate leading-tight">
               {meta.label as string}
-            </h6>
+            </span>
           )}
         </div>
       </div>
@@ -321,51 +325,80 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     <>
       <div
         className={cn(
-          "group relative flex items-center gap-3.5 px-4 py-3 bg-card text-foreground rounded-2xl border transition-all duration-200 min-w-[210px] max-w-[260px] select-none cursor-pointer",
-          isExternal && "border-dashed opacity-85",
+          "group relative flex items-center gap-2 px-2.5 py-2 bg-card text-foreground rounded-md border transition-colors duration-150 min-w-[190px] max-w-[240px] select-none cursor-pointer shadow-none",
+          isExternal && "border-dashed opacity-90",
           selected
-            ? "border-primary ring-3 ring-primary/20 shadow-md z-20"
-            : "border-border/80 hover:border-border hover:shadow-md shadow-xs",
+            ? "border-primary ring-1 ring-primary/40 z-20"
+            : "border-border hover:border-border-strong",
         )}
       >
-        {/* Floating Actions on Hover & Select: Edit, Drilldown, and Delete buttons */}
+        {/* Floating Quick Action Buttons on Hover & Select */}
         <div
           className={cn(
-            "absolute -top-3.5 -right-2 flex items-center gap-1 z-30 transition-all duration-150",
+            "absolute -top-2.5 right-1 flex items-center gap-0.5 z-30 transition-opacity duration-150",
             selected
-              ? "opacity-100 pointer-events-auto scale-100"
-              : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-hover:scale-100 scale-95",
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto",
           )}
         >
           {isContainer && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setC4Level("component");
-              }}
-              title="Drill down to Components (L3)"
-              className="w-7 h-7 rounded-lg bg-card border border-border shadow-md flex items-center justify-center cursor-pointer text-primary hover:bg-primary/10 transition-all hover:scale-105"
-            >
-              <TablerIcons.IconHierarchy size={13} stroke={1.8} />
-            </button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    icon={<TablerIcons.IconHierarchy size={11} stroke={1.8} />}
+                    iconPlacement="left"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setC4Level("component");
+                    }}
+                    className="size-5 rounded-xs bg-card"
+                  />
+                }
+              />
+              <TooltipContent side="top">Drill down (L3)</TooltipContent>
+            </Tooltip>
           )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              openEdit();
-            }}
-            title="Edit properties"
-            className="w-7 h-7 rounded-lg bg-card border border-border shadow-md flex items-center justify-center cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted hover:border-primary/40 transition-all hover:scale-105"
-          >
-            <TablerIcons.IconPencil size={13} stroke={1.8} />
-          </button>
-          <button
-            onClick={handleDelete}
-            title="Delete node"
-            className="w-7 h-7 rounded-lg bg-card border border-border shadow-md flex items-center justify-center cursor-pointer text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-all hover:scale-105"
-          >
-            <TablerIcons.IconTrash size={13} stroke={1.8} />
-          </button>
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="icon"
+                  icon={<TablerIcons.IconPencil size={11} stroke={1.8} />}
+                  iconPlacement="left"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEdit();
+                  }}
+                  className="size-5 rounded-xs bg-card"
+                />
+              }
+            />
+            <TooltipContent side="top">Edit properties</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  icon={<TablerIcons.IconTrash size={11} stroke={1.8} />}
+                  iconPlacement="left"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(e);
+                  }}
+                  className="size-5 rounded-xs bg-card "
+                />
+              }
+            />
+            <TooltipContent side="top">Delete node</TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Handles for Edge Connections */}
@@ -418,25 +451,28 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
           style={handleStyle}
         />
 
-        {/* Left Squircle Icon Container */}
+        {/* Soft-tinted Category Icon Circle */}
         <div
-          className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-slate-600 dark:bg-slate-700 text-white shadow-xs"
+          className="size-6 rounded-full flex items-center justify-center shrink-0"
           style={{
-            background: `color-mix(in srgb, ${style.color} 80%, #334155)`,
+            backgroundColor: style.pill,
+            color: style.color,
           }}
         >
-          <Icon size={20} stroke={1.8} color="white" />
+          <Icon size={13} stroke={2} />
         </div>
 
         {/* Node Labels Column */}
         <div className="flex flex-col min-w-0 flex-1">
           {c4BadgeText && (
-            <span className="font-mono text-[9px] text-primary/85 font-semibold tracking-tight truncate leading-none mb-0.5">
+            <span className="font-mono text-[9px] text-primary font-medium  truncate leading-none mb-0.5">
               {c4BadgeText}
             </span>
           )}
-          <h6 className="text-sm truncate">{meta.label || style.label}</h6>
-          <span className="font-mono text-xs text-muted-foreground leading-tight truncate">
+          <span className="text-xs font-semibold text-foreground truncate">
+            {meta.label || style.label}
+          </span>
+          <span className="font-mono text-[10px] text-muted-foreground truncate">
             {meta.technology || meta.subtype || style.label}
           </span>
         </div>

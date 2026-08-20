@@ -7,7 +7,7 @@ import type { NodeTemplate } from '@/types/diagram'
 /**
  * Microsoft Azure cloud component catalog.
  */
-export const AZURE_REGISTRY: NodeTemplate[] = [
+export const AZURE_REGISTRY: Array<NodeTemplate> = [
   // Compute
   { subtype: 'azure-vm', label: 'Virtual Machines', category: 'cloud', icon: 'IconServer', description: 'Linux and Windows VMs' },
   { subtype: 'azure-functions', label: 'Azure Functions', category: 'cloud', icon: 'IconBolt', description: 'Serverless Compute' },
