@@ -3,7 +3,7 @@
  * Grounds AI-generated nodes against the real SysDesign AWS/GCP/Azure/Generic/C4 registry.
  */
 
-import { REGISTRY } from "@/data/registry";
+import { getRegistryItems } from "@/store/registry.store";
 import type { NodeCategory, NodeTemplate } from "@/types/diagram";
 
 const C4_TEMPLATES: Array<NodeTemplate> = [
@@ -44,7 +44,10 @@ const C4_TEMPLATES: Array<NodeTemplate> = [
   },
 ];
 
-const ALL_TEMPLATES: Array<NodeTemplate> = [...REGISTRY, ...C4_TEMPLATES];
+function getAllTemplates(customPool?: Array<NodeTemplate>): Array<NodeTemplate> {
+  const base = customPool ?? getRegistryItems();
+  return [...base, ...C4_TEMPLATES];
+}
 
 /**
  * Friendly aliases mapping common short names models emit to exact registry subtypes.
@@ -118,15 +121,17 @@ export function searchRegistry(
   query: string,
   category?: NodeCategory,
   limit = 16,
+  customPool?: Array<NodeTemplate>,
 ): Array<Pick<NodeTemplate, "subtype" | "label" | "category" | "description">> {
+  const allTemplates = getAllTemplates(customPool);
   const terms = query
     .toLowerCase()
     .split(/[\s,/-]+/)
     .filter(Boolean);
 
   const pool = category
-    ? ALL_TEMPLATES.filter((t) => t.category === category)
-    : ALL_TEMPLATES;
+    ? allTemplates.filter((t) => t.category === category)
+    : allTemplates;
 
   if (terms.length === 0) {
     return pool.slice(0, limit).map(({ subtype, label, category: cat, description }) => ({
@@ -169,12 +174,14 @@ export function resolveNodeTemplate(
   rawSubtype: string | undefined,
   rawLabel: string | undefined,
   mode: "architecture" | "c4",
+  customPool?: Array<NodeTemplate>,
 ): NodeTemplate {
+  const allTemplates = getAllTemplates(customPool);
   const norm = (rawSubtype ?? "").toLowerCase().trim();
   const aliased = SUBTYPE_ALIASES[norm] ?? norm;
 
   // 1. Exact subtype match
-  const exact = ALL_TEMPLATES.find((t) => t.subtype.toLowerCase() === aliased);
+  const exact = allTemplates.find((t) => t.subtype.toLowerCase() === aliased);
   if (exact) return exact;
 
   // 2. If in C4 mode, keep C4 taxonomy crisp
@@ -191,15 +198,15 @@ export function resolveNodeTemplate(
   }
 
   // 3. Fuzzy search on subtype + label against REGISTRY
-  const matches = searchRegistry(`${norm} ${rawLabel ?? ""}`, undefined, 1);
+  const matches = searchRegistry(`${norm} ${rawLabel ?? ""}`, undefined, 1, customPool);
   if (matches.length > 0) {
-    const found = ALL_TEMPLATES.find((t) => t.subtype === matches[0].subtype);
+    const found = allTemplates.find((t) => t.subtype === matches[0].subtype);
     if (found) return found;
   }
 
   // 4. Safe generic microservice fallback
   return (
-    ALL_TEMPLATES.find((t) => t.subtype === "ms-service") ?? {
+    allTemplates.find((t) => t.subtype === "ms-service") ?? {
       subtype: "ms-service",
       label: "Microservice",
       category: "microservice",

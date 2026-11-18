@@ -4,7 +4,7 @@
  */
 
 import { Store } from '@tanstack/store'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import dagre from '@dagrejs/dagre'
 import { MarkerType, applyEdgeChanges, applyNodeChanges } from '@xyflow/react'
 import type { Connection, EdgeChange, NodeChange } from '@xyflow/react'
@@ -768,15 +768,20 @@ export function setExportingState(exporting: boolean): void {
  * @returns The selected portion of the state
  */
 export function useCanvasStore<T>(selector: (state: CanvasState) => T): T {
+  const selectorRef = useRef(selector);
+  selectorRef.current = selector;
+
   const [value, setValue] = useState<T>(() => selector(DEFAULT_CANVAS_STATE));
 
   useEffect(() => {
-    setValue(selector(canvasStore.state));
-    const sub = canvasStore.subscribe(() => {
-      setValue(selector(canvasStore.state));
-    });
+    const sync = () => {
+      const next = selectorRef.current(canvasStore.state);
+      setValue((prev) => (Object.is(prev, next) ? prev : next));
+    };
+    sync();
+    const sub = canvasStore.subscribe(sync);
     return () => sub.unsubscribe();
-  }, [selector]);
+  }, []);
 
   return value;
 }

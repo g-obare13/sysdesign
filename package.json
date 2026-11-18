@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint --quiet"
+    "lint": "eslint --quiet",
+    "catalog:seed": "node scripts/generate-catalog-seed.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.106",

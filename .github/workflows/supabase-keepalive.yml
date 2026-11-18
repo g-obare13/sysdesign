@@ -21,7 +21,7 @@ jobs:
           fi
 
           HTTP_STATUS=$(curl -sS -o /tmp/supabase_ping.out -w "%{http_code}" \
-            "${SUPABASE_URL}/rest/v1/projects?select=id&limit=1" \
+            "${SUPABASE_URL}/rest/v1/catalog_components?select=subtype&limit=1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
 

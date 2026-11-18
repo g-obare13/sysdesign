@@ -1,10 +1,10 @@
 /**
- * @fileoverview Client-facing AI service invoking the TanStack Start server function
+ * @fileoverview Client-facing AI service invoking the TanStack Start RPC function
  * with live canvas context, conversation history, and selected provider/model.
  */
 
-import { runAIArchitect } from "@/lib/ai.server";
-import type { RunAIArchitectOutput } from "@/lib/ai.server";
+import { runAIArchitect } from "@/lib/ai.rpc";
+import type { RunAIArchitectOutput } from "@/lib/ai.rpc";
 import type { SerializedCanvasContext } from "@/lib/ai.context";
 import {
   getKeyForProvider,
@@ -18,7 +18,7 @@ export interface AIMessage {
 }
 
 /**
- * Dispatches an architectural prompt + live canvas snapshot to the AI Architect server function.
+ * Dispatches an architectural prompt + live canvas snapshot to the AI Architect RPC.
  */
 export async function callAIArchitect(params: {
   provider: AIProvider;

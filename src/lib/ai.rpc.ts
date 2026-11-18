@@ -1,27 +1,17 @@
 /**
- * @fileoverview TanStack Start server function powering the SysDesign AI Architect.
- * Runs Vercel AI SDK multi-step tool calling on the server (avoiding browser CORS issues)
- * using the user's per-request BYOK API key (never stored on the server).
+ * @fileoverview TanStack Start RPC server function powering the SysDesign AI Architect.
+ * Uses unified OpenAI-compatible Chat Completions endpoints across OpenAI, Anthropic,
+ * and Google Gemini with multi-step tool calling and server-side catalog lookup.
+ *
+ * NOTE: Intentionally named `ai.rpc.ts` (not `*.server.ts`) so client code can import
+ * the `createServerFn` RPC stub without tripping TanStack Start import protection.
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { generateText, stepCountIs, tool } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { buildArchitectSystemPrompt } from "@/lib/ai.prompts";
-import { searchRegistry } from "@/lib/ai.registry";
-import {
-  addElementsInputSchema,
-  groupNodesInputSchema,
-  lookupComponentsInputSchema,
-  removeElementsInputSchema,
-  replaceDiagramInputSchema,
-  updateElementsInputSchema,
-} from "@/lib/ai.tools";
 import type { AICanvasOperation } from "@/lib/ai.tools";
 import type { SerializedCanvasContext } from "@/lib/ai.context";
 import type { AIProvider } from "@/store/ai.store";
+import type { NodeCategory, NodeTemplate } from "@/types/diagram";
 
 export interface RunAIArchitectInput {
   provider: AIProvider;
@@ -37,25 +27,77 @@ export interface RunAIArchitectOutput {
   toolSteps: Array<string>;
 }
 
-function resolveModel(provider: AIProvider, modelId: string, apiKey: string) {
-  switch (provider) {
-    case "openai": {
-      const openai = createOpenAI({ apiKey });
-      return openai(modelId);
+/**
+ * Official OpenAI-compatible base URLs for each supported provider.
+ */
+const OPENAI_COMPAT_BASE_URLS: Record<AIProvider, string> = {
+  openai: "https://api.openai.com/v1",
+  anthropic: "https://api.anthropic.com/v1",
+  google: "https://generativelanguage.googleapis.com/v1beta/openai",
+};
+
+let serverCatalogCache: { items: Array<NodeTemplate>; fetchedAt: number } | null =
+  null;
+const SERVER_CATALOG_TTL_MS = 10 * 60 * 1000;
+
+async function getServerCatalog(): Promise<Array<NodeTemplate>> {
+  const { REGISTRY } = await import("@/data/registry");
+
+  if (
+    serverCatalogCache &&
+    Date.now() - serverCatalogCache.fetchedAt < SERVER_CATALOG_TTL_MS
+  ) {
+    return serverCatalogCache.items;
+  }
+
+  const url = process.env.VITE_SUPABASE_URL;
+  const key = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return REGISTRY;
+
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/catalog_components?select=subtype,label,category,icon,description,default_technology,is_active&is_active=eq.true&order=sort_order.asc`,
+      {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+      },
+    );
+    if (!res.ok) return REGISTRY;
+    const rows = (await res.json()) as Array<{
+      subtype: string;
+      label: string;
+      category: NodeCategory;
+      icon: string;
+      description?: string;
+      default_technology?: string | null;
+      is_active?: boolean;
+    }>;
+    if (!Array.isArray(rows) || rows.length === 0) return REGISTRY;
+
+    const merged = new Map<string, NodeTemplate>();
+    for (const item of REGISTRY) merged.set(item.subtype, item);
+    for (const row of rows) {
+      merged.set(row.subtype, {
+        subtype: row.subtype,
+        label: row.label,
+        category: row.category,
+        icon: row.icon || "IconBox",
+        description: row.description ?? "",
+        technology: row.default_technology ?? undefined,
+      });
     }
-    case "anthropic": {
-      const anthropic = createAnthropic({ apiKey });
-      return anthropic(modelId);
-    }
-    case "google": {
-      const google = createGoogleGenerativeAI({ apiKey });
-      return google(modelId);
-    }
+    const items = Array.from(merged.values());
+    serverCatalogCache = { items, fetchedAt: Date.now() };
+    return items;
+  } catch {
+    return REGISTRY;
   }
 }
 
 /**
- * Server-side AI Architect runner supporting multi-step registry lookup and surgical canvas tools.
+ * Server-side AI Architect runner using unified OpenAI-compatible Chat Completions endpoints.
  */
 export const runAIArchitect = createServerFn({ method: "POST" })
   .inputValidator((data: RunAIArchitectInput) => data)
@@ -66,11 +108,39 @@ export const runAIArchitect = createServerFn({ method: "POST" })
       throw new Error(`Missing API key for ${provider}`);
     }
 
+    // Dynamic imports keep all AI SDK & schema dependencies strictly server-side
+    const [
+      { generateText, stepCountIs, tool },
+      { createOpenAI },
+      { buildArchitectSystemPrompt },
+      { searchRegistry },
+      {
+        addElementsInputSchema,
+        groupNodesInputSchema,
+        lookupComponentsInputSchema,
+        removeElementsInputSchema,
+        replaceDiagramInputSchema,
+        updateElementsInputSchema,
+      },
+    ] = await Promise.all([
+      import("ai"),
+      import("@ai-sdk/openai"),
+      import("@/lib/ai.prompts"),
+      import("@/lib/ai.registry"),
+      import("@/lib/ai.tools"),
+    ]);
+
     const operations: Array<AICanvasOperation> = [];
     const toolSteps: Array<string> = [];
 
-    const model = resolveModel(provider, modelId, apiKey.trim());
+    const client = createOpenAI({
+      apiKey: apiKey.trim(),
+      baseURL: OPENAI_COMPAT_BASE_URLS[provider],
+    });
+    const model = client.chat(modelId);
+
     const system = buildArchitectSystemPrompt(canvas);
+    const catalogPool = await getServerCatalog();
 
     const result = await generateText({
       model,
@@ -84,7 +154,7 @@ export const runAIArchitect = createServerFn({ method: "POST" })
             "Search the verified SysDesign component registry (AWS, GCP, Azure, databases, security, AI/ML, networking, observability) to find exact subtypes before creating nodes.",
           inputSchema: lookupComponentsInputSchema,
           execute: async ({ query, category }) => {
-            const matches = searchRegistry(query, category, 16);
+            const matches = searchRegistry(query, category, 16, catalogPool);
             toolSteps.push(`Looked up "${query}" (${matches.length} matches)`);
             return { matches };
           },

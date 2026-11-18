@@ -6,7 +6,7 @@
 import * as React from "react";
 import * as TablerIcons from "@tabler/icons-react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { REGISTRY } from "@/data/registry";
+import { useRegistry } from "@/store/registry.store";
 import { CATEGORY_STYLE } from "@/types/diagram";
 import type { NodeCategory, NodeTemplate } from "@/types/diagram";
 
@@ -127,6 +127,7 @@ type TabId =
  */
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { items: registryItems } = useRegistry();
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const projects = useProjectStore((s) => s.projects);
   const activeProject = projects.find((p) => p.id === activeProjectId);
@@ -203,7 +204,7 @@ export default function Sidebar() {
 
     const query = searchQuery.toLowerCase().trim();
 
-    REGISTRY.forEach((t) => {
+    registryItems.forEach((t) => {
       const matches =
         !query ||
         t.label.toLowerCase().includes(query) ||
@@ -219,7 +220,7 @@ export default function Sidebar() {
       items[cat as NodeCategory].sort((a, b) => a.label.localeCompare(b.label));
     });
     return items;
-  }, [searchQuery]);
+  }, [searchQuery, registryItems]);
 
   React.useEffect(() => {
     if (searchQuery.trim()) {

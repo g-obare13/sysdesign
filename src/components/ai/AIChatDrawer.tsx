@@ -28,11 +28,6 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -55,8 +50,6 @@ import { applyAIOperationsToCanvas } from "@/lib/ai.tools";
 import { undo, useCanvasStore } from "@/store/canvas.store";
 import AISettings from "@/components/ai/AISettings";
 import { Loader } from "@/components/ui/loader";
-import { Textarea } from "@/components/ui/textarea";
-import type { AutosizeTextAreaRef } from "@/components/ui/textarea";
 
 const ARCH_SUGGESTIONS = [
   {
@@ -141,7 +134,13 @@ export default function AIChatDrawer() {
   const [showSettingsModal, setShowSettingsModal] = React.useState(false);
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const textareaRef = React.useRef<AutosizeTextAreaRef>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const resizeTextarea = React.useCallback((el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, []);
 
   const isC4 = diagramMode === "c4";
   const suggestions = isC4 ? C4_SUGGESTIONS : ARCH_SUGGESTIONS;
@@ -223,6 +222,9 @@ export default function AIChatDrawer() {
     setErrorMsg("");
     setLastPrompt(text);
     setPrompt("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
 
     try {
       const canvasSnapshot = serializeCanvasContext({
@@ -327,40 +329,26 @@ export default function AIChatDrawer() {
           </div>
 
           <div className="flex items-center gap-0.5 shrink-0">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => setShowSettingsModal(true)}
-                    className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-                    title="AI Provider Settings"
-                  >
-                    <IconKey size={15} stroke={1.6} />
-                  </Button>
-                }
-              />
-              <TooltipContent side="bottom">API Keys</TooltipContent>
-            </Tooltip>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setShowSettingsModal(true)}
+              className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+              title="API Keys"
+            >
+              <IconKey size={15} stroke={1.6} />
+            </Button>
 
             {messages.length > 0 && (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={clearMessages}
-                      className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                      title="Clear Chat History"
-                    >
-                      <IconTrash size={15} stroke={1.6} />
-                    </Button>
-                  }
-                />
-                <TooltipContent side="bottom">Clear Chat</TooltipContent>
-              </Tooltip>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={clearMessages}
+                className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Clear Chat"
+              >
+                <IconTrash size={15} stroke={1.6} />
+              </Button>
             )}
 
             <Button
@@ -617,10 +605,14 @@ export default function AIChatDrawer() {
           )}
 
           <div className="rounded-2xl bg-muted/65 border border-black/[0.05] dark:border-white/[0.07] focus-within:bg-card focus-within:border-black/[0.12] dark:focus-within:border-white/[0.14] focus-within:shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all overflow-hidden">
-            <Textarea
+            <textarea
               ref={textareaRef}
+              rows={2}
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              onChange={(e) => {
+                setPrompt(e.target.value);
+                resizeTextarea(e.target);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -637,7 +629,7 @@ export default function AIChatDrawer() {
                       ? "Describe a C4 model to generate…"
                       : "Describe a system architecture…"
               }
-              className="w-full resize-none border-0 shadow-none bg-transparent px-3.5 pt-3 pb-1.5 text-[13px] placeholder:text-muted-foreground/75 outline-none leading-relaxed font-sans disabled:opacity-50 focus-visible:ring-0"
+              className="w-full min-h-[48px] max-h-[160px] resize-none overflow-y-auto border-0 shadow-none bg-transparent px-3.5 pt-3 pb-1.5 text-[13px] text-foreground placeholder:text-muted-foreground/75 outline-none leading-relaxed font-sans disabled:opacity-50"
             />
 
             <div className="flex items-center justify-between px-2.5 pb-2.5 pt-1">
@@ -651,7 +643,7 @@ export default function AIChatDrawer() {
                     align="start"
                     side="top"
                     sideOffset={6}
-                    className="min-w-44 rounded-2xl p-1.5 shadow-xl border border-black/[0.06] dark:border-white/[0.08]"
+                    className="z-[200] min-w-44 rounded-2xl p-1.5 shadow-xl border border-black/[0.06] dark:border-white/[0.08]"
                   >
                     {PROVIDER_MODELS[selectedProvider].map((m) => (
                       <DropdownMenuItem

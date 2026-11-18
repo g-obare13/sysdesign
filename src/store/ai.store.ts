@@ -42,24 +42,28 @@ export interface AIChatMessage {
 }
 
 /**
- * Available models per provider (first entry is the default).
+ * Latest 2026 models per provider (all accessed via OpenAI-compatible Chat Completions endpoints).
+ * First entry per provider is the default.
  */
 export const PROVIDER_MODELS: Record<
   AIProvider,
   Array<{ id: string; label: string }>
 > = {
   openai: [
-    { id: "gpt-4.1", label: "GPT-4.1" },
-    { id: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
-    { id: "gpt-4o", label: "GPT-4o" },
+    { id: "gpt-6.2-sol", label: "GPT-6.2 Sol" },
+    { id: "gpt-6.2-astra", label: "GPT-6.2 Astra" },
+    { id: "gpt-6-luna", label: "GPT-6 Luna" },
   ],
   anthropic: [
-    { id: "claude-sonnet-4-5", label: "Claude Sonnet 4.5" },
-    { id: "claude-haiku-4-5", label: "Claude Haiku 4.5" },
+    { id: "claude-sonnet-5-5", label: "Claude Sonnet 5.5" },
+    { id: "claude-opus-5-5", label: "Claude Opus 5.5" },
+    { id: "claude-haiku-5-5", label: "Claude Haiku 5.5" },
   ],
   google: [
-    { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-    { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+    { id: "gemini-4-argon", label: "Gemini 4 Argon" },
+    { id: "gemini-4-carbon", label: "Gemini 4 Carbon" },
+    { id: "gemini-4-hydrogen", label: "Gemini 4 Hydrogen" },
+    { id: "gemini-3.8-flash", label: "Gemini 3.8 Flash" },
   ],
 };
 
@@ -96,7 +100,15 @@ function loadSelectedModels(): Record<AIProvider, string> {
     if (typeof window === "undefined") return defaults;
     const raw = localStorage.getItem(MODELS_STORAGE_KEY);
     if (!raw) return defaults;
-    return { ...defaults, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw) as Partial<Record<AIProvider, string>>;
+    const validated: Record<AIProvider, string> = { ...defaults };
+    (["openai", "anthropic", "google"] as Array<AIProvider>).forEach((p) => {
+      const candidate = parsed[p];
+      if (candidate && PROVIDER_MODELS[p].some((m) => m.id === candidate)) {
+        validated[p] = candidate;
+      }
+    });
+    return validated;
   } catch {
     return defaults;
   }
@@ -341,6 +353,9 @@ export function useAIPrompt() {
   return { prompt, setPrompt };
 }
 
+const openAIDrawer = () => setAIDrawerOpen(true);
+const closeAIDrawer = () => setAIDrawerOpen(false);
+
 /**
  * React hook providing reactive access to AI drawer visibility state.
  */
@@ -356,8 +371,8 @@ export function useAIDrawer() {
 
   return {
     isOpen,
-    open: () => setAIDrawerOpen(true),
-    close: () => setAIDrawerOpen(false),
+    open: openAIDrawer,
+    close: closeAIDrawer,
     toggle: toggleAIDrawer,
     setOpen: setAIDrawerOpen,
   };
