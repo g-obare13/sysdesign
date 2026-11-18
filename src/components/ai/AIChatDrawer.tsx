@@ -381,13 +381,13 @@ export default function AIChatDrawer() {
       <aside
         aria-label="AI Assistant Drawer"
         className={cn(
-          "fixed right-0 top-0 bottom-0 z-50 flex flex-col w-full sm:w-96 md:w-105",
-          "bg-card/95 backdrop-blur-xs border-l border-border shadow-xl",
+          "fixed right-3 top-16 bottom-16 z-50 flex flex-col w-full sm:w-96 md:w-105 rounded-[20px] overflow-hidden",
+          "nordic-panel",
           "animate-in slide-in-from-right duration-200",
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-3.5 h-11 border-b border-border bg-muted/20 shrink-0">
+        <div className="flex items-center justify-between px-4 h-11 border-b border-border/80 bg-muted/30 shrink-0">
           <div className="flex items-center gap-2">
             <div className="size-5 rounded-xs bg-primary/10 flex items-center justify-center text-primary">
               <IconSparkles size={12} />

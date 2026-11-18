@@ -83,7 +83,7 @@ function HomePage() {
         {/* Scratchpad banner — shown until the first project is saved */}
         {!hasProjects && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50">
-            <div className="flex items-center gap-2 bg-card/95 backdrop-blur-xs border border-border rounded-md shadow-md px-3 py-1.5 animate-in slide-in-from-top-1 fade-in duration-200">
+            <div className="flex items-center gap-2.5 nordic-glass rounded-xl px-3.5 py-1.5 animate-in slide-in-from-top-1 fade-in duration-200">
               <IconSparkles size={13} className="text-primary shrink-0" />
               <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap">
                 Scratchpad mode

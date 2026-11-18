@@ -1,26 +1,37 @@
 /**
- * @fileoverview Left component palette drawer allowing users to search and drag architecture & C4 items onto the canvas.
+ * @fileoverview Left floating Nordic studio panel housing brand, project selector,
+ * component search, mode switch, and draggable architecture & C4 registry.
  */
 
 import * as React from "react";
 import * as TablerIcons from "@tabler/icons-react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { REGISTRY } from "@/data/registry";
-import {
-  CATEGORY_STYLE
-  
-  
-} from "@/types/diagram";
-import type {NodeCategory, NodeTemplate} from "@/types/diagram";
+import { CATEGORY_STYLE } from "@/types/diagram";
+import type { NodeCategory, NodeTemplate } from "@/types/diagram";
 
-import { useProjectStore } from "@/store/project.store";
-import { useCanvasStore } from "@/store/canvas.store";
+import {
+  createProject,
+  setActiveProject,
+  useProjectStore,
+} from "@/store/project.store";
+import type { ProjectType } from "@/store/project.store";
+import { setDiagramMode, useCanvasStore } from "@/store/canvas.store";
 import { useAIKeys } from "@/store/ai.store";
 import AIPanel from "@/components/ai/AIPanel";
-import { getC4Style } from "@/components/canvas/DiagramNode";
+import ProjectSetupPopup from "@/components/dashboard/ProjectSetupPopup";
+import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
-import { useLocation } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Accordion,
   AccordionContent,
@@ -41,22 +52,22 @@ function getIcon(name: string): TablerIcon {
 }
 
 const CATEGORY_ORDER: Array<NodeCategory> = [
-  "ai",
+  "microservice",
   "cloud",
   "database",
-  "devops",
   "frontend",
-  "flow",
-  "microservice",
   "networking",
-  "observability",
   "security",
+  "observability",
+  "ai",
+  "devops",
+  "flow",
   "shape",
   "c4",
 ];
 
 /**
- * Draggable item in the sidebar representing a system component.
+ * Monochrome draggable component row in the sidebar.
  */
 function NodeItem({
   template,
@@ -68,12 +79,6 @@ function NodeItem({
   disabled?: boolean;
 }) {
   const Icon = isCustom ? null : getIcon(template.icon);
-  const categoryStyle =
-    CATEGORY_STYLE[template.category] || CATEGORY_STYLE.microservice;
-  const isC4 = template.category === "c4";
-  const c4Style = isC4 ? getC4Style(template.subtype) : null;
-  const iconColor = c4Style?.color || categoryStyle?.color || "#59634b";
-  const iconBg = c4Style?.pill || categoryStyle?.pill || "#f1f3ec";
 
   const onDragStart = (e: React.DragEvent) => {
     if (disabled) {
@@ -89,26 +94,22 @@ function NodeItem({
       draggable
       onDragStart={onDragStart}
       className={cn(
-        "flex items-center gap-2 px-2 py-1.5 rounded-xs cursor-grab select-none transition-colors group border border-transparent hover:border-border/70 hover:bg-muted/50",
-        disabled && "opacity-30 cursor-not-allowed filter grayscale",
+        "flex items-center gap-2.5 px-2.5 py-2 rounded-xl cursor-grab select-none transition-colors group hover:bg-muted/80 active:cursor-grabbing",
+        disabled && "opacity-30 cursor-not-allowed grayscale",
       )}
     >
-      <div
-        className="size-6 rounded-full flex items-center justify-center shrink-0"
-        style={{
-          backgroundColor: iconBg,
-          color: iconColor,
-        }}
-      >
-        {Icon && <Icon size={13} stroke={2} />}
+      <div className="size-7 rounded-lg bg-muted/70 group-hover:bg-card flex items-center justify-center shrink-0 text-foreground/75 transition-colors">
+        {Icon && <Icon size={15} stroke={1.6} />}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[12px] font-medium text-foreground  truncate">
+        <div className="text-[13px] font-medium text-foreground/90 truncate leading-tight">
           {template.label}
         </div>
-        <div className="text-[10px] text-muted-foreground  truncate">
-          {template.description}
-        </div>
+        {template.description && (
+          <div className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">
+            {template.description}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -124,13 +125,17 @@ type TabId =
   | "settings";
 
 /**
- * Left component palette drawer with searchable node registry.
- *
- * @returns Sidebar component palette element
+ * Floating left Nordic studio panel with brand, project switcher, search, and component library.
  */
 export default function Sidebar() {
+  const navigate = useNavigate();
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const projects = useProjectStore((s) => s.projects);
+  const activeProject = projects.find((p) => p.id === activeProjectId);
+  const nodes = useCanvasStore((s) => s.nodes);
+  const edges = useCanvasStore((s) => s.edges);
+  const saveStatus = useCanvasStore((s) => s.saveStatus);
+  const diagramMode = useCanvasStore((s) => s.diagramMode);
 
   const canDrag = !!activeProjectId || projects.length === 0;
 
@@ -141,12 +146,16 @@ export default function Sidebar() {
   if (currentPath === "/integrations") activeTab = "integrations";
   else if (currentPath === "/flows") activeTab = "flows";
   else if (currentPath === "/shapes") activeTab = "shapes";
-  else if (currentPath.endsWith("/c4")) activeTab = "c4";
+  else if (currentPath.endsWith("/c4") || diagramMode === "c4")
+    activeTab = "c4";
   else if (currentPath === "/templates") activeTab = "templates";
 
   const { hasAny: hasAIKey } = useAIKeys();
   const [showAIPanel, setShowAIPanel] = React.useState(false);
+  const [createProjectModalOpen, setCreateProjectModalOpen] =
+    React.useState(false);
   const aiPanelRef = React.useRef<HTMLDivElement>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     setShowAIPanel(false);
@@ -172,6 +181,18 @@ export default function Sidebar() {
 
   const [searchQuery, setSearchQuery] = React.useState("");
 
+  // ⌘K / Ctrl+K focuses component search
+  React.useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsCollapsed(false);
+        setTimeout(() => searchInputRef.current?.focus(), 40);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const filteredGrouped = React.useMemo(() => {
     const items: Record<NodeCategory, Array<NodeTemplate>> = {
@@ -225,117 +246,267 @@ export default function Sidebar() {
     }
   }, [searchQuery, filteredGrouped]);
 
+  const handleCreateNewProject = (
+    name: string,
+    type: ProjectType = "design",
+    description?: string,
+  ) => {
+    const newProject = createProject(name, type, description);
+    if (!newProject) return;
+    setCreateProjectModalOpen(false);
+    navigate({
+      to: type === "c4" ? "/$slug/c4" : "/$slug",
+      params: { slug: newProject.slug } as any,
+    });
+  };
+
+  const handleModeSwitch = (mode: "architecture" | "c4") => {
+    setDiagramMode(mode);
+    if (activeProject) {
+      navigate({
+        to: mode === "c4" ? "/$slug/c4" : "/$slug",
+        params: { slug: activeProject.slug } as any,
+      });
+    }
+  };
+
   const isExporting = useCanvasStore((s) => s.isExporting);
   if (isExporting) return null;
 
+  const statusText =
+    saveStatus === "saving"
+      ? "Saving…"
+      : saveStatus === "saved"
+        ? "Saved"
+        : saveStatus === "error"
+          ? "Save failed"
+          : `${nodes.length} nodes · ${edges.length} edges`;
+
   return (
     <div className="select-none z-30">
-      {/* Floating Toggle Button when Collapsed */}
+      <ProjectSetupPopup
+        open={createProjectModalOpen}
+        onClose={() => setCreateProjectModalOpen(false)}
+        onCreate={handleCreateNewProject}
+      />
+
+      {/* Compact Floating Pill when Collapsed */}
       {isCollapsed && (
-        <Button
-          variant="outline"
-          size="sm"
-          icon={
-            <TablerIcons.IconLayoutSidebar size={14} className="text-primary" />
-          }
-          iconPlacement="left"
-          onClick={() => setIsCollapsed(false)}
-          className="absolute top-3 left-3 z-40 bg-card/95 backdrop-blur-xs shadow-xs text-xs font-medium"
-        >
-          Palette
-        </Button>
+        <div className="fixed top-3 left-3 z-40 flex items-center gap-1.5 p-1.5 pr-2.5 nordic-pill rounded-2xl animate-in fade-in duration-150">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setIsCollapsed(false)}
+            className="size-8 rounded-xl text-foreground/80 hover:text-foreground hover:bg-muted"
+            title="Expand Sidebar"
+          >
+            <TablerIcons.IconLayoutSidebar size={16} stroke={1.6} />
+          </Button>
+          <div className="w-px h-4 bg-border" />
+          <span className="text-[13px] font-medium text-foreground truncate max-w-36 pl-1">
+            {activeProject ? activeProject.name : "Scratchpad"}
+          </span>
+        </div>
       )}
 
-      {/* Main Component Palette Tool Window */}
+      {/* Sculpted Left Floating Studio Panel */}
       <aside
         className={cn(
-          "absolute top-3 left-3 bottom-3 w-62.5 rounded-md bg-card border border-border shadow-xs flex flex-col overflow-hidden transition-all duration-200 z-30",
+          "fixed top-3 left-3 bottom-3 w-[260px] rounded-[20px] nordic-panel flex flex-col overflow-hidden transition-all duration-200 z-40",
           isCollapsed
-            ? "-translate-x-70 opacity-0 pointer-events-none"
+            ? "-translate-x-72 opacity-0 pointer-events-none"
             : "translate-x-0 opacity-100",
         )}
       >
-        {/* Panel Header */}
-        <div className="shrink-0 p-2.5 border-b border-border/60">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-primary" />
-              <h6 className="text-xs font-semibold text-foreground tracking-tight">
-                {activeTab === "components"
-                  ? "Architecture Nodes"
-                  : activeTab === "c4"
-                    ? "C4 Components"
-                    : activeTab === "shapes"
-                      ? "Technical Shapes"
-                      : "Palette"}
-              </h6>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              icon={<TablerIcons.IconChevronLeft size={14} />}
-              onClick={() => setIsCollapsed(true)}
-              className="size-6 text-muted-foreground hover:text-foreground"
-              title="Collapse Palette"
-            />
-          </div>
+        {/* Top Row: Brand + Collapse */}
+        <div className="shrink-0 px-4 pt-3.5 pb-2 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <Logo className="h-3.5 w-auto text-foreground" />
+            <span className="sr-only">SysDesign</span>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setIsCollapsed(true)}
+            className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+            title="Collapse Sidebar"
+          >
+            <TablerIcons.IconLayoutSidebarLeftCollapse size={16} stroke={1.6} />
+          </Button>
+        </div>
 
-          {/* Search Input */}
-          <div className="relative">
+        {/* Project Selector + Metadata Subtitle */}
+        <div className="shrink-0 px-3 pb-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="w-full flex flex-col items-start px-2 py-1.5 rounded-xl hover:bg-muted/70 transition-colors cursor-pointer outline-none text-left group">
+              <div className="w-full flex items-center justify-between gap-2">
+                <span className="text-[14px] font-semibold text-foreground tracking-tight truncate">
+                  {activeProject ? activeProject.name : "Untitled Project"}
+                </span>
+                <TablerIcons.IconChevronDown
+                  size={14}
+                  stroke={1.7}
+                  className="text-muted-foreground group-hover:text-foreground shrink-0 transition-colors"
+                />
+              </div>
+              <span
+                className={cn(
+                  "text-[11.5px] truncate mt-0.5 tabular-nums",
+                  saveStatus === "error"
+                    ? "text-destructive"
+                    : "text-muted-foreground",
+                )}
+              >
+                {activeTab === "c4" ? "C4 Model" : "System Design"} ·{" "}
+                {statusText}
+              </span>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="start"
+              sideOffset={6}
+              className="w-60 rounded-2xl p-1.5 shadow-xl border border-black/[0.06] dark:border-white/[0.08]"
+            >
+              <DropdownMenuLabel className="px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground">
+                Projects
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="max-h-60 overflow-y-auto space-y-0.5 custom-scrollbar">
+                {projects.map((p) => (
+                  <DropdownMenuItem
+                    key={p.id}
+                    onClick={() => {
+                      setActiveProject(p.id);
+                      navigate({
+                        to: p.type === "c4" ? "/$slug/c4" : "/$slug",
+                        params: { slug: p.slug } as any,
+                      });
+                    }}
+                    className={cn(
+                      "w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-[12.5px] cursor-pointer",
+                      p.id === activeProjectId && "bg-muted font-medium",
+                    )}
+                  >
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate text-foreground">{p.name}</span>
+                      <span className="text-[10.5px] text-muted-foreground truncate">
+                        {new Date(p.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {p.id === activeProjectId && (
+                      <TablerIcons.IconCheck
+                        size={14}
+                        className="text-foreground shrink-0"
+                      />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setCreateProjectModalOpen(true)}
+                className="w-full flex items-center justify-start px-2.5 py-2 gap-2 text-[12.5px] font-medium text-foreground hover:bg-muted rounded-xl cursor-pointer"
+              >
+                <TablerIcons.IconFolderPlus size={15} stroke={1.6} />
+                <span>New Project</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate({ to: "/projects" })}
+                className="w-full flex items-center justify-start px-2.5 py-2 gap-2 text-[12.5px] text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl cursor-pointer"
+              >
+                <TablerIcons.IconLayoutGrid size={15} stroke={1.6} />
+                <span>All Projects</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Search Input (directly below project name) */}
+          <div className="relative mt-2 px-1">
             <Input
+              ref={searchInputRef}
               type="text"
-              size="lg"
-              placeholder="Search components…"
-              leftIcon={<TablerIcons.IconSearch size={12} />}
+              size="sm"
+              placeholder="Search…"
+              leftIcon={<TablerIcons.IconSearch size={14} stroke={1.6} />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs placeholder:text-[11px]"
+              className="w-full h-9 rounded-xl bg-muted/75 border-transparent text-[12.5px] placeholder:text-muted-foreground/80 pr-11"
             />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon"
-                icon={<TablerIcons.IconX size={11} />}
+            {searchQuery ? (
+              <button
+                type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-1 top-1/2 -translate-y-1/2 size-5 text-muted-foreground hover:text-foreground p-0"
-              />
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-md cursor-pointer"
+              >
+                <TablerIcons.IconX size={13} />
+              </button>
+            ) : (
+              <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground bg-card/90 border border-border rounded-md">
+                ⌘K
+              </kbd>
             )}
+          </div>
+
+          {/* Recessed Segmented Switch (Architecture | C4) */}
+          <div className="mt-3 px-1">
+            <div className="grid grid-cols-2 p-1 rounded-xl bg-muted/85">
+              <button
+                type="button"
+                onClick={() => handleModeSwitch("architecture")}
+                className={cn(
+                  "h-7 rounded-lg text-[12px] font-medium transition-all cursor-pointer select-none",
+                  activeTab !== "c4"
+                    ? "bg-card text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Architecture
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeSwitch("c4")}
+                className={cn(
+                  "h-7 rounded-lg text-[12px] font-medium transition-all cursor-pointer select-none",
+                  activeTab === "c4"
+                    ? "bg-card text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                C4 Model
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Scrollable Node Categories */}
-        <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar space-y-1">
+        <div className="h-px bg-border/60 mx-3 shrink-0" />
+
+        {/* Scrollable Monochrome Component List */}
+        <div className="flex-1 overflow-y-auto px-2.5 py-2.5 custom-scrollbar space-y-1">
           {activeTab === "c4" ? (
-            <div className="flex flex-col py-0.5 gap-0.5">
-              <div className="px-2 pb-1.5">
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  C4 abstractions — Person, Software System, Container, and
-                  Component.
-                </p>
-              </div>
+            <div className="flex flex-col gap-0.5">
               {[
                 {
                   subtype: "c4-person",
                   label: "Person",
-                  desc: "User, actor, or persona interacting with system",
+                  desc: "User, actor, or persona",
                   icon: "IconUser",
                 },
                 {
                   subtype: "c4-software-system",
                   label: "Software System",
-                  desc: "Top-level software system boundary",
+                  desc: "Top-level system boundary",
                   icon: "IconBox",
                 },
                 {
                   subtype: "c4-container",
                   label: "Container",
-                  desc: "Executables, microservices, databases",
+                  desc: "Apps, services & databases",
                   icon: "IconServer",
                 },
                 {
                   subtype: "c4-component",
                   label: "Component",
-                  desc: "Internal modular component or module",
+                  desc: "Internal modular building block",
                   icon: "IconComponents",
                 },
               ].map((item) => (
@@ -378,23 +549,17 @@ export default function Sidebar() {
 
                 return (
                   <AccordionItem key={cat} value={cat} className="border-none">
-                    <AccordionTrigger className="w-full py-1.5 px-2 hover:bg-muted/60 rounded-xs">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className="size-2 rounded-full shrink-0"
-                          style={{ backgroundColor: style?.color || "#59634b" }}
-                        />
-                        <span className="text-xs font-semibold text-foreground truncate">
-                          {style?.label || cat}
-                        </span>
-                      </div>
-                      <span className="text-[9px] font-mono text-foreground px-1.5 py-0.5 rounded-full bg-muted border border-border/40 ml-auto mr-1.5">
+                    <AccordionTrigger className="w-full py-2 px-2.5 hover:bg-muted/70 rounded-xl">
+                      <span className="text-[12.5px] font-medium text-foreground/85 truncate">
+                        {style?.label || cat}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground ml-auto mr-2 tabular-nums">
                         {templates.length}
                       </span>
                     </AccordionTrigger>
 
-                    <AccordionContent className="pt-0.5 pb-1">
-                      <div className="flex flex-col pl-1.5 gap-0.5">
+                    <AccordionContent className="pt-0.5 pb-1.5">
+                      <div className="flex flex-col gap-0.5">
                         {templates.map((template) => (
                           <NodeItem
                             key={template.subtype}
@@ -410,31 +575,13 @@ export default function Sidebar() {
             </Accordion>
           )}
         </div>
-
-        {/* Panel Footer Metadata */}
-        <div className="shrink-0 p-2 border-t border-border/60 bg-muted/20 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                "size-1.5 rounded-full",
-                canDrag ? "bg-primary" : "bg-muted-foreground/50",
-              )}
-            />
-            <span className="text-[10px] font-mono text-muted-foreground">
-              {canDrag ? "Canvas ready" : "Read-only"}
-            </span>
-          </div>
-          <span className="text-[10px] font-mono text-muted-foreground/70">
-            v0.0.3
-          </span>
-        </div>
       </aside>
 
       {/* Floating AI Panel */}
       {showAIPanel && hasAIKey && (
         <div
           ref={aiPanelRef}
-          className="absolute top-16 left-[270px] z-50 animate-in fade-in slide-in-from-left-2 duration-150"
+          className="fixed top-16 left-[284px] z-50 animate-in fade-in slide-in-from-left-2 duration-150"
         >
           <AIPanel onClose={() => setShowAIPanel(false)} />
         </div>

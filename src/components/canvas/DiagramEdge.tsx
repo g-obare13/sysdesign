@@ -41,7 +41,7 @@ export default function DiagramEdge({
     targetX,
     targetY,
     targetPosition,
-    borderRadius: 8,
+    borderRadius: 12,
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -116,7 +116,7 @@ export default function DiagramEdge({
             maxWidth: "180px",
           }}
           className={cn(
-            "nodrag nopan rounded-full px-2 py-1 border border-border text-[9.5px] font-mono shadow-none transition-colors select-none",
+            "nodrag nopan rounded-md px-2 py-0.5 border border-border/80 bg-card/95 backdrop-blur-xs text-[10px] font-mono shadow-xs transition-all select-none",
             selected
               ? "border-primary ring-1 ring-primary/40 text-primary font-medium"
               : "hover:border-border-strong text-foreground/80",

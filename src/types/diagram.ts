@@ -155,20 +155,19 @@ export interface CategoryStyle {
 }
 
 /**
- * Restrained, architectural color palettes and styling presets for all diagram node categories.
- * Toned to harmonize with the Olive / Warm Neutral workstation identity.
+ * Restrained, architectural Nordic mineral palettes and styling presets for all diagram node categories.
  */
 export const CATEGORY_STYLE: Record<NodeCategory, CategoryStyle> = {
-  microservice:  { label: 'Microservices', color: '#1d70b8', bg: '#eff6ff', border: '#bfdbfe', text: '#1e3a8a', pill: '#e0edfa', dark: { color: '#60a5fa', bg: '#172554', border: '#1e40af', text: '#dbeafe', pill: '#1e3a8a30' } },
-  cloud:         { label: 'Cloud Infra',   color: '#2e7d32', bg: '#f0fdf4', border: '#bbf7d0', text: '#14532d', pill: '#e2f2e3', dark: { color: '#4ade80', bg: '#052e16', border: '#166534', text: '#dcfce7', pill: '#14532d30' } },
-  database:      { label: 'Databases',     color: '#8d5b28', bg: '#fefce8', border: '#fef08a', text: '#713f12', pill: '#f5ece1', dark: { color: '#facc15', bg: '#422006', border: '#854d0e', text: '#fef9c3', pill: '#713f1230' } },
-  frontend:      { label: 'Frontend',      color: '#88304e', bg: '#fdf2f8', border: '#fbcfe8', text: '#701a75', pill: '#fae7ee', dark: { color: '#f472b6', bg: '#4a044e', border: '#86198f', text: '#fce7f3', pill: '#701a7530' } },
-  networking:    { label: 'Networking',    color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4', text: '#134e4a', pill: '#e0f5f3', dark: { color: '#2dd4bf', bg: '#042f2e', border: '#115e59', text: '#ccfbf1', pill: '#134e4a30' } },
-  security:      { label: 'Security',      color: '#e11d48', bg: '#fff1f2', border: '#fecdd3', text: '#881337', pill: '#fce4e8', dark: { color: '#fb7185', bg: '#4c0519', border: '#9f1239', text: '#ffe4e6', pill: '#88133730' } },
-  observability: { label: 'Observability', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe', text: '#4c1d95', pill: '#eee6fb', dark: { color: '#a78bfa', bg: '#2e1065', border: '#5b21b6', text: '#ede9fe', pill: '#4c1d9530' } },
-  ai:            { label: 'AI / ML',       color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', text: '#1e3a8a', pill: '#e0ebfc', dark: { color: '#60a5fa', bg: '#172554', border: '#1e40af', text: '#dbeafe', pill: '#1d4ed830' } },
-  devops:        { label: 'DevOps',        color: '#475569', bg: '#f8fafc', border: '#e2e8f0', text: '#0f172a', pill: '#eaf0f4', dark: { color: '#94a3b8', bg: '#0f172a', border: '#334155', text: '#f1f5f9', pill: '#33415530' } },
-  flow:          { label: 'Interactions',  color: '#59634b', bg: '#f1f3ec', border: '#d4dcc8', text: '#3b4233', pill: '#e8ebe1', dark: { color: '#9ba889', bg: '#22251e', border: '#31352c', text: '#e4e6de', pill: '#282c23' } },
-  shape:         { label: 'Shapes',        color: '#475569', bg: '#f8fafc', border: '#e2e8f0', text: '#0f172a', pill: '#eaf0f4', dark: { color: '#94a3b8', bg: '#0f172a', border: '#334155', text: '#f1f5f9', pill: '#33415530' } },
-  c4:            { label: 'C4 Model',      color: '#59634b', bg: '#f1f3ec', border: '#d4dcc8', text: '#3b4233', pill: '#e8ebe1', dark: { color: '#9ba889', bg: '#22251e', border: '#31352c', text: '#e4e6de', pill: '#282c23' } },
+  microservice:  { label: 'Microservices', color: '#2B5B7A', bg: '#F2F6F9', border: '#C9D8E2', text: '#1E3F54', pill: '#E6EFF5', dark: { color: '#78A9C8', bg: '#15222C', border: '#243A4A', text: '#D9E8F2', pill: '#1C2E3C' } },
+  cloud:         { label: 'Cloud Infra',   color: '#3B6E5C', bg: '#F2F7F5', border: '#C7DDD5', text: '#264A3E', pill: '#E5EFEA', dark: { color: '#70B098', bg: '#14241F', border: '#233D34', text: '#D5EBE2', pill: '#1B3029' } },
+  database:      { label: 'Databases',     color: '#9A6B3B', bg: '#F9F6F1', border: '#E4D6C3', text: '#664625', pill: '#F2EAE0', dark: { color: '#D4A36A', bg: '#261E14', border: '#403221', text: '#F2E4D2', pill: '#33281B' } },
+  frontend:      { label: 'Frontend',      color: '#7A4E6D', bg: '#F8F4F7', border: '#DFCED9', text: '#523349', pill: '#EFE6EC', dark: { color: '#C08EB0', bg: '#241821', border: '#3D2938', text: '#EEDCE8', pill: '#30202C' } },
+  networking:    { label: 'Networking',    color: '#2F7270', bg: '#F1F7F7', border: '#C4DEDC', text: '#1E4C4B', pill: '#E3EFEF', dark: { color: '#6EB5B2', bg: '#132424', border: '#213D3C', text: '#D4ECEB', pill: '#1A302F' } },
+  security:      { label: 'Security',      color: '#A84A44', bg: '#FAF3F2', border: '#E6CBC9', text: '#70302C', pill: '#F4E5E4', dark: { color: '#D97E78', bg: '#281615', border: '#452624', text: '#F5DAD8', pill: '#361E1C' } },
+  observability: { label: 'Observability', color: '#52568A', bg: '#F4F4F9', border: '#CECEE2', text: '#35385C', pill: '#E8E9F3', dark: { color: '#9296C9', bg: '#191A28', border: '#2B2D45', text: '#DFE0F2', pill: '#222336' } },
+  ai:            { label: 'AI / ML',       color: '#365C94', bg: '#F2F5FA', border: '#C8D5E8', text: '#233D63', pill: '#E5ECF5', dark: { color: '#7BA3DC', bg: '#151E2B', border: '#24344B', text: '#D9E5F5', pill: '#1C283A' } },
+  devops:        { label: 'DevOps',        color: '#4E5B66', bg: '#F4F6F7', border: '#D1D7DC', text: '#333C44', pill: '#E9ECEF', dark: { color: '#94A3B0', bg: '#181D21', border: '#2B333A', text: '#E1E6EA', pill: '#21272C' } },
+  flow:          { label: 'Interactions',  color: '#55635D', bg: '#F4F6F5', border: '#D0D8D4', text: '#38423D', pill: '#E8ECEA', dark: { color: '#92A39B', bg: '#181E1B', border: '#2A332F', text: '#E0E7E4', pill: '#202724' } },
+  shape:         { label: 'Shapes',        color: '#5A626A', bg: '#F5F6F7', border: '#D4D8DC', text: '#3B4046', pill: '#EAECEF', dark: { color: '#9BA3AB', bg: '#1A1C1F', border: '#2E3237', text: '#E3E6E8', pill: '#23262A' } },
+  c4:            { label: 'C4 Model',      color: '#2B4657', bg: '#F3F6F7', border: '#CBD6DC', text: '#1C2E3A', pill: '#E6ECEF', dark: { color: '#8FB3C9', bg: '#141D24', border: '#243440', text: '#DCE7EE', pill: '#1B2730' } },
 }

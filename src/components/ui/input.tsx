@@ -6,15 +6,15 @@ import type { VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const inputVariants = cva(
-  "w-full min-w-0 rounded-md border border-border bg-input font-sans text-foreground transition-colors outline-none file:inline-flex file:border-0 file:bg-transparent placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/40 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40 aria-invalid:border-destructive",
+  "w-full min-w-0 rounded-xl border border-transparent bg-muted/70 font-sans text-foreground transition-all outline-none file:inline-flex file:border-0 file:bg-transparent placeholder:text-muted-foreground focus-visible:bg-card focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-foreground/5 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40 aria-invalid:border-destructive",
   {
     variants: {
       size: {
-        default: "h-8 px-2.5 py-1 text-xs file:h-6 file:text-xs",
-        xs: "h-6 px-2 py-0.5 text-[11px] file:h-4 file:text-[11px]",
-        sm: "h-7 px-2.5 py-1 text-xs file:h-5 file:text-xs",
-        lg: "h-9 px-3 py-1.5 text-sm file:h-7 file:text-sm",
-        kuzafy: "h-9 px-3 py-1.5 text-sm file:h-7 file:text-sm",
+        default: "h-9 px-3 py-1.5 text-[13px] file:h-6 file:text-xs",
+        xs: "h-7 px-2.5 py-0.5 text-[11px] file:h-4 file:text-[11px]",
+        sm: "h-8 px-2.5 py-1 text-xs file:h-5 file:text-xs",
+        lg: "h-10 px-3.5 py-2 text-sm file:h-7 file:text-sm",
+        kuzafy: "h-10 px-3.5 py-2 text-sm file:h-7 file:text-sm",
       },
     },
     defaultVariants: { size: "default" },

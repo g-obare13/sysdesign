@@ -67,12 +67,12 @@ export default function ProjectSetupPopup({
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-background/60 backdrop-blur-xs animate-in fade-in duration-150"
+        className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-in fade-in duration-150"
         onClick={canClose ? onClose : undefined}
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-card border border-border rounded-md shadow-xl animate-in zoom-in-98 duration-150 p-4.5 flex flex-col gap-3.5 z-10">
+      <div className="relative w-full max-w-md nordic-glass rounded-xl animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-3.5 z-10">
         <div className="flex items-center justify-between pb-2 border-b border-border/60">
           <div className="flex flex-col gap-0.5">
             <h6 className="text-xs font-semibold text-foreground">Create New Project</h6>

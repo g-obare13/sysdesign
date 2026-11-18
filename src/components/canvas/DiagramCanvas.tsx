@@ -259,7 +259,7 @@ export default function DiagramCanvas() {
       >
         {!isExporting && (
           <Background
-            color={isDark ? "rgba(255,255,255,0.05)" : "rgba(32,34,30,0.08)"}
+            color={isDark ? "rgba(243,244,246,0.06)" : "rgba(23,23,23,0.08)"}
             gap={20}
             size={1}
           />
@@ -268,7 +268,7 @@ export default function DiagramCanvas() {
           <MiniMap
             pannable
             zoomable
-            className="!rounded-xs !border !border-border !bg-card/90"
+            className="!rounded-2xl !border !border-black/[0.06] dark:!border-white/[0.07] !bg-card/95 !backdrop-blur-md !shadow-md !bottom-16 !right-4"
             nodeColor={(n) => {
               const cat = (n.data as { category?: string })?.category;
               const catStyle = cat
@@ -300,8 +300,8 @@ export default function DiagramCanvas() {
       {/* Keyboard Shortcuts Modal */}
       {showShortcuts &&
         createPortal(
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-background/60 backdrop-blur-xs animate-in fade-in duration-150 p-4">
-            <div className="bg-card border border-border rounded-md shadow-xl p-4.5 w-full max-w-sm animate-in zoom-in-98 duration-150 flex flex-col gap-3">
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-background/70 backdrop-blur-sm animate-in fade-in duration-150 p-4">
+            <div className="nordic-glass rounded-xl p-5 w-full max-w-sm animate-in zoom-in-98 duration-150 flex flex-col gap-3">
               <div className="flex items-center justify-between pb-2 border-b border-border/60">
                 <h6 className="text-xs font-semibold text-foreground">Keyboard Shortcuts</h6>
                 <button

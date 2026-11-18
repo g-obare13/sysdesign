@@ -44,12 +44,12 @@ export default function ConfirmModal({
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-background/60 backdrop-blur-xs animate-in fade-in duration-200"
+        className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-lg animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-4">
+      <div className="relative w-full max-w-sm nordic-glass rounded-xl animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <div
             className={`size-8 rounded-md shrink-0 flex items-center justify-center ${

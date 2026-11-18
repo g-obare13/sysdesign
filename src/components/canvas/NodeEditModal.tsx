@@ -85,8 +85,8 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-md bg-card text-foreground rounded-md border border-border shadow-xl overflow-hidden p-4.5 flex flex-col gap-3 animate-in zoom-in-98 duration-150 select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-md nordic-glass text-foreground rounded-xl overflow-hidden p-5 flex flex-col gap-3.5 animate-in zoom-in-98 duration-150 select-none">
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-2 border-b border-border/60">
           <div className="flex items-center gap-1.5">

@@ -115,7 +115,7 @@ function ProjectsPage() {
 
   return (
     <Container className="max-w-none w-full flex-1 px-0 overflow-y-auto">
-      <div className="min-h-screen bg-background p-6 lg:p-8 max-w-6xl mx-auto w-full">
+      <div className="min-h-screen bg-background pt-20 px-6 pb-8 lg:px-8 max-w-6xl mx-auto w-full">
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border/80 pb-4">

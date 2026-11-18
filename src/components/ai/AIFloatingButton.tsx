@@ -27,8 +27,8 @@ export default function AIFloatingButton() {
               variant="outline"
               size="icon-lg"
               className={cn(
-                "relative rounded-full shadow-xs bg-neutral-950 border border-border hover:bg-neutral-950 transition-colors cursor-pointer text-neutral-50",
-                isOpen && "border-primary/50 text-primary bg-neutral-950/10",
+                "relative size-10 rounded-2xl nordic-pill text-foreground/80 hover:text-foreground hover:bg-muted transition-all cursor-pointer",
+                isOpen && "text-foreground bg-muted",
               )}
             >
               <IconSparkles

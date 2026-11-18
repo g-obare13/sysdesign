@@ -50,21 +50,28 @@ export const Route = createRootRoute({
           "Visualize distributed systems and microservice architectures with ease.",
       },
       { name: "og:type", content: "website" },
-      { name: "theme-color", content: "#59634b" },
+      { name: "theme-color", content: "#f8f8f8" },
       { name: "robots", content: "index, follow" },
     ],
 
     links: [
       {
         rel: "preload",
-        href: "/fonts/texgyreheros-regular.woff2",
+        href: "/fonts/Ronzino-Regular.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",
       },
       {
         rel: "preload",
-        href: "/fonts/texgyreheros-bold.woff2",
+        href: "/fonts/Ronzino-Medium.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: "/fonts/Ronzino-Bold.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",
@@ -106,12 +113,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <TooltipProvider delay={300}>
             {isCanvasRoute && <MobileBlock />}
             <ReactFlowProvider>
-              <div className="flex flex-col h-screen overflow-hidden bg-background">
+              <div className="relative flex flex-col h-screen w-screen overflow-hidden bg-background">
                 {!isExporting && <Toolbar />}
-                <div className="flex-1 flex overflow-y-auto relative">
+                <div className={isCanvasRoute ? "flex-1 flex overflow-hidden relative w-full h-full" : "flex-1 flex flex-col overflow-y-auto relative w-full"}>
                   {children}
+                  {!isExporting && !isCanvasRoute && <Footer />}
                 </div>
-                {!isExporting && !isCanvasRoute && <Footer />}
               </div>
             </ReactFlowProvider>
           </TooltipProvider>

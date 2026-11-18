@@ -21,7 +21,7 @@ export const Route = createFileRoute("/privacy")({
 function PrivacyPage() {
   return (
     <div className="flex-1 bg-background overflow-y-auto">
-      <Container className="max-w-2xl py-10 px-6">
+      <Container className="max-w-2xl pt-20 pb-12 px-6">
         <Link
           to="/"
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6 group"

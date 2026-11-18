@@ -52,44 +52,44 @@ interface C4Style {
 
 export const C4_STYLES: Record<string, C4Style> = {
   "c4-person": {
-    color: "#0284c7",
-    pill: "#e0f2fe",
-    text: "#0369a1",
+    color: "#2B5B7A",
+    pill: "#E6EFF5",
+    text: "#1E3F54",
     label: "Person",
     icon: "IconUser",
-    dark: { color: "#38bdf8", pill: "#0c4a6e30", text: "#e0f2fe" },
+    dark: { color: "#78A9C8", pill: "#1C2E3C", text: "#D9E8F2" },
   },
   "c4-system": {
-    color: "#1d70b8",
-    pill: "#e0edfa",
-    text: "#154e80",
+    color: "#2B4657",
+    pill: "#E6ECEF",
+    text: "#1C2E3A",
     label: "System",
     icon: "IconBox",
-    dark: { color: "#60a5fa", pill: "#1e3a8a30", text: "#dbeafe" },
+    dark: { color: "#8FB3C9", pill: "#1B2730", text: "#DCE7EE" },
   },
   "c4-container": {
-    color: "#0d9488",
-    pill: "#e0f5f3",
-    text: "#096960",
+    color: "#2F7270",
+    pill: "#E3EFEF",
+    text: "#1E4C4B",
     label: "Container",
     icon: "IconStack2",
-    dark: { color: "#2dd4bf", pill: "#134e4a30", text: "#ccfbf1" },
+    dark: { color: "#6EB5B2", pill: "#1A302F", text: "#D4ECEB" },
   },
   "c4-component": {
-    color: "#7c3aed",
-    pill: "#eee6fb",
-    text: "#5521b5",
+    color: "#52568A",
+    pill: "#E8E9F3",
+    text: "#35385C",
     label: "Component",
     icon: "IconPuzzle",
-    dark: { color: "#a78bfa", pill: "#4c1d9530", text: "#ede9fe" },
+    dark: { color: "#9296C9", pill: "#222336", text: "#DFE0F2" },
   },
   "c4-external-system": {
-    color: "#64748b",
-    pill: "#eaf0f4",
-    text: "#334155",
+    color: "#5A626A",
+    pill: "#EAECEF",
+    text: "#3B4046",
     label: "External",
     icon: "IconBox",
-    dark: { color: "#94a3b8", pill: "#33415530", text: "#f1f5f9" },
+    dark: { color: "#9BA3AB", pill: "#23262A", text: "#E3E6E8" },
   },
 };
 
@@ -205,11 +205,11 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     return (
       <div
         className={cn(
-          "relative w-full h-full p-2.5 transition-colors duration-150 rounded-md",
+          "relative w-full h-full p-3 transition-all duration-150 rounded-xl",
           diagramMode === "c4"
-            ? "bg-muted/10 border border-dashed border-border/50"
-            : "bg-muted/5 border border-dashed border-border/40",
-          selected && "border-primary/60 bg-primary/5 ring-1 ring-primary/20",
+            ? "bg-muted/25 border border-dashed border-border-strong/70"
+            : "bg-muted/15 border border-dashed border-border-strong/60",
+          selected && "border-primary/60 bg-primary/5 ring-2 ring-primary/15",
         )}
       >
         <Handle
@@ -325,17 +325,18 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
     <>
       <div
         className={cn(
-          "group relative flex items-center gap-2 px-2.5 py-2 bg-card text-foreground rounded-md border transition-colors duration-150 min-w-[190px] max-w-[240px] select-none cursor-pointer shadow-none",
-          isExternal && "border-dashed opacity-90",
+          "group relative flex flex-col bg-card text-foreground rounded-2xl border transition-all duration-150 min-w-[224px] max-w-[268px] select-none cursor-pointer overflow-visible",
+          "shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_18px_rgba(0,0,0,0.4)]",
+          isExternal && "border-dashed opacity-95",
           selected
-            ? "border-primary ring-1 ring-primary/40 z-20"
-            : "border-border hover:border-border-strong",
+            ? "border-foreground/35 ring-2 ring-foreground/10 z-20"
+            : "border-black/[0.06] dark:border-white/[0.07] hover:border-black/[0.12] dark:hover:border-white/[0.14]",
         )}
       >
         {/* Floating Quick Action Buttons on Hover & Select */}
         <div
           className={cn(
-            "absolute -top-2.5 right-1 flex items-center gap-0.5 z-30 transition-opacity duration-150",
+            "absolute -top-3.5 right-2 flex items-center gap-0.5 z-30 transition-all duration-150 bg-card/95 backdrop-blur-sm border border-border rounded-full px-1 py-0.5 shadow-sm",
             selected
               ? "opacity-100 pointer-events-auto"
               : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto",
@@ -451,30 +452,53 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
           style={handleStyle}
         />
 
-        {/* Soft-tinted Category Icon Circle */}
-        <div
-          className="size-6 rounded-full flex items-center justify-center shrink-0"
-          style={{
-            backgroundColor: style.pill,
-            color: style.color,
-          }}
-        >
-          <Icon size={13} stroke={2} />
+        {/* Top Header Strip (Nordic Studio Two-Part Card) */}
+        <div className="flex items-center justify-between px-3.5 py-2 bg-muted/75 border-b border-border/60 rounded-t-[15px]">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-[11.5px] font-medium text-foreground/80 truncate leading-none">
+              {c4BadgeText || style.label}
+            </span>
+            {meta.status && (
+              <span
+                className={cn(
+                  "size-1.5 rounded-full shrink-0",
+                  meta.status === "existing" && "bg-[#3B6E5C]",
+                  meta.status === "planned" && "bg-[#9A6B3B]",
+                  meta.status === "deprecated" && "bg-[#A84A44]",
+                )}
+                title={`Status: ${meta.status}`}
+              />
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit();
+            }}
+            className="text-muted-foreground hover:text-foreground transition-colors p-0.5 -mr-1 rounded-md cursor-pointer"
+            title="Edit node"
+          >
+            <TablerIcons.IconDotsVertical size={13} stroke={1.6} />
+          </button>
         </div>
 
-        {/* Node Labels Column */}
-        <div className="flex flex-col min-w-0 flex-1">
-          {c4BadgeText && (
-            <span className="font-mono text-[9px] text-primary font-medium  truncate leading-none mb-0.5">
-              {c4BadgeText}
+        {/* Card Body */}
+        <div className="flex items-center gap-3 px-3.5 py-3 bg-card rounded-b-[15px]">
+          {/* Monochrome Squircle Icon */}
+          <div className="size-9 rounded-xl bg-muted/80 flex items-center justify-center shrink-0 text-foreground/75">
+            <Icon size={16} stroke={1.6} />
+          </div>
+
+          {/* Node Labels Column */}
+          <div className="flex flex-col min-w-0 flex-1 gap-0.5">
+            <span className="text-[13px] font-semibold text-foreground truncate leading-tight">
+              {meta.label || style.label}
             </span>
-          )}
-          <span className="text-xs font-semibold text-foreground truncate">
-            {meta.label || style.label}
-          </span>
-          <span className="font-mono text-[10px] text-muted-foreground truncate">
-            {meta.technology || meta.subtype || style.label}
-          </span>
+            <span className="text-[11.5px] text-muted-foreground truncate leading-tight">
+              {meta.technology || meta.description || meta.subtype || style.label}
+            </span>
+          </div>
         </div>
       </div>
 
