@@ -594,11 +594,11 @@ export default function Toolbar() {
 
           <div className="w-px h-5 bg-border/70 mx-1" />
 
-          {/* Dark-mode Friendly Recessed Export Button */}
+          {/* Tactile Nordic Satin Export Button */}
           <DropdownMenu>
             <DropdownMenuTrigger
               disabled={!hasNodes}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-muted hover:bg-accent text-foreground border border-black/[0.05] dark:border-white/[0.07] h-8 px-3.5 text-[12.5px] font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none outline-none"
+              className="nordic-btn inline-flex items-center justify-center gap-1.5 rounded-xl h-8 px-4 text-[12.5px] font-medium cursor-pointer disabled:opacity-40 disabled:pointer-events-none outline-none"
             >
               <span>Export</span>
               <IconChevronDown size={13} stroke={1.7} className="opacity-70" />

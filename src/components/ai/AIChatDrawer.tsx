@@ -7,6 +7,7 @@
 import * as React from "react";
 import {
   IconAlertCircle,
+  IconArrowUp,
   IconBulb,
   IconCheck,
   IconChevronRight,
@@ -16,9 +17,6 @@ import {
   IconLoader2,
   IconMessageQuestion,
   IconRefresh,
-  IconSend,
-  IconServer,
-  IconSettings,
   IconShieldLock,
   IconSitemap,
   IconSparkles,
@@ -381,40 +379,40 @@ export default function AIChatDrawer() {
       <aside
         aria-label="AI Assistant Drawer"
         className={cn(
-          "fixed right-3 top-16 bottom-16 z-50 flex flex-col w-full sm:w-96 md:w-105 rounded-[20px] overflow-hidden",
+          "fixed right-3 top-16 bottom-16 z-50 flex flex-col w-[calc(100vw-24px)] sm:w-[360px] rounded-[20px] overflow-hidden",
           "nordic-panel",
           "animate-in slide-in-from-right duration-200",
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 h-11 border-b border-border/80 bg-muted/30 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="size-5 rounded-xs bg-primary/10 flex items-center justify-center text-primary">
-              <IconSparkles size={12} />
+        <div className="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-border/60 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="size-8 rounded-xl bg-muted flex items-center justify-center text-foreground/80 shrink-0">
+              <IconSparkles size={15} stroke={1.6} />
             </div>
-            <div className="flex items-center gap-1.5">
-              <h6 className="text-xs font-semibold text-foreground">
+            <div className="flex flex-col min-w-0">
+              <h6 className="text-[14px] font-semibold text-foreground tracking-tight leading-tight truncate">
                 AI Architecture
               </h6>
-              <span className="text-[9.5px] font-mono font-medium px-1.5 py-0.5 rounded-xs bg-primary/10 text-primary border border-primary/20">
-                {isC4 ? "C4" : "System"}
+              <span className="text-[11.5px] text-muted-foreground leading-tight mt-0.5">
+                {isC4 ? "C4 Model Assistant" : "System Design Assistant"}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 shrink-0">
             <Tooltip>
               <TooltipTrigger
                 render={
                   <Button
                     variant="ghost"
-                    size="icon"
-                    icon={<IconSettings size={14} />}
-                    iconPlacement="left"
+                    size="icon-sm"
                     onClick={() => setShowSettingsModal(true)}
-                    className="p-1 rounded text-muted-foreground hover:text-foreground"
+                    className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
                     title="AI Provider Settings"
-                  />
+                  >
+                    <IconKey size={15} stroke={1.6} />
+                  </Button>
                 }
               />
               <TooltipContent side="bottom">API Keys</TooltipContent>
@@ -426,13 +424,13 @@ export default function AIChatDrawer() {
                   render={
                     <Button
                       variant="ghost"
-                      size="icon"
-                      icon={<IconTrash size={14} />}
-                      iconPlacement="left"
+                      size="icon-sm"
                       onClick={clearMessages}
-                      className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       title="Clear Chat History"
-                    />
+                    >
+                      <IconTrash size={15} stroke={1.6} />
+                    </Button>
                   }
                 />
                 <TooltipContent side="bottom">Clear Chat</TooltipContent>
@@ -441,48 +439,37 @@ export default function AIChatDrawer() {
 
             <Button
               variant="ghost"
-              size="icon"
-              icon={<IconX size={15} />}
-              iconPlacement="left"
+              size="icon-sm"
               onClick={close}
-              className="p-1 rounded text-muted-foreground hover:text-foreground ml-1"
-            />
+              className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+              title="Close"
+            >
+              <IconX size={15} stroke={1.6} />
+            </Button>
           </div>
         </div>
 
-        {/* Provider Selector Bar */}
-        {hasAny && (
-          <div className="flex items-center justify-between px-3 py-1.5 bg-muted/30 border-b border-border/50 shrink-0">
-            <span className="text-[10px] font-mono text-muted-foreground flex items-center gap-1">
-              <IconServer size={11} />
-              Provider:
-            </span>
-            <div className="flex items-center gap-1">
+        {/* Recessed Segmented Provider Switcher */}
+        {hasAny && keys.length > 1 && (
+          <div className="px-4 pt-3 pb-1 shrink-0">
+            <div className="flex items-center p-1 rounded-xl bg-muted/85 gap-0.5">
               {keys.map((k) => {
                 const meta = PROVIDER_META[k.provider];
                 const isActive = selectedProvider === k.provider;
                 return (
-                  <Button
+                  <button
                     key={k.provider}
-                    variant={isActive ? "secondary" : "ghost"}
-                    size="xs"
-                    icon={
-                      <span
-                        className="size-1.5 rounded-full shrink-0"
-                        style={{ background: meta.color }}
-                      />
-                    }
-                    iconPlacement="left"
+                    type="button"
                     onClick={() => setSelectedProvider(k.provider)}
                     className={cn(
-                      "flex items-center gap-1 px-2 py-0.5 h-6 rounded text-[11px] font-medium transition-colors",
+                      "flex-1 h-7 rounded-lg text-[12px] font-medium transition-all cursor-pointer select-none",
                       isActive
-                        ? "bg-card text-foreground shadow-xs border border-border"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+                        ? "bg-card text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {meta.label.split(" ")[0]}
-                  </Button>
+                  </button>
                 );
               })}
             </div>
@@ -490,47 +477,45 @@ export default function AIChatDrawer() {
         )}
 
         {/* Scrollable Conversation Feed */}
-        <div className="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-3.5 custom-scrollbar">
           {/* Missing Keys Banner */}
           {!hasAny && (
-            <div className="p-3 rounded-md border border-primary/20 bg-primary/5 text-foreground space-y-2">
-              <div className="flex items-start gap-2">
-                <IconKey size={15} className="text-primary shrink-0 mt-0.5" />
-                <div className="space-y-1.5">
-                  <h6 className="text-xs font-semibold text-foreground">
-                    Connect AI Provider
+            <div className="p-4 rounded-2xl bg-muted/60 border border-black/[0.04] dark:border-white/[0.06] space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                  <IconKey size={15} stroke={1.6} />
+                </div>
+                <div className="space-y-1 min-w-0">
+                  <h6 className="text-[13px] font-semibold text-foreground leading-snug">
+                    Connect an AI Provider
                   </h6>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Add your OpenAI, Anthropic, or Gemini API key to enable
-                    AI-powered architecture generation.
+                  <p className="text-[12px] text-muted-foreground leading-relaxed">
+                    Add your OpenAI, Anthropic, or Gemini key locally to
+                    generate and refine architectures.
                   </p>
-                  <Button
-                    onClick={() => setShowSettingsModal(true)}
-                    size="xs"
-                    className="mt-1"
-                  >
-                    Configure API Keys
-                  </Button>
                 </div>
               </div>
+              <Button
+                onClick={() => setShowSettingsModal(true)}
+                size="sm"
+                className="w-full"
+              >
+                Configure API Keys
+              </Button>
             </div>
           )}
 
           {/* Empty State / Suggestions */}
           {messages.length === 0 && (
-            <div className="space-y-2 py-1">
-              <div className="flex items-center justify-between text-[11px] font-medium text-foreground px-0.5">
-                <span>Suggested Prompts</span>
-                <span className="font-mono text-[9px] text-muted-foreground">
-                  click to insert
-                </span>
-              </div>
-              <div className="grid grid-cols-1 gap-1.5">
+            <div className="space-y-2.5">
+              <span className="block text-[11.5px] font-medium text-muted-foreground px-1">
+                Suggestions
+              </span>
+              <div className="flex flex-col gap-1.5">
                 {suggestions.map((s) => (
-                  <Button
+                  <button
                     key={s.label}
-                    variant="ghost"
-                    size="sm"
+                    type="button"
                     onClick={() => {
                       if (hasAny) {
                         handleSend(s.prompt);
@@ -539,24 +524,25 @@ export default function AIChatDrawer() {
                         textareaRef.current?.focus();
                       }
                     }}
-                    className="w-full h-auto flex items-start gap-2.5 p-2.5 rounded-md border border-border bg-card hover:bg-muted/60 text-left transition-colors group shadow-xs font-normal"
+                    className="w-full flex items-start gap-3 p-3 rounded-2xl bg-muted/45 hover:bg-muted/85 text-left transition-colors group cursor-pointer"
                   >
-                    <div className="p-1 rounded bg-muted text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-0.5">
-                      <s.icon size={13} stroke={1.5} />
+                    <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/75 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] mt-0.5">
+                      <s.icon size={15} stroke={1.6} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                      <div className="text-[12.5px] font-semibold text-foreground leading-snug">
                         {s.label}
                       </div>
-                      <div className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5 leading-snug">
+                      <div className="text-[11.5px] text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
                         {s.prompt}
                       </div>
                     </div>
                     <IconChevronRight
-                      size={12}
-                      className="text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1"
+                      size={14}
+                      stroke={1.6}
+                      className="text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 mt-1"
                     />
-                  </Button>
+                  </button>
                 ))}
               </div>
             </div>
@@ -571,8 +557,8 @@ export default function AIChatDrawer() {
                 msg.role === "user" ? "items-end" : "items-start",
               )}
             >
-              <div className="flex items-center gap-1 px-0.5 text-[9px] font-mono text-muted-foreground">
-                <span>{msg.role === "user" ? "You" : "SysDesign AI"}</span>
+              <div className="flex items-center gap-1.5 px-1 text-[10.5px] text-muted-foreground tabular-nums">
+                <span>{msg.role === "user" ? "You" : "Assistant"}</span>
                 <span>·</span>
                 <span>
                   {new Date(msg.timestamp).toLocaleTimeString([], {
@@ -584,33 +570,33 @@ export default function AIChatDrawer() {
 
               <div
                 className={cn(
-                  "px-3 py-2 rounded-md text-xs leading-relaxed max-w-[92%]",
+                  "px-3.5 py-2.5 text-[12.5px] leading-relaxed max-w-[92%]",
                   msg.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/40 border border-border/80 text-foreground space-y-2",
+                    ? "rounded-2xl rounded-br-md bg-muted text-foreground"
+                    : "rounded-2xl rounded-bl-md bg-card border border-black/[0.06] dark:border-white/[0.07] text-foreground shadow-[0_1px_4px_rgba(0,0,0,0.03)] space-y-2.5",
                 )}
               >
                 <div className="whitespace-pre-wrap">{msg.content}</div>
 
-                {/* Render Diagram Metadata Badge if generated */}
+                {/* Diagram Applied Summary Card */}
                 {msg.diagramGenerated && (
-                  <div className="p-2 rounded bg-card border border-border flex items-center justify-between gap-2 shadow-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="p-1 bg-primary/10 rounded text-primary shrink-0">
-                        <IconLayout size={13} />
+                  <div className="p-2.5 rounded-xl bg-muted/65 flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="size-7 rounded-lg bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                        <IconLayout size={14} stroke={1.6} />
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium text-foreground text-[11px] truncate">
+                        <div className="font-medium text-foreground text-[12px] truncate leading-tight">
                           {msg.diagramGenerated.title || "Architecture Layout"}
                         </div>
-                        <div className="text-[9px] font-mono text-muted-foreground">
+                        <div className="text-[11px] text-muted-foreground tabular-nums mt-0.5">
                           {msg.diagramGenerated.nodeCount} nodes ·{" "}
                           {msg.diagramGenerated.edgeCount} edges
                         </div>
                       </div>
                     </div>
-                    <span className="flex items-center gap-0.5 text-[9px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                      <IconCheck size={10} />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/80 bg-card px-2 py-0.5 rounded-full border border-black/[0.05] dark:border-white/[0.07] shrink-0">
+                      <IconCheck size={11} stroke={2} />
                       Applied
                     </span>
                   </div>
@@ -622,36 +608,35 @@ export default function AIChatDrawer() {
           {/* Loading Indicator */}
           {status === "loading" && (
             <div className="flex flex-col gap-1 items-start">
-              <div className="flex items-center gap-1 px-0.5 text-[9px] font-mono text-muted-foreground">
-                <span>SysDesign AI</span>
-                <span>·</span>
-                <span>Generating</span>
-              </div>
-              <div className="flex items-center gap-2.5 px-3 py-2 rounded-md bg-muted/40 border border-border">
+              <span className="px-1 text-[10.5px] text-muted-foreground">
+                Assistant · Thinking
+              </span>
+              <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl rounded-bl-md bg-muted/60">
                 <IconLoader2
-                  size={14}
-                  className="animate-spin text-primary shrink-0"
+                  size={15}
+                  stroke={1.8}
+                  className="animate-spin text-foreground/70 shrink-0"
                 />
-                <div className="text-xs text-foreground font-medium">
-                  Architecting system layout…
-                </div>
+                <span className="text-[12.5px] text-foreground/85 font-medium">
+                  Architecting layout…
+                </span>
               </div>
             </div>
           )}
 
           {/* Generation Error Callout */}
           {status === "error" && (
-            <div className="p-2.5 rounded-md bg-destructive/10 border border-destructive/20 flex items-start justify-between gap-2 text-xs">
-              <div className="flex items-start gap-2 min-w-0">
+            <div className="p-3 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-start justify-between gap-2.5">
+              <div className="flex items-start gap-2.5 min-w-0">
                 <IconAlertCircle
-                  size={14}
+                  size={15}
                   className="text-destructive shrink-0 mt-0.5"
                 />
                 <div className="min-w-0">
-                  <div className="font-semibold text-destructive text-xs">
+                  <div className="font-semibold text-destructive text-[12px]">
                     Generation Error
                   </div>
-                  <div className="text-muted-foreground text-[10px] mt-0.5 line-clamp-2">
+                  <div className="text-muted-foreground text-[11.5px] mt-0.5 line-clamp-2">
                     {errorMsg}
                   </div>
                 </div>
@@ -661,7 +646,7 @@ export default function AIChatDrawer() {
                 variant="outline"
                 size="xs"
                 className="shrink-0"
-                icon={<IconRefresh size={11} />}
+                icon={<IconRefresh size={12} />}
               >
                 Retry
               </Button>
@@ -671,9 +656,9 @@ export default function AIChatDrawer() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Footer */}
-        <div className="p-3 border-t border-border/80 bg-muted/10 space-y-1.5 shrink-0">
-          <div className="relative rounded-md border border-border bg-card shadow-xs focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-colors overflow-hidden">
+        {/* Nordic Studio Prompt Composer */}
+        <div className="p-3.5 pt-2 shrink-0">
+          <div className="rounded-2xl bg-muted/65 border border-black/[0.05] dark:border-white/[0.07] focus-within:bg-card focus-within:border-black/[0.12] dark:focus-within:border-white/[0.14] focus-within:shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all overflow-hidden">
             <Textarea
               ref={textareaRef}
               value={prompt}
@@ -687,50 +672,38 @@ export default function AIChatDrawer() {
               disabled={status === "loading" || !hasAny}
               placeholder={
                 !hasAny
-                  ? "Configure an API key above to start prompting…"
+                  ? "Configure an API key to start prompting…"
                   : isC4
-                    ? "Describe C4 model (e.g. Banking system with API and core DB)…"
-                    : "Describe architecture (e.g. Microservices backend with Kafka & Postgres)…"
+                    ? "Describe a C4 model to generate…"
+                    : "Describe a system architecture…"
               }
-              className="w-full resize-none border-0 shadow-none bg-transparent px-3 pt-2.5 pb-1 text-xs placeholder:text-muted-foreground outline-none leading-relaxed font-sans disabled:opacity-50 focus-visible:ring-0"
+              className="w-full resize-none border-0 shadow-none bg-transparent px-3.5 pt-3 pb-1.5 text-[13px] placeholder:text-muted-foreground/75 outline-none leading-relaxed font-sans disabled:opacity-50 focus-visible:ring-0"
             />
 
-            <div className="flex items-center justify-between px-2.5 pb-2 pt-0.5">
-              <span className="text-[9px] text-muted-foreground flex items-center gap-1 font-mono">
-                <kbd className="px-1 py-0.5 bg-muted rounded border border-border text-[8px]">
-                  Enter
-                </kbd>
-                <span>send</span>
-              </span>
+            <div className="flex items-center justify-between px-2.5 pb-2.5 pt-1">
+              <div className="flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
+                <IconShieldLock size={12} stroke={1.6} />
+                <span>
+                  {selectedProvider
+                    ? PROVIDER_META[selectedProvider].label
+                    : "Keys stored locally"}
+                </span>
+              </div>
 
-              <Button
+              <button
+                type="button"
                 onClick={() => handleSend()}
                 disabled={!canSend}
-                size="xs"
-                className="h-6 px-2 text-xs font-medium gap-1"
-                icon={
-                  status === "loading" ? (
-                    <Loader className="animate-spin" />
-                  ) : (
-                    <IconSend size={11} />
-                  )
-                }
+                aria-label="Generate architecture"
+                className="nordic-btn size-8 rounded-xl inline-flex items-center justify-center cursor-pointer disabled:opacity-35 disabled:pointer-events-none"
               >
-                <span>Generate</span>
-              </Button>
+                {status === "loading" ? (
+                  <Loader className="size-3.5 animate-spin" />
+                ) : (
+                  <IconArrowUp size={15} stroke={1.9} />
+                )}
+              </button>
             </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground px-0.5">
-            <span className="flex items-center gap-1">
-              <IconShieldLock size={10} className="text-primary/80" />
-              <span>Keys stored locally</span>
-            </span>
-            {selectedProvider && (
-              <span className="uppercase">
-                {PROVIDER_META[selectedProvider].label}
-              </span>
-            )}
           </div>
         </div>
       </aside>
@@ -739,27 +712,27 @@ export default function AIChatDrawer() {
       {showSettingsModal && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-background/60 backdrop-blur-xs animate-in fade-in duration-150"
+            className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-in fade-in duration-150"
             onClick={() => setShowSettingsModal(false)}
           />
-          <div className="relative w-full max-w-md bg-card border border-border rounded-md shadow-xl animate-in zoom-in-98 duration-150 p-4.5 flex flex-col gap-3">
-            <div className="flex items-center justify-between border-b border-border/60 pb-2">
-              <div className="flex items-center gap-1.5">
-                <div className="size-5 rounded-xs bg-primary/10 flex items-center justify-center text-primary">
-                  <IconKey size={13} />
+          <div className="relative w-full max-w-md nordic-panel rounded-[20px] animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="size-7 rounded-lg bg-muted flex items-center justify-center text-foreground">
+                  <IconKey size={14} stroke={1.6} />
                 </div>
-                <h6 className="text-xs font-semibold text-foreground">
+                <h6 className="text-[13.5px] font-semibold text-foreground">
                   AI Provider Keys
                 </h6>
               </div>
               <Button
                 variant="ghost"
-                size="icon"
-                icon={<IconX size={14} />}
-                iconPlacement="left"
+                size="icon-sm"
                 onClick={() => setShowSettingsModal(false)}
-                className="p-1 rounded text-muted-foreground hover:text-foreground"
-              />
+                className="size-7 rounded-lg text-muted-foreground hover:text-foreground"
+              >
+                <IconX size={15} stroke={1.6} />
+              </Button>
             </div>
             <AISettings />
           </div>

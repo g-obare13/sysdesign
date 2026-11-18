@@ -55,25 +55,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const iconElement = renderIcon && (
-      <span
-        className={cn(
-          "inline-flex size-4 items-center justify-center",
-          iconPlacement === "left" ? "mr-1" : "ml-1",
-        )}
-      >
-        {renderIconContent(Icon, "size-4")}
+      <span className="inline-flex items-center justify-center shrink-0">
+        {renderIconContent(Icon, "size-3.5")}
       </span>
     );
 
     const content = isIconOnly ? (
       <span className="flex h-full w-full items-center justify-center">
-        {renderIconContent(Icon, "size-5")}
+        {renderIconContent(Icon, "size-4")}
       </span>
     ) : (
       <>
         {iconPlacement === "left" && iconElement}
 
-        <span className="relative z-10 text-sm font-semibold">
+        <span className="relative z-10 leading-none">
           {loading ? "Saving..." : children}
         </span>
 
@@ -86,7 +81,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     );
 
     const classes = cn(
-      "group/button inline-flex items-center justify-center gap-2",
       buttonVariants({ variant, size }),
       isIconOnly && "aspect-square justify-center px-0",
       className,

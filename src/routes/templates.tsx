@@ -70,7 +70,7 @@ function TemplatesPage() {
   };
 
   return (
-    <main className="min-h-screen pt-20 pb-14 px-6 max-w-6xl mx-auto w-full animate-in fade-in duration-200">
+    <main className="flex-1 pt-20 pb-12 px-6 max-w-6xl mx-auto w-full animate-in fade-in duration-200">
       <ConfirmModal
         open={!!selectedTemplate}
         title={`Load ${selectedTemplate?.name}?`}

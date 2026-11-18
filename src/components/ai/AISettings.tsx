@@ -87,13 +87,18 @@ export default function AISettings() {
       />
 
       {/* Privacy notice */}
-      <div className="flex items-start gap-2 p-2.5 bg-muted/40 rounded-md border border-border/60">
+      <div className="flex items-start gap-2.5 p-3 bg-muted/60 rounded-2xl">
         <IconShieldLock
-          size={14}
-          className="text-primary shrink-0 mt-0.5"
+          size={15}
+          stroke={1.6}
+          className="text-foreground/75 shrink-0 mt-0.5"
         />
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          Keys are stored <strong className="text-foreground">locally in your browser</strong> and never transmitted to our servers.
+        <p className="text-[12px] text-muted-foreground leading-relaxed">
+          Keys are stored{" "}
+          <strong className="font-medium text-foreground">
+            locally in your browser
+          </strong>{" "}
+          and never transmitted to our servers.
         </p>
       </div>
 
@@ -108,54 +113,48 @@ export default function AISettings() {
           return (
             <div
               key={provider}
-              className="flex flex-col gap-2 p-2.5 rounded-md border border-border bg-card"
+              className="flex flex-col gap-2 p-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.07] bg-card"
             >
               {/* Provider header */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="size-2 rounded-full shrink-0"
-                    style={{ background: meta.color }}
-                  />
-                  <span className="text-xs font-semibold text-foreground">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-medium text-foreground">
                     {meta.label}
                   </span>
                   {isSaved && (
-                    <span className="flex items-center gap-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                      <IconCheck size={10} />
+                    <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-muted-foreground">
+                      <IconCheck size={11} />
                       Saved
                     </span>
                   )}
                 </div>
 
                 {existing ? (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
                     <Button
                       variant="ghost"
-                      size="icon"
-                      icon={
-                        revealed === provider ? (
-                          <IconEyeOff size={13} />
-                        ) : (
-                          <IconEye size={13} />
-                        )
-                      }
-                      iconPlacement="left"
+                      size="icon-sm"
                       onClick={() =>
                         setRevealed(revealed === provider ? null : provider)
                       }
-                      className="p-1 rounded text-muted-foreground hover:text-foreground"
+                      className="size-7 rounded-lg text-muted-foreground hover:text-foreground"
                       title={revealed === provider ? "Hide key" : "Reveal key"}
-                    />
+                    >
+                      {revealed === provider ? (
+                        <IconEyeOff size={14} stroke={1.6} />
+                      ) : (
+                        <IconEye size={14} stroke={1.6} />
+                      )}
+                    </Button>
                     <Button
                       variant="ghost"
-                      size="icon"
-                      icon={<IconTrash size={13} />}
-                      iconPlacement="left"
+                      size="icon-sm"
                       onClick={() => setConfirmRemove(provider)}
-                      className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       title="Remove key"
-                    />
+                    >
+                      <IconTrash size={14} stroke={1.6} />
+                    </Button>
                   </div>
                 ) : !isAdding ? (
                   <Button
@@ -165,7 +164,6 @@ export default function AISettings() {
                       setError("");
                     }}
                     size="xs"
-                    variant="outline"
                   >
                     Add key
                   </Button>
@@ -174,12 +172,13 @@ export default function AISettings() {
 
               {/* Existing key masked display */}
               {existing && !isAdding && (
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/40 rounded border border-border/40">
+                <div className="flex items-center gap-2 px-2.5 py-1.5 bg-muted/60 rounded-xl">
                   <IconKey
-                    size={11}
+                    size={12}
+                    stroke={1.6}
                     className="text-muted-foreground shrink-0"
                   />
-                  <code className="text-[10px] font-mono text-muted-foreground flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                  <code className="text-[11px] text-muted-foreground flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
                     {revealed === provider
                       ? existing.key
                       : maskKey(existing.key)}
@@ -189,7 +188,7 @@ export default function AISettings() {
 
               {/* Add form */}
               {isAdding && (
-                <div className="flex flex-col gap-1.5 mt-1">
+                <div className="flex flex-col gap-2 mt-1">
                   <Input
                     autoFocus
                     type="text"
@@ -204,24 +203,24 @@ export default function AISettings() {
                       if (e.key === "Enter") handleSave();
                       if (e.key === "Escape") handleCancel();
                     }}
-                    className="font-mono text-xs"
+                    className="text-[12.5px]"
                   />
                   {error && (
-                    <p className="flex items-center gap-1 text-[10px] text-destructive">
-                      <IconAlertCircle size={11} />
+                    <p className="flex items-center gap-1 text-[11px] text-destructive">
+                      <IconAlertCircle size={12} />
                       {error}
                     </p>
                   )}
-                  <div className="flex items-center gap-1.5 pt-0.5">
-                    <Button onClick={handleSave} size="xs">
-                      Save key
-                    </Button>
+                  <div className="flex items-center justify-end gap-1.5 pt-0.5">
                     <Button
                       onClick={handleCancel}
-                      variant="outline"
+                      variant="ghost"
                       size="xs"
                     >
                       Cancel
+                    </Button>
+                    <Button onClick={handleSave} size="xs">
+                      Save key
                     </Button>
                   </div>
                 </div>

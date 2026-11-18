@@ -247,12 +247,22 @@ export default function DiagramCanvas() {
         selectionMode={SelectionMode.Partial}
         panOnScroll={true}
         selectionOnDrag={true}
-        connectionLineStyle={{ stroke: "var(--edge-stroke, #8e9584)", strokeWidth: 1.5 }}
+        connectionLineStyle={{
+          stroke: "var(--edge-stroke-selected, #171717)",
+          strokeWidth: 1.75,
+          strokeDasharray: "4 6",
+        }}
         connectionLineType={ConnectionLineType.SmoothStep}
         defaultEdgeOptions={{
           type: "smoothstep",
-          style: { stroke: "var(--edge-stroke, #8e9584)", strokeWidth: 1.5 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: "var(--edge-stroke, #8e9584)" },
+          animated: true,
+          style: { stroke: "var(--edge-stroke, #a3a3a3)", strokeWidth: 1.5 },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 14,
+            height: 14,
+            color: "var(--edge-stroke, #a3a3a3)",
+          },
         }}
         snapToGrid={snapToGrid}
         snapGrid={[20, 20]}

@@ -290,6 +290,70 @@
     0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
+/* Nordic Tactile Satin Button (Specular Top Bevel — Light & Dark) */
+.nordic-btn {
+  background: linear-gradient(180deg, #f7f7f7 0%, #e7e7e7 100%);
+  color: #171717;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.92),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.04),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06),
+    0 2px 6px -2px rgba(0, 0, 0, 0.04);
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease,
+    border-color 0.15s ease;
+}
+
+.nordic-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #fcfcfc 0%, #ececec 100%);
+  border-color: rgba(0, 0, 0, 0.11);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.98),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.05),
+    0 2px 4px 0 rgba(0, 0, 0, 0.07),
+    0 4px 10px -2px rgba(0, 0, 0, 0.05);
+}
+
+.nordic-btn:active:not(:disabled) {
+  background: linear-gradient(180deg, #ebebeb 0%, #f2f2f2 100%);
+  transform: translateY(0.5px);
+  box-shadow:
+    inset 0 1px 2px 0 rgba(0, 0, 0, 0.09),
+    0 1px 1px 0 rgba(0, 0, 0, 0.03);
+}
+
+.dark .nordic-btn {
+  background: linear-gradient(180deg, #2d313b 0%, #20232b 100%);
+  color: #f3f4f6;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.38),
+    0 1px 2px 0 rgba(0, 0, 0, 0.45),
+    0 2px 8px -2px rgba(0, 0, 0, 0.35);
+}
+
+.dark .nordic-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #353a46 0%, #252933 100%);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.4),
+    0 2px 6px 0 rgba(0, 0, 0, 0.5),
+    0 4px 12px -2px rgba(0, 0, 0, 0.4);
+}
+
+.dark .nordic-btn:active:not(:disabled) {
+  background: linear-gradient(180deg, #1e2129 0%, #262a34 100%);
+  transform: translateY(0.5px);
+  box-shadow:
+    inset 0 1px 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+
 /* Tool Windows */
 .tool-window-panel {
   @apply absolute top-3 left-3 bottom-3 w-[260px] rounded-[20px] bg-card/95 backdrop-blur-md border border-black/[0.06] dark:border-white/[0.07] z-30 flex flex-col overflow-hidden transition-all duration-150 select-none;
@@ -380,21 +444,41 @@ g.react-flow__edge {
   cursor: pointer !important;
 }
 
-.react-flow__edge-path,
-path.react-flow__edge-path,
-svg.react-flow__edges g.react-flow__edge path {
-  stroke: var(--edge-stroke, #8e9584) !important;
-  stroke-width: 1.5px !important;
-  stroke-linecap: round !important;
-  stroke-linejoin: round !important;
-  fill: none !important;
+.react-flow__edge-path {
+  stroke: var(--edge-stroke, #a3a3a3);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  transition:
+    stroke 0.2s ease,
+    stroke-width 0.2s ease,
+    opacity 0.2s ease;
 }
 
-.react-flow__edge.selected path.react-flow__edge-path,
 .react-flow__edge.selected .react-flow__edge-path,
-path.react-flow__edge-path.edge-glow {
-  stroke: var(--edge-stroke-selected, #5e6a50) !important;
-  stroke-width: 2px !important;
+.react-flow__edge-path.edge-glow {
+  stroke: var(--edge-stroke-selected, #171717);
+  stroke-width: 2px;
+}
+
+@keyframes nordic-edge-flow {
+  from {
+    stroke-dashoffset: 28;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.nordic-edge-stream {
+  stroke-dasharray: 4 10;
+  animation: nordic-edge-flow 1.4s linear infinite;
+}
+
+.nordic-edge-stream-active {
+  stroke-dasharray: 5 9;
+  animation: nordic-edge-flow 0.9s linear infinite;
 }
 
 .react-flow__node {

@@ -1,24 +1,17 @@
 /**
- * @fileoverview Custom ReactFlow edge renderer with editable inline label pill and animated stroke.
+ * @fileoverview Custom ReactFlow connector edge with layered Nordic flow animation
+ * (solid rail, animated stream, and travelling signal bead) and smart responsive label pill.
  */
 
 import { useEffect, useRef, useState } from "react";
-import {
-  BaseEdge,
-  EdgeLabelRenderer,
-  
-  getSmoothStepPath
-} from "@xyflow/react";
-import type {EdgeProps} from "@xyflow/react";
-import { updateEdgeMeta } from "@/store/canvas.store";
+import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from "@xyflow/react";
+import type { EdgeProps } from "@xyflow/react";
+import { updateEdgeMeta, useCanvasStore } from "@/store/canvas.store";
 import { cn } from "@/lib/utils";
 
 /**
- * Custom edge component for the diagram.
- * Renders an animated smoothstep path with an editable label in the center.
- *
- * @param props - ReactFlow EdgeProps
- * @returns ReactFlow Diagram Edge element
+ * Custom architectural connector edge with fluid animated signal flow
+ * and a compact, hover-expanding editable label pill.
  */
 export default function DiagramEdge({
   id,
@@ -34,6 +27,8 @@ export default function DiagramEdge({
   selected,
   animated = true,
 }: EdgeProps) {
+  const isExporting = useCanvasStore((s) => s.isExporting);
+
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -41,18 +36,20 @@ export default function DiagramEdge({
     targetX,
     targetY,
     targetPosition,
-    borderRadius: 12,
+    borderRadius: 16,
   });
 
+  const [isHovered, setIsHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [labelDraft, setLabelDraft] = useState((data?.label as string) || "");
+  const labelText = ((data?.label as string) || "").trim();
+  const [labelDraft, setLabelDraft] = useState(labelText);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!isEditing) {
-      setLabelDraft((data?.label as string) || "");
+      setLabelDraft(labelText);
     }
-  }, [data?.label, isEditing]);
+  }, [labelText, isEditing]);
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
@@ -63,103 +60,174 @@ export default function DiagramEdge({
 
   const commitEdit = () => {
     setIsEditing(false);
-    updateEdgeMeta(id, { label: labelDraft });
+    updateEdgeMeta(id, { label: labelDraft.trim() });
   };
 
   const isAnimated = animated || (data?.animated as boolean) !== false;
-  const strokeColor = selected
-    ? "var(--edge-stroke-selected, #5e6a50)"
-    : "var(--edge-stroke, #8e9584)";
+  const isActive = Boolean(selected || isHovered || isEditing);
+  const hasLabel = labelText.length > 0;
+  const showLabelPill = isEditing || hasLabel || (isActive && !isExporting);
+
+  const baseStroke = isActive
+    ? "var(--edge-stroke-selected, #171717)"
+    : (style?.stroke as string) || "var(--edge-stroke, #a3a3a3)";
 
   return (
-    <>
-      {/* Interaction Hitbox Path */}
+    <g
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Wide Invisible Interaction Hitbox */}
       <path
         d={edgePath}
         fill="none"
-        strokeOpacity={0}
-        strokeWidth={20}
+        stroke="transparent"
+        strokeWidth={22}
         className="react-flow__edge-interaction cursor-pointer"
       />
 
+      {/* Soft Ambient Halo on Hover / Select */}
+      {isActive && !isExporting && (
+        <path
+          d={edgePath}
+          fill="none"
+          stroke="var(--edge-stroke-selected, #171717)"
+          strokeOpacity={0.09}
+          strokeWidth={6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ pointerEvents: "none" }}
+        />
+      )}
+
+      {/* Crisp Solid Base Rail */}
       <BaseEdge
         id={id}
         path={edgePath}
-        className={cn(
-          "react-flow__edge-path",
-          isAnimated && "edge-animated",
-          selected && "edge-glow",
-        )}
+        className={cn("react-flow__edge-path", selected && "edge-glow")}
         style={{
-          strokeWidth: selected ? 2 : 1.5,
+          ...style,
+          stroke: baseStroke,
+          strokeOpacity: isActive ? 0.9 : 0.45,
+          strokeWidth: isActive ? 1.85 : 1.5,
           strokeLinecap: "round",
           strokeLinejoin: "round",
           fill: "none",
-          ...style,
-          stroke: selected
-            ? "var(--edge-stroke-selected, #5e6a50)"
-            : (style?.stroke as string) || strokeColor,
         }}
         markerEnd={markerEnd}
       />
 
-      <EdgeLabelRenderer>
-        <div
-          style={{
-            position: "absolute",
-            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            background: "var(--card)",
-            color: "var(--foreground)",
-            pointerEvents: "all",
-            cursor: "pointer",
-            zIndex: 10,
-            maxWidth: "180px",
-          }}
-          className={cn(
-            "nodrag nopan rounded-md px-2 py-0.5 border border-border/80 bg-card/95 backdrop-blur-xs text-[10px] font-mono shadow-xs transition-all select-none",
-            selected
-              ? "border-primary ring-1 ring-primary/40 text-primary font-medium"
-              : "hover:border-border-strong text-foreground/80",
-          )}
-          onPointerDown={(e) => {
-            e.stopPropagation();
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(true);
-          }}
-        >
-          {isEditing ? (
-            <textarea
-              ref={textareaRef}
-              autoFocus
-              rows={1}
-              className="nodrag w-full resize-none overflow-hidden bg-transparent text-[9px] p-0 outline-none border-none focus:ring-0 shadow-none text-center"
-              value={labelDraft}
-              onChange={(e) => setLabelDraft(e.target.value)}
-              onBlur={commitEdit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  commitEdit();
-                }
-                if (e.key === "Escape") {
-                  setLabelDraft((data?.label as string) || "");
-                  setIsEditing(false);
-                }
-              }}
+      {/* Animated Flowing Dash Stream Overlay */}
+      {isAnimated && !isExporting && (
+        <path
+          d={edgePath}
+          fill="none"
+          stroke="var(--edge-stroke-selected, #171717)"
+          strokeOpacity={isActive ? 0.85 : 0.38}
+          strokeWidth={isActive ? 1.85 : 1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={
+            isActive ? "nordic-edge-stream-active" : "nordic-edge-stream"
+          }
+          style={{ pointerEvents: "none" }}
+        />
+      )}
+
+      {/* Travelling Signal Pulse Bead (GPU-accelerated SVG motion) */}
+      {isAnimated && !isExporting && (
+        <g style={{ pointerEvents: "none" }}>
+          <circle
+            r={isActive ? 5.5 : 4.5}
+            fill="var(--edge-stroke-selected, #171717)"
+            fillOpacity={isActive ? 0.18 : 0.12}
+          >
+            <animateMotion
+              dur={isActive ? "1.6s" : "2.6s"}
+              repeatCount="indefinite"
+              path={edgePath}
             />
-          ) : (
-            <span className="block w-full text-center truncate">
-              {(data?.label as string) || (
-                <span className="text-muted-foreground/50 text-[9px]">
-                  + label
-                </span>
-              )}
-            </span>
-          )}
-        </div>
-      </EdgeLabelRenderer>
-    </>
+          </circle>
+          <circle
+            r={isActive ? 2.6 : 2.1}
+            fill="var(--edge-stroke-selected, #171717)"
+            fillOpacity={isActive ? 0.95 : 0.65}
+          >
+            <animateMotion
+              dur={isActive ? "1.6s" : "2.6s"}
+              repeatCount="indefinite"
+              path={edgePath}
+            />
+          </circle>
+        </g>
+      )}
+
+      {/* Smart Responsive Label Pill */}
+      {showLabelPill && (
+        <EdgeLabelRenderer>
+          <div
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
+            style={{
+              position: "absolute",
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              pointerEvents: "all",
+            }}
+            className={cn(
+              "nodrag nopan select-none cursor-pointer transition-all duration-150",
+              isEditing
+                ? "z-50 w-[196px] nordic-panel rounded-xl px-2.5 py-1.5"
+                : isActive
+                  ? "z-40 max-w-[224px] nordic-pill rounded-xl px-2.5 py-1 text-[11px] font-medium text-foreground"
+                  : "z-10 max-w-[144px] bg-card/95 backdrop-blur-xs border border-black/[0.07] dark:border-white/[0.08] rounded-full px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/80 shadow-[0_1px_4px_rgba(0,0,0,0.04)]",
+              !hasLabel && !isEditing && "border-dashed opacity-90",
+            )}
+          >
+            {isEditing ? (
+              <textarea
+                ref={textareaRef}
+                autoFocus
+                rows={1}
+                placeholder="Describe connection…"
+                className="nodrag block w-full resize-none overflow-hidden bg-transparent text-[11.5px] leading-snug text-foreground placeholder:text-muted-foreground/70 p-0 outline-none border-none focus:ring-0 shadow-none text-center"
+                value={labelDraft}
+                onChange={(e) => setLabelDraft(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    commitEdit();
+                  }
+                  if (e.key === "Escape") {
+                    setLabelDraft(labelText);
+                    setIsEditing(false);
+                  }
+                }}
+              />
+            ) : hasLabel ? (
+              <span
+                className={cn(
+                  "block text-center leading-snug",
+                  isActive
+                    ? "whitespace-normal break-words"
+                    : "truncate whitespace-nowrap",
+                )}
+              >
+                {labelText}
+              </span>
+            ) : (
+              <span className="block text-center text-[10px] text-muted-foreground whitespace-nowrap">
+                + Add label
+              </span>
+            )}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </g>
   );
 }
