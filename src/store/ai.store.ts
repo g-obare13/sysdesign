@@ -32,12 +32,36 @@ export interface AIChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: number;
+  toolSteps?: Array<string>;
   diagramGenerated?: {
     nodeCount: number;
     edgeCount: number;
     title?: string;
+    summary?: string;
   };
 }
+
+/**
+ * Available models per provider (first entry is the default).
+ */
+export const PROVIDER_MODELS: Record<
+  AIProvider,
+  Array<{ id: string; label: string }>
+> = {
+  openai: [
+    { id: "gpt-4.1", label: "GPT-4.1" },
+    { id: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
+    { id: "gpt-4o", label: "GPT-4o" },
+  ],
+  anthropic: [
+    { id: "claude-sonnet-4-5", label: "Claude Sonnet 4.5" },
+    { id: "claude-haiku-4-5", label: "Claude Haiku 4.5" },
+  ],
+  google: [
+    { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+    { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+  ],
+};
 
 /**
  * Internal state for the AI store.
@@ -45,6 +69,8 @@ export interface AIChatMessage {
 interface AIState {
   /** Collection of configured provider keys */
   keys: Array<AIKey>;
+  /** Selected model ID per provider */
+  selectedModels: Record<AIProvider, string>;
   /** Pending user prompt in the UI */
   pendingPrompt: string;
   /** Whether the AI chat drawer is currently open */
@@ -54,6 +80,34 @@ interface AIState {
 }
 
 const STORAGE_KEY = "sysdesign-ai-keys";
+const MODELS_STORAGE_KEY = "sysdesign-ai-models";
+
+function defaultSelectedModels(): Record<AIProvider, string> {
+  return {
+    openai: PROVIDER_MODELS.openai[0].id,
+    anthropic: PROVIDER_MODELS.anthropic[0].id,
+    google: PROVIDER_MODELS.google[0].id,
+  };
+}
+
+function loadSelectedModels(): Record<AIProvider, string> {
+  const defaults = defaultSelectedModels();
+  try {
+    if (typeof window === "undefined") return defaults;
+    const raw = localStorage.getItem(MODELS_STORAGE_KEY);
+    if (!raw) return defaults;
+    return { ...defaults, ...JSON.parse(raw) };
+  } catch {
+    return defaults;
+  }
+}
+
+function saveSelectedModels(models: Record<AIProvider, string>): void {
+  try {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(MODELS_STORAGE_KEY, JSON.stringify(models));
+  } catch {}
+}
 
 /**
  * Loads persisted AI keys from browser localStorage.
@@ -125,10 +179,44 @@ export function maskKey(key: string): string {
  */
 export const aiStore = new Store<AIState>({
   keys: loadKeys(),
+  selectedModels: loadSelectedModels(),
   pendingPrompt: "",
   isDrawerOpen: false,
   messages: [],
 });
+
+export function getSelectedModelForProvider(provider: AIProvider): string {
+  return (
+    aiStore.state.selectedModels[provider] || PROVIDER_MODELS[provider][0].id
+  );
+}
+
+export function setSelectedModelForProvider(
+  provider: AIProvider,
+  modelId: string,
+): void {
+  const nextModels = { ...aiStore.state.selectedModels, [provider]: modelId };
+  saveSelectedModels(nextModels);
+  aiStore.setState((s) => ({ ...s, selectedModels: nextModels }));
+}
+
+export function useAIModels() {
+  const [selectedModels, setModels] = useState<Record<AIProvider, string>>(
+    aiStore.state.selectedModels,
+  );
+
+  useEffect(() => {
+    const sub = aiStore.subscribe(() => {
+      setModels(aiStore.state.selectedModels);
+    });
+    return () => sub.unsubscribe();
+  }, []);
+
+  return {
+    selectedModels,
+    setModel: setSelectedModelForProvider,
+  };
+}
 
 /**
  * Sets the active pending AI generation prompt in the store.
@@ -162,6 +250,7 @@ export function addChatMessage(msg: Omit<AIChatMessage, "id" | "timestamp"> & { 
     timestamp: msg.timestamp || Date.now(),
     role: msg.role,
     content: msg.content,
+    toolSteps: msg.toolSteps,
     diagramGenerated: msg.diagramGenerated,
   };
   aiStore.setState((s) => ({

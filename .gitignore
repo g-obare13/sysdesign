@@ -49,7 +49,8 @@ graft/
 .claude
 .cursor
 .gemini
-.github
+.github/*
+!.github/workflows/
 .kiro
 .windsurf
 .mcp.json

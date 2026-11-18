@@ -1,0 +1,32 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Run every 3 days at 09:00 UTC (well inside Supabase's 7-day free-tier inactivity window)
+    - cron: "0 9 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY repository secrets."
+            exit 1
+          fi
+
+          HTTP_STATUS=$(curl -sS -o /tmp/supabase_ping.out -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/projects?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          echo "Supabase keep-alive HTTP status: ${HTTP_STATUS}"
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            cat /tmp/supabase_ping.out
+            exit 1
+          fi

@@ -15,6 +15,9 @@
     "lint": "eslint --quiet"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.106",
+    "@ai-sdk/google": "^4.0.122",
+    "@ai-sdk/openai": "^4.0.121",
     "@base-ui/react": "^1.7.0",
     "@dagrejs/dagre": "^3.1.0",
     "@supabase/supabase-js": "^2.112.0",
@@ -31,6 +34,7 @@
     "@tanstack/store": "^0.9.3",
     "@types/uuid": "^11.0.0",
     "@xyflow/react": "^12.11.2",
+    "ai": "^7.0.176",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
@@ -42,7 +46,8 @@
     "react-dom": "^19.2.8",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
-    "uuid": "^13.0.2"
+    "uuid": "^13.0.2",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",

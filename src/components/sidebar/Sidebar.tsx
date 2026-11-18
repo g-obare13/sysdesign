@@ -17,8 +17,6 @@ import {
 } from "@/store/project.store";
 import type { ProjectType } from "@/store/project.store";
 import { setDiagramMode, useCanvasStore } from "@/store/canvas.store";
-import { useAIKeys } from "@/store/ai.store";
-import AIPanel from "@/components/ai/AIPanel";
 import ProjectSetupPopup from "@/components/dashboard/ProjectSetupPopup";
 import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
@@ -150,16 +148,9 @@ export default function Sidebar() {
     activeTab = "c4";
   else if (currentPath === "/templates") activeTab = "templates";
 
-  const { hasAny: hasAIKey } = useAIKeys();
-  const [showAIPanel, setShowAIPanel] = React.useState(false);
   const [createProjectModalOpen, setCreateProjectModalOpen] =
     React.useState(false);
-  const aiPanelRef = React.useRef<HTMLDivElement>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
-
-  React.useEffect(() => {
-    setShowAIPanel(false);
-  }, [activeProjectId]);
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [expanded, setExpanded] = React.useState<Record<NodeCategory, boolean>>(
@@ -576,16 +567,6 @@ export default function Sidebar() {
           )}
         </div>
       </aside>
-
-      {/* Floating AI Panel */}
-      {showAIPanel && hasAIKey && (
-        <div
-          ref={aiPanelRef}
-          className="fixed top-16 left-[284px] z-50 animate-in fade-in slide-in-from-left-2 duration-150"
-        >
-          <AIPanel onClose={() => setShowAIPanel(false)} />
-        </div>
-      )}
     </div>
   );
 }
