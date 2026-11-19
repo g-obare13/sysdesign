@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, fireEvent } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render } from "@testing-library/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AIFloatingButton from "./AIFloatingButton";
@@ -19,8 +19,15 @@ describe("AI Section interaction", () => {
     setAIDrawerOpen(false);
     addKey("openai", "sk-test-1234567890");
 
-    // jsdom lacks scrollIntoView
+    // jsdom lacks scrollIntoView and ResizeObserver (used by use-stick-to-bottom)
     Element.prototype.scrollIntoView = vi.fn();
+    if (typeof globalThis.ResizeObserver === "undefined") {
+      globalThis.ResizeObserver = class ResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      };
+    }
 
     const { getByLabelText, getByPlaceholderText, getByText } = render(
       <TooltipProvider>

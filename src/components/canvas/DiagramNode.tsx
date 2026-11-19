@@ -459,28 +459,44 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
               {c4BadgeText || style.label}
             </span>
             {meta.status && (
-              <span
-                className={cn(
-                  "size-1.5 rounded-full shrink-0",
-                  meta.status === "existing" && "bg-[#3B6E5C]",
-                  meta.status === "planned" && "bg-[#9A6B3B]",
-                  meta.status === "deprecated" && "bg-[#A84A44]",
-                )}
-                title={`Status: ${meta.status}`}
-              />
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span
+                      className={cn(
+                        "size-1.5 rounded-full shrink-0",
+                        meta.status === "existing" && "bg-[#3B6E5C]",
+                        meta.status === "planned" && "bg-[#9A6B3B]",
+                        meta.status === "deprecated" && "bg-[#A84A44]",
+                      )}
+                      aria-label={`Status: ${meta.status}`}
+                    />
+                  }
+                />
+                <TooltipContent side="top">
+                  Status: {meta.status}
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              openEdit();
-            }}
-            className="text-muted-foreground hover:text-foreground transition-colors p-0.5 -mr-1 rounded-md cursor-pointer"
-            title="Edit node"
-          >
-            <TablerIcons.IconDotsVertical size={13} stroke={1.6} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEdit();
+                  }}
+                  className="text-muted-foreground hover:text-foreground transition-colors p-0.5 -mr-1 rounded-md cursor-pointer"
+                  aria-label="Edit node"
+                >
+                  <TablerIcons.IconDotsVertical size={13} stroke={1.6} />
+                </button>
+              }
+            />
+            <TooltipContent side="top">Edit node</TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Card Body */}

@@ -9,11 +9,11 @@ import { useReactFlow } from "@xyflow/react";
 import {
   IconAlertCircle,
   IconArrowBackUp,
-  IconArrowUp,
   IconBulb,
   IconCheck,
   IconChevronDown,
   IconChevronRight,
+  IconCopy,
   IconKey,
   IconLayout,
   IconListDetails,
@@ -28,11 +28,50 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import {
+  Message,
+  MessageAction,
+  MessageActions,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
+import {
+  ModelSelector,
+  ModelSelectorContent,
+  ModelSelectorEmpty,
+  ModelSelectorGroup,
+  ModelSelectorInput,
+  ModelSelectorItem,
+  ModelSelectorList,
+  ModelSelectorLogo,
+  ModelSelectorName,
+  ModelSelectorTrigger,
+} from "@/components/ai-elements/model-selector";
+import {
+  PromptInput,
+  PromptInputBody,
+  PromptInputFooter,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputTools,
+} from "@/components/ai-elements/prompt-input";
+import { Shimmer } from "@/components/ai-elements/shimmer";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import {
+  Task,
+  TaskContent,
+  TaskItem,
+  TaskTrigger,
+} from "@/components/ai-elements/task";
 import { cn } from "@/lib/utils";
 import {
   PROVIDER_META,
@@ -49,7 +88,6 @@ import { serializeCanvasContext } from "@/lib/ai.context";
 import { applyAIOperationsToCanvas } from "@/lib/ai.tools";
 import { undo, useCanvasStore } from "@/store/canvas.store";
 import AISettings from "@/components/ai/AISettings";
-import { Loader } from "@/components/ui/loader";
 
 const ARCH_SUGGESTIONS = [
   {
@@ -105,6 +143,13 @@ const C4_SUGGESTIONS = [
   },
 ];
 
+const FOLLOW_UP_SUGGESTIONS = [
+  "Review bottlenecks",
+  "Add caching layer",
+  "Add observability",
+  "Improve fault tolerance",
+];
+
 type Status = "idle" | "loading" | "success" | "error";
 
 export default function AIChatDrawer() {
@@ -132,15 +177,18 @@ export default function AIChatDrawer() {
   const [errorMsg, setErrorMsg] = React.useState("");
   const [lastPrompt, setLastPrompt] = React.useState("");
   const [showSettingsModal, setShowSettingsModal] = React.useState(false);
+  const [modelSelectorOpen, setModelSelectorOpen] = React.useState(false);
+  const [copiedMsgId, setCopiedMsgId] = React.useState<string | null>(null);
 
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-  const resizeTextarea = React.useCallback((el: HTMLTextAreaElement | null) => {
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  const handleCopyMessage = React.useCallback((id: string, text: string) => {
+    void navigator.clipboard?.writeText(text);
+    setCopiedMsgId(id);
+    setTimeout(() => {
+      setCopiedMsgId((prev) => (prev === id ? null : prev));
+    }, 1500);
   }, []);
+
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   const isC4 = diagramMode === "c4";
   const suggestions = isC4 ? C4_SUGGESTIONS : ARCH_SUGGESTIONS;
@@ -170,13 +218,6 @@ export default function AIChatDrawer() {
     }
   }, [sharedPrompt, isOpen]);
 
-  // Auto-scroll to bottom of chat
-  React.useEffect(() => {
-    if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, status, isOpen]);
-
   // Focus textarea when drawer opens
   React.useEffect(() => {
     if (isOpen) {
@@ -189,21 +230,27 @@ export default function AIChatDrawer() {
   // Close on Escape key
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen && !showSettingsModal) {
+      if (
+        e.key === "Escape" &&
+        isOpen &&
+        !showSettingsModal &&
+        !modelSelectorOpen
+      ) {
         close();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, showSettingsModal, close]);
+  }, [isOpen, showSettingsModal, modelSelectorOpen, close]);
 
   const activeModelId = selectedProvider
-    ? selectedModels[selectedProvider] || PROVIDER_MODELS[selectedProvider][0].id
+    ? selectedModels[selectedProvider] ||
+      PROVIDER_MODELS[selectedProvider][0].id
     : null;
   const activeModelLabel =
     selectedProvider && activeModelId
-      ? PROVIDER_MODELS[selectedProvider].find((m) => m.id === activeModelId)
-          ?.label ?? activeModelId
+      ? (PROVIDER_MODELS[selectedProvider].find((m) => m.id === activeModelId)
+          ?.label ?? activeModelId)
       : null;
 
   const canSend =
@@ -222,9 +269,6 @@ export default function AIChatDrawer() {
     setErrorMsg("");
     setLastPrompt(text);
     setPrompt("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
 
     try {
       const canvasSnapshot = serializeCanvasContext({
@@ -329,37 +373,58 @@ export default function AIChatDrawer() {
           </div>
 
           <div className="flex items-center gap-0.5 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setShowSettingsModal(true)}
-              className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-              title="API Keys"
-            >
-              <IconKey size={15} stroke={1.6} />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setShowSettingsModal(true)}
+                    className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+                    aria-label="API Keys"
+                  >
+                    <IconKey size={15} stroke={1.6} />
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom">API Keys</TooltipContent>
+            </Tooltip>
 
             {messages.length > 0 && (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={clearMessages}
-                className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                title="Clear Chat"
-              >
-                <IconTrash size={15} stroke={1.6} />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={clearMessages}
+                      className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      aria-label="Clear Chat"
+                    >
+                      <IconTrash size={15} stroke={1.6} />
+                    </Button>
+                  }
+                />
+                <TooltipContent side="bottom">Clear Chat</TooltipContent>
+              </Tooltip>
             )}
 
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={close}
-              className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-              title="Close"
-            >
-              <IconX size={15} stroke={1.6} />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={close}
+                    className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+                    aria-label="Close"
+                  >
+                    <IconX size={15} stroke={1.6} />
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom">Close</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -391,204 +456,249 @@ export default function AIChatDrawer() {
         )}
 
         {/* Scrollable Conversation Feed */}
-        <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-3.5 custom-scrollbar">
-          {/* Missing Keys Banner */}
-          {!hasAny && (
-            <div className="p-4 rounded-2xl bg-muted/60 border border-black/[0.04] dark:border-white/[0.06] space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                  <IconKey size={15} stroke={1.6} />
-                </div>
-                <div className="space-y-1 min-w-0">
-                  <h6 className="text-[13px] font-semibold text-foreground leading-snug">
-                    Connect an AI Provider
-                  </h6>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    Add your OpenAI, Anthropic, or Gemini key locally to
-                    generate, edit, and critique architectures.
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={() => setShowSettingsModal(true)}
-                size="sm"
-                className="w-full"
-              >
-                Configure API Keys
-              </Button>
-            </div>
-          )}
-
-          {/* Empty State / Suggestions */}
-          {messages.length === 0 && (
-            <div className="space-y-2.5">
-              <span className="block text-[11.5px] font-medium text-muted-foreground px-1">
-                {nodes.length > 0 ? "Try Asking" : "Suggestions"}
-              </span>
-              <div className="flex flex-col gap-1.5">
-                {suggestions.map((s) => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    onClick={() => {
-                      if (hasAny) {
-                        handleSend(s.prompt);
-                      } else {
-                        setPrompt(s.prompt);
-                        textareaRef.current?.focus();
-                      }
-                    }}
-                    className="w-full flex items-start gap-3 p-3 rounded-2xl bg-muted/45 hover:bg-muted/85 text-left transition-colors group cursor-pointer"
-                  >
-                    <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/75 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] mt-0.5">
-                      <s.icon size={15} stroke={1.6} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[12.5px] font-semibold text-foreground leading-snug">
-                        {s.label}
-                      </div>
-                      <div className="text-[11.5px] text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
-                        {s.prompt}
-                      </div>
-                    </div>
-                    <IconChevronRight
-                      size={14}
-                      stroke={1.6}
-                      className="text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 mt-1"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Chat Messages */}
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={cn(
-                "flex flex-col gap-1",
-                msg.role === "user" ? "items-end" : "items-start",
-              )}
-            >
-              <div className="flex items-center gap-1.5 px-1 text-[10.5px] text-muted-foreground tabular-nums">
-                <span>{msg.role === "user" ? "You" : "Architect"}</span>
-                <span>·</span>
-                <span>
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
-
-              <div
-                className={cn(
-                  "px-3.5 py-2.5 text-[12.5px] leading-relaxed max-w-[94%]",
-                  msg.role === "user"
-                    ? "rounded-2xl rounded-br-md bg-muted text-foreground"
-                    : "rounded-2xl rounded-bl-md bg-card border border-black/[0.06] dark:border-white/[0.07] text-foreground shadow-[0_1px_4px_rgba(0,0,0,0.03)] space-y-2.5",
-                )}
-              >
-                {/* Tool Execution Step Pills */}
-                {msg.toolSteps && msg.toolSteps.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {msg.toolSteps.map((step, i) => (
-                      <span
-                        key={`${msg.id}-step-${i}`}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/75 text-[10.5px] text-muted-foreground"
-                      >
-                        <IconCheck size={10} stroke={2} />
-                        {step}
-                      </span>
-                    ))}
+        <Conversation className="flex-1 min-h-0">
+          <ConversationContent className="gap-3.5 px-4 py-3.5">
+            {/* Missing Keys Banner */}
+            {!hasAny && (
+              <div className="p-4 rounded-2xl bg-muted/60 border border-black/[0.04] dark:border-white/[0.06] space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                    <IconKey size={15} stroke={1.6} />
                   </div>
-                )}
+                  <div className="space-y-1 min-w-0">
+                    <h6 className="text-[13px] font-semibold text-foreground leading-snug">
+                      Connect an AI Provider
+                    </h6>
+                    <p className="text-[12px] text-muted-foreground leading-relaxed">
+                      Add your OpenAI, Anthropic, or Gemini key locally to
+                      generate, edit, and critique architectures.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setShowSettingsModal(true)}
+                  size="sm"
+                  className="w-full"
+                >
+                  Configure API Keys
+                </Button>
+              </div>
+            )}
 
-                <div className="whitespace-pre-wrap">{msg.content}</div>
-
-                {/* Diagram Applied Summary Card with One-Click Revert */}
-                {msg.diagramGenerated && (
-                  <div className="p-2.5 rounded-xl bg-muted/65 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="size-7 rounded-lg bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                        <IconLayout size={14} stroke={1.6} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-medium text-foreground text-[12px] truncate leading-tight">
-                          {msg.diagramGenerated.title || "Canvas Updated"}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground tabular-nums mt-0.5 truncate">
-                          {msg.diagramGenerated.summary ||
-                            `${msg.diagramGenerated.nodeCount} nodes · ${msg.diagramGenerated.edgeCount} edges`}
-                        </div>
-                      </div>
-                    </div>
+            {/* Empty State / Suggestions */}
+            {messages.length === 0 && (
+              <div className="space-y-2.5">
+                <span className="block text-[11.5px] font-medium text-muted-foreground px-1">
+                  {nodes.length > 0 ? "Try Asking" : "Suggestions"}
+                </span>
+                <div className="flex flex-col gap-1.5">
+                  {suggestions.map((s) => (
                     <button
+                      key={s.label}
                       type="button"
-                      onClick={() => undo()}
-                      title="Undo AI change (⌘Z)"
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/80 hover:text-foreground bg-card hover:bg-muted px-2 py-1 rounded-lg border border-black/[0.05] dark:border-white/[0.07] shrink-0 transition-colors cursor-pointer"
+                      onClick={() => {
+                        if (hasAny) {
+                          handleSend(s.prompt);
+                        } else {
+                          setPrompt(s.prompt);
+                          textareaRef.current?.focus();
+                        }
+                      }}
+                      className="w-full flex items-start gap-3 p-3 rounded-2xl bg-muted/45 hover:bg-muted/85 text-left transition-colors group cursor-pointer"
                     >
-                      <IconArrowBackUp size={12} stroke={1.7} />
-                      Revert
+                      <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/75 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] mt-0.5">
+                        <s.icon size={15} stroke={1.6} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[12.5px] font-semibold text-foreground leading-snug">
+                          {s.label}
+                        </div>
+                        <div className="text-[11.5px] text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+                          {s.prompt}
+                        </div>
+                      </div>
+                      <IconChevronRight
+                        size={14}
+                        stroke={1.6}
+                        className="text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 mt-1"
+                      />
                     </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* Loading Indicator */}
-          {status === "loading" && (
-            <div className="flex flex-col gap-1 items-start">
-              <span className="px-1 text-[10.5px] text-muted-foreground">
-                Architect · Designing
-              </span>
-              <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl rounded-bl-md bg-muted/60">
-                <IconLoader2
-                  size={15}
-                  stroke={1.8}
-                  className="animate-spin text-foreground/70 shrink-0"
-                />
-                <span className="text-[12.5px] text-foreground/85 font-medium">
-                  Designing & laying out canvas…
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Generation Error Callout */}
-          {status === "error" && (
-            <div className="p-3 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-start justify-between gap-2.5">
-              <div className="flex items-start gap-2.5 min-w-0">
-                <IconAlertCircle
-                  size={15}
-                  className="text-destructive shrink-0 mt-0.5"
-                />
-                <div className="min-w-0">
-                  <div className="font-semibold text-destructive text-[12px]">
-                    Generation Error
-                  </div>
-                  <div className="text-muted-foreground text-[11.5px] mt-0.5 line-clamp-3">
-                    {errorMsg}
-                  </div>
+                  ))}
                 </div>
               </div>
-              <Button
-                onClick={handleRetry}
-                variant="outline"
-                size="xs"
-                className="shrink-0"
-                icon={<IconRefresh size={12} />}
-              >
-                Retry
-              </Button>
-            </div>
-          )}
+            )}
 
-          <div ref={messagesEndRef} />
-        </div>
+            {/* Chat Messages */}
+            {messages.map((msg) => (
+              <Message
+                key={msg.id}
+                from={msg.role}
+                className={cn(
+                  "gap-1 max-w-[94%]",
+                  msg.role === "user" ? "items-end" : "items-start",
+                )}
+              >
+                <div className="flex items-center gap-1.5 px-1 text-[10.5px] text-muted-foreground tabular-nums">
+                  <span>{msg.role === "user" ? "You" : "Architect"}</span>
+                  <span>·</span>
+                  <span>
+                    {new Date(msg.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+
+                <MessageContent
+                  className={cn(
+                    "px-3.5 py-2.5 text-[12.5px] leading-relaxed",
+                    msg.role === "user"
+                      ? "rounded-2xl rounded-br-md bg-muted text-foreground"
+                      : "rounded-2xl rounded-bl-md bg-card border border-black/[0.06] dark:border-white/[0.07] text-foreground shadow-[0_1px_4px_rgba(0,0,0,0.03)] space-y-2.5",
+                  )}
+                >
+                  {/* Tool Execution Step Trace */}
+                  {msg.toolSteps && msg.toolSteps.length > 0 && (
+                    <Task defaultOpen={false} className="w-full">
+                      <TaskTrigger
+                        title={`Used ${msg.toolSteps.length} architect ${msg.toolSteps.length === 1 ? "tool" : "tools"}`}
+                        className="text-[11.5px]"
+                      />
+                      <TaskContent>
+                        {msg.toolSteps.map((step, i) => (
+                          <TaskItem
+                            key={`${msg.id}-step-${i}`}
+                            className="flex items-center gap-1.5 text-[11.5px]"
+                          >
+                            <IconCheck
+                              size={12}
+                              stroke={2}
+                              className="text-emerald-600 dark:text-emerald-400 shrink-0"
+                            />
+                            <span>{step}</span>
+                          </TaskItem>
+                        ))}
+                      </TaskContent>
+                    </Task>
+                  )}
+
+                  {msg.role === "assistant" ? (
+                    <MessageResponse className="text-[12.5px] leading-relaxed">
+                      {msg.content}
+                    </MessageResponse>
+                  ) : (
+                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                  )}
+
+                  {/* Diagram Applied Summary Card with One-Click Revert */}
+                  {msg.diagramGenerated && (
+                    <div className="p-2.5 rounded-xl bg-muted/65 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-7 rounded-lg bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                          <IconLayout size={14} stroke={1.6} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-foreground text-[12px] truncate leading-tight">
+                            {msg.diagramGenerated.title || "Canvas Updated"}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground tabular-nums mt-0.5 truncate">
+                            {msg.diagramGenerated.summary ||
+                              `${msg.diagramGenerated.nodeCount} nodes · ${msg.diagramGenerated.edgeCount} edges`}
+                          </div>
+                        </div>
+                      </div>
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <button
+                              type="button"
+                              onClick={() => undo()}
+                              className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/80 hover:text-foreground bg-card hover:bg-muted px-2 py-1 rounded-lg border border-black/[0.05] dark:border-white/[0.07] shrink-0 transition-colors cursor-pointer"
+                            >
+                              <IconArrowBackUp size={12} stroke={1.7} />
+                              Revert
+                            </button>
+                          }
+                        />
+                        <TooltipContent side="top">
+                          Undo AI change (⌘Z)
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  )}
+                </MessageContent>
+
+                {msg.role === "assistant" && (
+                  <MessageActions className="px-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <MessageAction
+                      tooltip={
+                        copiedMsgId === msg.id ? "Copied" : "Copy response"
+                      }
+                      label="Copy response"
+                      onClick={() => handleCopyMessage(msg.id, msg.content)}
+                      className="size-6 rounded-md text-muted-foreground hover:text-foreground"
+                    >
+                      {copiedMsgId === msg.id ? (
+                        <IconCheck size={12} stroke={2} />
+                      ) : (
+                        <IconCopy size={12} stroke={1.6} />
+                      )}
+                    </MessageAction>
+                  </MessageActions>
+                )}
+              </Message>
+            ))}
+
+            {/* Loading Indicator */}
+            {status === "loading" && (
+              <div className="flex flex-col gap-1 items-start">
+                <span className="px-1 text-[10.5px] text-muted-foreground">
+                  Architect · Designing
+                </span>
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl rounded-bl-md bg-muted/60">
+                  <IconLoader2
+                    size={15}
+                    stroke={1.8}
+                    className="animate-spin text-foreground/70 shrink-0"
+                  />
+                  <Shimmer as="span" className="text-[12.5px] font-medium">
+                    Designing & laying out canvas…
+                  </Shimmer>
+                </div>
+              </div>
+            )}
+
+            {/* Generation Error Callout */}
+            {status === "error" && (
+              <div className="p-3 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-start justify-between gap-2.5">
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <IconAlertCircle
+                    size={15}
+                    className="text-destructive shrink-0 mt-0.5"
+                  />
+                  <div className="min-w-0">
+                    <div className="font-semibold text-destructive text-[12px]">
+                      Generation Error
+                    </div>
+                    <div className="text-muted-foreground text-[11.5px] mt-0.5 line-clamp-3">
+                      {errorMsg}
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleRetry}
+                  variant="outline"
+                  size="xs"
+                  className="shrink-0"
+                  icon={<IconRefresh size={12} />}
+                >
+                  Retry
+                </Button>
+              </div>
+            )}
+          </ConversationContent>
+          <ConversationScrollButton className="size-8 shadow-md" />
+        </Conversation>
 
         {/* Nordic Studio Prompt Composer */}
         <div className="p-3.5 pt-2 shrink-0 space-y-2">
@@ -604,86 +714,123 @@ export default function AIChatDrawer() {
             </div>
           )}
 
-          <div className="rounded-2xl bg-muted/65 border border-black/[0.05] dark:border-white/[0.07] focus-within:bg-card focus-within:border-black/[0.12] dark:focus-within:border-white/[0.14] focus-within:shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all overflow-hidden">
-            <textarea
-              ref={textareaRef}
-              rows={2}
-              value={prompt}
-              onChange={(e) => {
-                setPrompt(e.target.value);
-                resizeTextarea(e.target);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  if (canSend) handleSend();
-                }
-              }}
-              disabled={status === "loading" || !hasAny}
-              placeholder={
-                !hasAny
-                  ? "Configure an API key to start prompting…"
-                  : nodes.length > 0
-                    ? "Add a service, review bottlenecks, or redesign…"
-                    : isC4
-                      ? "Describe a C4 model to generate…"
-                      : "Describe a system architecture…"
+          {/* Quick Follow-up Suggestions */}
+          {messages.length > 0 && status !== "loading" && hasAny && (
+            <Suggestions className="pb-0.5">
+              {FOLLOW_UP_SUGGESTIONS.map((s) => (
+                <Suggestion
+                  key={s}
+                  suggestion={s}
+                  onClick={(text) => handleSend(text)}
+                  className="h-7 px-2.5 text-[11px] bg-muted/50 border-black/[0.05] dark:border-white/[0.07]"
+                />
+              ))}
+            </Suggestions>
+          )}
+
+          <PromptInput
+            onSubmit={({ text }) => {
+              if (status !== "loading" && selectedProvider && text.trim()) {
+                handleSend(text);
               }
-              className="w-full min-h-[48px] max-h-[160px] resize-none overflow-y-auto border-0 shadow-none bg-transparent px-3.5 pt-3 pb-1.5 text-[13px] text-foreground placeholder:text-muted-foreground/75 outline-none leading-relaxed font-sans disabled:opacity-50"
-            />
+            }}
+            className="[&_[data-slot=input-group]]:rounded-2xl [&_[data-slot=input-group]]:bg-muted/65 [&_[data-slot=input-group]]:border-black/[0.05] dark:[&_[data-slot=input-group]]:border-white/[0.07] [&_[data-slot=input-group]]:focus-within:bg-card [&_[data-slot=input-group]]:focus-within:border-black/[0.12] dark:[&_[data-slot=input-group]]:focus-within:border-white/[0.14] [&_[data-slot=input-group]]:shadow-none [&_[data-slot=input-group]]:focus-within:shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+          >
+            <PromptInputBody>
+              <PromptInputTextarea
+                ref={textareaRef}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                disabled={status === "loading" || !hasAny}
+                placeholder={
+                  !hasAny
+                    ? "Configure an API key to start prompting…"
+                    : nodes.length > 0
+                      ? "Add a service, review bottlenecks, or redesign…"
+                      : isC4
+                        ? "Describe a C4 model to generate…"
+                        : "Describe a system architecture…"
+                }
+                className="min-h-[48px] max-h-[160px] px-3.5 pt-3 pb-1.5 text-[13px] leading-relaxed"
+              />
+            </PromptInputBody>
 
-            <div className="flex items-center justify-between px-2.5 pb-2.5 pt-1">
-              {selectedProvider && activeModelLabel ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="inline-flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-muted text-[11.5px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none">
-                    <span>{activeModelLabel}</span>
-                    <IconChevronDown size={12} stroke={1.7} />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    side="top"
-                    sideOffset={6}
-                    className="z-[200] min-w-44 rounded-2xl p-1.5 shadow-xl border border-black/[0.06] dark:border-white/[0.08]"
+            <PromptInputFooter className="px-2.5 pb-2.5 pt-1">
+              <PromptInputTools>
+                {selectedProvider && activeModelLabel ? (
+                  <ModelSelector
+                    open={modelSelectorOpen}
+                    onOpenChange={setModelSelectorOpen}
                   >
-                    {PROVIDER_MODELS[selectedProvider].map((m) => (
-                      <DropdownMenuItem
-                        key={m.id}
-                        onClick={() => setModel(selectedProvider, m.id)}
-                        className={cn(
-                          "flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[12px] cursor-pointer",
-                          activeModelId === m.id && "bg-muted font-medium",
-                        )}
-                      >
-                        <span>{m.label}</span>
-                        {activeModelId === m.id && (
-                          <IconCheck size={13} stroke={2} />
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <div className="flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
-                  <IconShieldLock size={12} stroke={1.6} />
-                  <span>Keys stored locally</span>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => handleSend()}
-                disabled={!canSend}
-                aria-label="Send prompt"
-                className="nordic-btn size-8 rounded-xl inline-flex items-center justify-center cursor-pointer disabled:opacity-35 disabled:pointer-events-none"
-              >
-                {status === "loading" ? (
-                  <Loader className="size-3.5 animate-spin" />
+                    <ModelSelectorTrigger className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-muted text-[11.5px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none">
+                      <ModelSelectorLogo provider={selectedProvider} />
+                      <span>{activeModelLabel}</span>
+                      <IconChevronDown size={12} stroke={1.7} />
+                    </ModelSelectorTrigger>
+                    <ModelSelectorContent title="Select AI Model">
+                      <ModelSelectorInput placeholder="Search models..." />
+                      <ModelSelectorList>
+                        <ModelSelectorEmpty>
+                          No models found.
+                        </ModelSelectorEmpty>
+                        {keys.map((k) => {
+                          const meta = PROVIDER_META[k.provider];
+                          return (
+                            <ModelSelectorGroup
+                              key={k.provider}
+                              heading={meta.label}
+                            >
+                              {PROVIDER_MODELS[k.provider].map((m) => {
+                                const isSelected =
+                                  selectedProvider === k.provider &&
+                                  activeModelId === m.id;
+                                return (
+                                  <ModelSelectorItem
+                                    key={`${k.provider}-${m.id}`}
+                                    value={`${meta.label} ${m.label} ${m.id}`}
+                                    onSelect={() => {
+                                      setSelectedProvider(k.provider);
+                                      setModel(k.provider, m.id);
+                                      setModelSelectorOpen(false);
+                                    }}
+                                  >
+                                    <ModelSelectorLogo provider={k.provider} />
+                                    <ModelSelectorName>
+                                      {m.label}
+                                    </ModelSelectorName>
+                                    {isSelected && (
+                                      <IconCheck size={14} stroke={2} />
+                                    )}
+                                  </ModelSelectorItem>
+                                );
+                              })}
+                            </ModelSelectorGroup>
+                          );
+                        })}
+                      </ModelSelectorList>
+                    </ModelSelectorContent>
+                  </ModelSelector>
                 ) : (
-                  <IconArrowUp size={15} stroke={1.9} />
+                  <div className="flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
+                    <IconShieldLock size={12} stroke={1.6} />
+                    <span>Keys stored locally</span>
+                  </div>
                 )}
-              </button>
-            </div>
-          </div>
+              </PromptInputTools>
+
+              <PromptInputSubmit
+                disabled={!canSend}
+                status={
+                  status === "loading"
+                    ? "submitted"
+                    : status === "error"
+                      ? "error"
+                      : "ready"
+                }
+                className="nordic-btn size-8 rounded-xl"
+              />
+            </PromptInputFooter>
+          </PromptInput>
         </div>
       </aside>
 

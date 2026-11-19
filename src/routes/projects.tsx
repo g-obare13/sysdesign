@@ -30,6 +30,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 /**
@@ -163,32 +168,46 @@ function ProjectsPage() {
           </div>
 
           <div className="flex items-center p-1 rounded-xl bg-muted/85">
-            <button
-              type="button"
-              onClick={() => setView("grid")}
-              className={cn(
-                "size-7 rounded-lg flex items-center justify-center transition-all cursor-pointer",
-                view === "grid"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              title="Grid view"
-            >
-              <IconLayoutGrid size={15} stroke={1.6} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("list")}
-              className={cn(
-                "size-7 rounded-lg flex items-center justify-center transition-all cursor-pointer",
-                view === "list"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              title="List view"
-            >
-              <IconLayoutList size={15} stroke={1.6} />
-            </button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <button
+                    type="button"
+                    onClick={() => setView("grid")}
+                    className={cn(
+                      "size-7 rounded-lg flex items-center justify-center transition-all cursor-pointer",
+                      view === "grid"
+                        ? "bg-card text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                    aria-label="Grid view"
+                  >
+                    <IconLayoutGrid size={15} stroke={1.6} />
+                  </button>
+                }
+              />
+              <TooltipContent side="top">Grid view</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <button
+                    type="button"
+                    onClick={() => setView("list")}
+                    className={cn(
+                      "size-7 rounded-lg flex items-center justify-center transition-all cursor-pointer",
+                      view === "list"
+                        ? "bg-card text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                    aria-label="List view"
+                  >
+                    <IconLayoutList size={15} stroke={1.6} />
+                  </button>
+                }
+              />
+              <TooltipContent side="top">List view</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -218,22 +237,40 @@ function ProjectsPage() {
                       </div>
 
                       <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                        <button
-                          type="button"
-                          onClick={() => handleRenameRequest(p)}
-                          title="Rename project"
-                          className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-                        >
-                          <IconPencil size={14} stroke={1.6} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteRequest(p)}
-                          title="Delete project"
-                          className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                        >
-                          <IconTrash size={14} stroke={1.6} />
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <button
+                                type="button"
+                                onClick={() => handleRenameRequest(p)}
+                                aria-label="Rename project"
+                                className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                              >
+                                <IconPencil size={14} stroke={1.6} />
+                              </button>
+                            }
+                          />
+                          <TooltipContent side="top">
+                            Rename project
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRequest(p)}
+                                aria-label="Delete project"
+                                className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                              >
+                                <IconTrash size={14} stroke={1.6} />
+                              </button>
+                            }
+                          />
+                          <TooltipContent side="top">
+                            Delete project
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
                     </div>
 
@@ -314,22 +351,40 @@ function ProjectsPage() {
                         <span>Open</span>
                         <IconArrowRight size={13} stroke={1.7} />
                       </Link>
-                      <button
-                        type="button"
-                        onClick={() => handleRenameRequest(p)}
-                        title="Rename project"
-                        className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-                      >
-                        <IconPencil size={14} stroke={1.6} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteRequest(p)}
-                        title="Delete project"
-                        className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                      >
-                        <IconTrash size={14} stroke={1.6} />
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <button
+                              type="button"
+                              onClick={() => handleRenameRequest(p)}
+                              aria-label="Rename project"
+                              className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                            >
+                              <IconPencil size={14} stroke={1.6} />
+                            </button>
+                          }
+                        />
+                        <TooltipContent side="top">
+                          Rename project
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRequest(p)}
+                              aria-label="Delete project"
+                              className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                            >
+                              <IconTrash size={14} stroke={1.6} />
+                            </button>
+                          }
+                        />
+                        <TooltipContent side="top">
+                          Delete project
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 </div>

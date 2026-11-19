@@ -15,6 +15,11 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import {
   
@@ -131,30 +136,50 @@ export default function AISettings() {
 
                 {existing ? (
                   <div className="flex items-center gap-0.5">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() =>
-                        setRevealed(revealed === provider ? null : provider)
-                      }
-                      className="size-7 rounded-lg text-muted-foreground hover:text-foreground"
-                      title={revealed === provider ? "Hide key" : "Reveal key"}
-                    >
-                      {revealed === provider ? (
-                        <IconEyeOff size={14} stroke={1.6} />
-                      ) : (
-                        <IconEye size={14} stroke={1.6} />
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setConfirmRemove(provider)}
-                      className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                      title="Remove key"
-                    >
-                      <IconTrash size={14} stroke={1.6} />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() =>
+                              setRevealed(
+                                revealed === provider ? null : provider,
+                              )
+                            }
+                            className="size-7 rounded-lg text-muted-foreground hover:text-foreground"
+                            aria-label={
+                              revealed === provider ? "Hide key" : "Reveal key"
+                            }
+                          >
+                            {revealed === provider ? (
+                              <IconEyeOff size={14} stroke={1.6} />
+                            ) : (
+                              <IconEye size={14} stroke={1.6} />
+                            )}
+                          </Button>
+                        }
+                      />
+                      <TooltipContent side="top">
+                        {revealed === provider ? "Hide key" : "Reveal key"}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => setConfirmRemove(provider)}
+                            className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            aria-label="Remove key"
+                          >
+                            <IconTrash size={14} stroke={1.6} />
+                          </Button>
+                        }
+                      />
+                      <TooltipContent side="top">Remove key</TooltipContent>
+                    </Tooltip>
                   </div>
                 ) : !isAdding ? (
                   <Button

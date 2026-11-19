@@ -9,6 +9,11 @@ import {
   IconBrandLinkedin,
   IconExternalLink,
 } from "@tabler/icons-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 /**
  * Global application footer component.
@@ -53,33 +58,54 @@ export default function Footer() {
 
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <a
-            href="https://github.com/g-obare13/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
-            title="GitHub"
-          >
-            <IconBrandGithub size={14} />
-          </a>
-          <a
-            href="https://www.linkedin.com/in/obare13/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
-            title="LinkedIn"
-          >
-            <IconBrandLinkedin size={14} />
-          </a>
-          <a
-            href="https://dribbble.com/Obare13"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
-            title="Dribbble"
-          >
-            <IconBrandDribbble size={14} />
-          </a>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <a
+                  href="https://github.com/g-obare13/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                  aria-label="GitHub"
+                >
+                  <IconBrandGithub size={14} />
+                </a>
+              }
+            />
+            <TooltipContent side="top">GitHub</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <a
+                  href="https://www.linkedin.com/in/obare13/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                  aria-label="LinkedIn"
+                >
+                  <IconBrandLinkedin size={14} />
+                </a>
+              }
+            />
+            <TooltipContent side="top">LinkedIn</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <a
+                  href="https://dribbble.com/Obare13"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                  aria-label="Dribbble"
+                >
+                  <IconBrandDribbble size={14} />
+                </a>
+              }
+            />
+            <TooltipContent side="top">Dribbble</TooltipContent>
+          </Tooltip>
         </div>
 
         <div className="w-px h-3 bg-border/60" />

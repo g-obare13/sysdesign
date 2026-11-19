@@ -23,6 +23,11 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -285,15 +290,22 @@ export default function Sidebar() {
       {/* Compact Floating Pill when Collapsed */}
       {isCollapsed && (
         <div className="fixed top-3 left-3 z-40 flex items-center gap-1.5 p-1.5 pr-2.5 nordic-pill rounded-2xl animate-in fade-in duration-150">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setIsCollapsed(false)}
-            className="size-8 rounded-xl text-foreground/80 hover:text-foreground hover:bg-muted"
-            title="Expand Sidebar"
-          >
-            <TablerIcons.IconLayoutSidebar size={16} stroke={1.6} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setIsCollapsed(false)}
+                  className="size-8 rounded-xl text-foreground/80 hover:text-foreground hover:bg-muted"
+                  aria-label="Expand Sidebar"
+                >
+                  <TablerIcons.IconLayoutSidebar size={16} stroke={1.6} />
+                </Button>
+              }
+            />
+            <TooltipContent side="right">Expand Sidebar</TooltipContent>
+          </Tooltip>
           <div className="w-px h-4 bg-border" />
           <span className="text-[13px] font-medium text-foreground truncate max-w-36 pl-1">
             {activeProject ? activeProject.name : "Scratchpad"}
@@ -316,15 +328,25 @@ export default function Sidebar() {
             <Logo className="h-3.5 w-auto text-foreground" />
             <span className="sr-only">SysDesign</span>
           </Link>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setIsCollapsed(true)}
-            className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-            title="Collapse Sidebar"
-          >
-            <TablerIcons.IconLayoutSidebarLeftCollapse size={16} stroke={1.6} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setIsCollapsed(true)}
+                  className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+                  aria-label="Collapse Sidebar"
+                >
+                  <TablerIcons.IconLayoutSidebarLeftCollapse
+                    size={16}
+                    stroke={1.6}
+                  />
+                </Button>
+              }
+            />
+            <TooltipContent side="right">Collapse Sidebar</TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Project Selector + Metadata Subtitle */}
