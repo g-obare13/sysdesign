@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
  */
 export default function DiagramEdge({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -28,8 +30,61 @@ export default function DiagramEdge({
   animated = true,
 }: EdgeProps) {
   const isExporting = useCanvasStore((s) => s.isExporting);
+  const allEdges = useCanvasStore((s) => s.edges);
+  const allNodes = useCanvasStore((s) => s.nodes);
 
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  // Separate parallel / fan-out / fan-in corridors and anchor labels onto
+  // each edge's own dedicated segment so labels never stack on top of one another
+  // and never sit on top of a node card.
+  const outSiblings = allEdges.filter((e) => e.source === source);
+  const inSiblings = allEdges.filter((e) => e.target === target);
+  const samePair = allEdges.filter(
+    (e) =>
+      (e.source === source && e.target === target) ||
+      (e.source === target && e.target === source),
+  );
+  const outIndex = Math.max(0, outSiblings.findIndex((e) => e.id === id));
+  const inIndex = Math.max(0, inSiblings.findIndex((e) => e.id === id));
+  const pairIndex = Math.max(0, samePair.findIndex((e) => e.id === id));
+
+  const isHorizontal =
+    (sourcePosition === "right" || sourcePosition === "left") &&
+    (targetPosition === "left" || targetPosition === "right");
+  const isVertical =
+    (sourcePosition === "bottom" || sourcePosition === "top") &&
+    (targetPosition === "top" || targetPosition === "bottom");
+
+  const dx = targetX - sourceX;
+  const dy = targetY - sourceY;
+
+  let customCenterX: number | undefined;
+  let customCenterY: number | undefined;
+
+  if (isHorizontal && Math.abs(dx) > 40) {
+    const channelSpread =
+      inSiblings.length > 1
+        ? (inIndex - (inSiblings.length - 1) / 2) * 20
+        : outSiblings.length > 1
+          ? (outIndex - (outSiblings.length - 1) / 2) * 20
+          : 0;
+    const midX = (sourceX + targetX) / 2 + channelSpread;
+    const minBound = Math.min(sourceX, targetX) + 28;
+    const maxBound = Math.max(sourceX, targetX) - 28;
+    customCenterX = Math.max(minBound, Math.min(maxBound, midX));
+  } else if (isVertical && Math.abs(dy) > 40) {
+    const channelSpread =
+      inSiblings.length > 1
+        ? (inIndex - (inSiblings.length - 1) / 2) * 20
+        : outSiblings.length > 1
+          ? (outIndex - (outSiblings.length - 1) / 2) * 20
+          : 0;
+    const midY = (sourceY + targetY) / 2 + channelSpread;
+    const minBound = Math.min(sourceY, targetY) + 28;
+    const maxBound = Math.max(sourceY, targetY) - 28;
+    customCenterY = Math.max(minBound, Math.min(maxBound, midY));
+  }
+
+  const [edgePath, defaultLabelX, defaultLabelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -37,7 +92,118 @@ export default function DiagramEdge({
     targetY,
     targetPosition,
     borderRadius: 16,
+    centerX: customCenterX,
+    centerY: customCenterY,
   });
+
+  // Compute absolute bounding boxes of all non-group node cards so a label pill
+  // never lands on top of a node card.
+  const parentById = new Map(allNodes.map((n) => [n.id, n]));
+  const nodeBoxes = allNodes
+    .filter((n) => n.type !== "group" && n.id !== source && n.id !== target)
+    .map((n) => {
+      let nx = n.position.x;
+      let ny = n.position.y;
+      if (n.parentId) {
+        const p = parentById.get(n.parentId);
+        if (p) {
+          nx += p.position.x;
+          ny += p.position.y;
+        }
+      }
+      const nw = n.measured?.width ?? 260;
+      const nh = n.measured?.height ?? 140;
+      return { x1: nx - 12, y1: ny - 12, x2: nx + nw + 12, y2: ny + nh + 12 };
+    });
+
+  const hitsAnyNode = (lx: number, ly: number): boolean => {
+    const hw = 64;
+    const hh = 14;
+    return nodeBoxes.some(
+      (b) => lx + hw > b.x1 && lx - hw < b.x2 && ly + hh > b.y1 && ly - hh < b.y2,
+    );
+  };
+
+  // Build ordered candidate positions strictly on this edge's 3-segment smoothstep path
+  const candidates: Array<{ x: number; y: number }> = [];
+
+  if (isHorizontal && Math.abs(dx) > 70) {
+    const cx = customCenterX ?? (sourceX + targetX) / 2;
+    const srcRailX = sourceX + (cx - sourceX) * 0.52;
+    const tgtRailX = cx + (targetX - cx) * 0.48;
+    const vSpan = Math.abs(dy);
+
+    if (vSpan > 28) {
+      // Stagger fraction along the vertical segment so neither fan-in nor fan-out collide
+      const frac =
+        inSiblings.length > 1
+          ? 0.28 + ((inIndex % 3) * 0.22)
+          : outSiblings.length > 1
+            ? 0.72 - ((outIndex % 3) * 0.22)
+            : 0.5;
+      const vertPoint = { x: cx, y: sourceY + dy * frac };
+
+      if (inSiblings.length > 1 && outSiblings.length === 1) {
+        // Fan-in from unique sources: source departure rail has a unique Y
+        candidates.push({ x: srcRailX, y: sourceY }, vertPoint, { x: tgtRailX, y: targetY });
+      } else if (outSiblings.length > 1 && inSiblings.length === 1) {
+        // Fan-out to unique targets: target approach rail has a unique Y
+        candidates.push({ x: tgtRailX, y: targetY }, vertPoint, { x: srcRailX, y: sourceY });
+      } else {
+        // Many-to-many or 1-to-1: vertical rail point depends on both sourceY and targetY
+        candidates.push(vertPoint, { x: srcRailX, y: sourceY }, { x: tgtRailX, y: targetY });
+      }
+    } else {
+      const t =
+        inSiblings.length > 1
+          ? 0.35 + ((inIndex % 3) * 0.16)
+          : outSiblings.length > 1
+            ? 0.65 - ((outIndex % 3) * 0.16)
+            : 0.5;
+      candidates.push(
+        { x: sourceX + dx * t, y: (sourceY + targetY) / 2 },
+        { x: srcRailX, y: sourceY },
+        { x: tgtRailX, y: targetY },
+      );
+    }
+  } else if (isVertical && Math.abs(dy) > 70) {
+    const cy = customCenterY ?? (sourceY + targetY) / 2;
+    const srcRailY = sourceY + (cy - sourceY) * 0.52;
+    const tgtRailY = cy + (targetY - cy) * 0.48;
+    const hSpan = Math.abs(dx);
+
+    if (hSpan > 28) {
+      const frac =
+        inSiblings.length > 1
+          ? 0.28 + ((inIndex % 3) * 0.22)
+          : outSiblings.length > 1
+            ? 0.72 - ((outIndex % 3) * 0.22)
+            : 0.5;
+      const horizPoint = { x: sourceX + dx * frac, y: cy };
+
+      if (inSiblings.length > 1 && outSiblings.length === 1) {
+        candidates.push({ x: sourceX, y: srcRailY }, horizPoint, { x: targetX, y: tgtRailY });
+      } else if (outSiblings.length > 1 && inSiblings.length === 1) {
+        candidates.push({ x: targetX, y: tgtRailY }, horizPoint, { x: sourceX, y: srcRailY });
+      } else {
+        candidates.push(horizPoint, { x: sourceX, y: srcRailY }, { x: targetX, y: tgtRailY });
+      }
+    } else {
+      candidates.push({ x: (sourceX + targetX) / 2, y: sourceY + dy * 0.5 });
+    }
+  }
+
+  candidates.push({ x: defaultLabelX, y: defaultLabelY });
+  const chosen = candidates.find((c) => !hitsAnyNode(c.x, c.y)) ?? candidates[0];
+  let labelX = chosen.x;
+  let labelY = chosen.y;
+
+  // If multiple edges connect the exact same pair of nodes, offset their labels cleanly
+  if (samePair.length > 1) {
+    const offset = (pairIndex - (samePair.length - 1) / 2) * 28;
+    if (isHorizontal) labelY += offset;
+    else labelX += offset;
+  }
 
   const [isHovered, setIsHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);

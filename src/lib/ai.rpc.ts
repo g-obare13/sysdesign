@@ -148,7 +148,7 @@ export const runAIArchitect = createServerFn({ method: "POST" })
       system,
       messages,
       temperature: 0.3,
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(8),
       tools: {
         lookup_components: tool({
           description:

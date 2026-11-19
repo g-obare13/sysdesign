@@ -377,7 +377,7 @@ export default function AIChatDrawer() {
               <TooltipTrigger
                 render={
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon-sm"
                     onClick={() => setShowSettingsModal(true)}
                     aria-label="API Keys"
@@ -394,7 +394,7 @@ export default function AIChatDrawer() {
                 <TooltipTrigger
                   render={
                     <Button
-                      variant="ghost"
+                      variant="destructive"
                       size="icon-sm"
                       onClick={clearMessages}
                       className="hover:text-destructive hover:bg-destructive/10"
@@ -426,30 +426,6 @@ export default function AIChatDrawer() {
           </div>
         </div>
 
-        {/* Recessed Segmented Provider Switcher */}
-        {hasAny && keys.length > 1 && (
-          <div className="px-4 pt-3 pb-1 shrink-0">
-            <div className="flex items-center p-1 rounded-xl bg-muted/85 gap-0.5">
-              {keys.map((k) => {
-                const meta = PROVIDER_META[k.provider];
-                const isActive = selectedProvider === k.provider;
-                return (
-                  <Button
-                    key={k.provider}
-                    type="button"
-                    variant={isActive ? "outline" : "ghost"}
-                    size="sm"
-                    onClick={() => setSelectedProvider(k.provider)}
-                    className="flex-1"
-                  >
-                    {meta.label.split(" ")[0]}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Scrollable Conversation Feed */}
         <Conversation className="flex-1 min-h-0">
           <ConversationContent className="gap-3.5 px-4 py-3.5">
@@ -465,8 +441,8 @@ export default function AIChatDrawer() {
                       Connect an AI Provider
                     </h4>
                     <p className="text-small text-muted-foreground leading-relaxed">
-                      Add your OpenAI, Anthropic, Gemini, or DeepSeek key locally to
-                      generate, edit, and critique architectures.
+                      Add your OpenAI, Anthropic, Gemini, or DeepSeek key
+                      locally to generate, edit, and critique architectures.
                     </p>
                   </div>
                 </div>
@@ -801,6 +777,7 @@ export default function AIChatDrawer() {
                                       setModel(k.provider, m.id);
                                       setModelSelectorOpen(false);
                                     }}
+                                    className="bg-transparent! py-2!"
                                   >
                                     <ModelSelectorLogo provider={k.provider} />
                                     <ModelSelectorName>

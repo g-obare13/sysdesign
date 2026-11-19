@@ -405,11 +405,23 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
           </Tooltip>
         </div>
 
-        {/* Handles for Edge Connections */}
+        {/* Handles for Edge Connections (top-t & bottom-s first for sensible defaults) */}
         <Handle
           type="target"
           position={Position.Top}
           id="top-t"
+          style={handleStyle}
+        />
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id="bottom-s"
+          style={handleStyle}
+        />
+        <Handle
+          type="target"
+          position={Position.Bottom}
+          id="bottom-t"
           style={handleStyle}
         />
         <Handle
@@ -440,18 +452,6 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
           type="source"
           position={Position.Right}
           id="right-s"
-          style={handleStyle}
-        />
-        <Handle
-          type="target"
-          position={Position.Bottom}
-          id="bottom-t"
-          style={handleStyle}
-        />
-        <Handle
-          type="source"
-          position={Position.Bottom}
-          id="bottom-s"
           style={handleStyle}
         />
 

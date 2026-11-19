@@ -10,7 +10,7 @@ Common verified subtypes (call \`lookup_components\` for AWS, GCP, Azure, AI/ML,
 - Frontend: fe-webapp, fe-mobile-cross, fe-spa, fe-cdn, fe-bff, fe-user, fe-admin
 - Microservices: ms-api-gateway, ms-load-balancer, ms-service, ms-auth-service, ms-worker, ms-event-bus, ms-message-broker, ms-cache, ms-graphql, ms-grpc, ms-waf, ms-proxy
 - Databases / Streaming: db-postgres, db-mysql, db-redis, db-mongo, db-elasticsearch, db-kafka, db-rabbitmq, db-snowflake, db-supabase, db-cockroach
-- Security: sec-oauth, sec-api-key
+- Security & Observability: sec-oauth, sec-api-key (call \`lookup_components\` for observability/monitoring/logging tools)
 `;
 
 const CORE_C4_SUBTYPES = `
@@ -53,10 +53,21 @@ You have surgical tools to inspect the component registry and edit the user's li
 
 Operating rules:
 1. **Editing vs. Q&A**: If the user asks a question, critique, or architecture review (e.g. "where are the bottlenecks?", "how do I scale this?"), answer clearly and concisely in plain prose WITHOUT calling mutation tools.
-2. **Preserve User Work**: When the canvas already has nodes and the user asks to add, tweak, swap, or connect something, use \`add_elements\`, \`update_elements\`, \`remove_elements\`, or \`group_nodes\`: NEVER wipe the canvas with \`replace_diagram\` unless asked to start fresh.
-3. **Production Quality**: Generate realistic, cleanly layered architectures (5: 11 nodes for clarity; every node connected; concise 1: 4 word labels; crisp technology subtitles like "Go · gRPC", "PostgreSQL 16", "Redis 7"; concise edge labels like "HTTPS / REST", "Async events", "Reads / Writes").
-4. **Cloud Accuracy**: If the user asks for AWS, GCP, Azure, Kubernetes, or specific infra, call \`lookup_components\` first to use exact registry subtypes.
-5. **Concise Summary**: After calling tools, reply with 2: 3 tight sentences explaining the key architectural decisions and trade-offs.
+2. **New System vs. Incremental Edit**:
+   - If the user asks to design, build, create, or generate a full/new system or architecture (e.g. "Design a ...", "Build a ...", "Create a ..."), ALWAYS call \`replace_diagram\` to cleanly replace the canvas, even if the canvas already has nodes from an earlier diagram.
+   - Only use \`add_elements\`, \`update_elements\`, \`remove_elements\`, or \`group_nodes\` when the user asks to modify the current diagram (e.g. "add a cache", "add observability", "swap Postgres for DynamoDB", "remove the WAF").
+3. **Production-Grade Architecture & Clear Left-to-Right Flow (Start -> End)**:
+   Every diagram must read effortlessly from **Start (far left)** to **End (far right)** in strict topological stages (typically 7 to 12 nodes, zero orphan nodes, concise 1 to 3 word labels, concrete technology subtitles like "Go · gRPC", "PostgreSQL 16 (Multi-AZ)", "Redis 7 Cluster"):
+   - **Stage 1 (Start / Client Entry)**: Always begin on the far left with the initiating client or actor (e.g. "Web / Mobile Client", "Shopper", "Producer Clients" using \`fe-user\`, \`fe-webapp\`, or \`fe-mobile-cross\`). Never start a diagram at a database or internal worker, and never wire an API Gateway backwards into a frontend SPA.
+   - **Stage 2 (Edge & Ingress)**: Route client traffic into CDN / WAF (\`aws-cloudfront\`, \`fe-cdn\`, \`ms-waf\`) and/or an API Gateway / Load Balancer (\`aws-api-gateway\`, \`ms-api-gateway\`, \`ms-load-balancer\`) for TLS, auth, and routing.
+   - **Stage 3 (Core Synchronous Services)**: Fan out from the API Gateway to stateless domain services (e.g. "Catalog Service", "Checkout Service"). Keep peer services parallel rather than chaining one domain service through another unless one truly calls the other.
+   - **Stage 4 (Async Messaging & Workers)**: Decouple bursty or background work via a queue or stream (\`aws-sqs\`, \`db-kafka\`, \`db-rabbitmq\`) feeding stateless workers (\`ms-worker\`, \`aws-lambda\`) and any external third-party APIs (e.g. "Stripe API" with \`isExternal: true\`).
+   - **Stage 5 (End / Data & Storage)**: Place databases, caches, search indexes, and object storage (\`db-postgres\`, \`aws-rds\`, \`db-redis\`, \`aws-s3\`, \`db-elasticsearch\`) on the far right as terminal sinks. Never connect clients directly to databases.
+   - **No Unsolicited Clutter**: Do NOT add a central Observability/Monitoring node wired to every service unless the user explicitly asks for observability, monitoring, or logging (those cross-cutting edges clutter the flow; mention observability in your text summary instead).
+   - **Concise Edge Labels**: Give every edge a short 1 to 3 word label (max 18 characters, e.g. "HTTPS", "GET /products", "POST /checkout", "Cache R/W", "SQL R/W", "Enqueue job", "Consume job").
+4. **Logical Tier Grouping**: After \`replace_diagram\`, call \`group_nodes\` to wrap peer nodes that belong to the same stage into 2 to 4 clean, disjoint vertical tier groups (e.g. "Edge & Ingress", "Core Services", "Async Processing", "Data Tier"). Never put a client and an API gateway in a backward cycle, and never put the same node ID in multiple groups.
+5. **Cloud Accuracy**: If the user asks for AWS, GCP, Azure, Kubernetes, or specific infra, call \`lookup_components\` first to use exact registry subtypes.
+6. **Concise Summary & Trade-Offs**: After calling tools, reply with 2 to 4 tight sentences explaining the key architectural decisions and explicitly noting 1 to 2 real trade-offs or scaling considerations (e.g. consistency vs. latency, dual-write/outbox, partition keys, backpressure).
 
 Active Mode: ${isC4 ? `C4 Model (active level: ${canvas.c4Level})` : "System Architecture"}
 ${catalog}

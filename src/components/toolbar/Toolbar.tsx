@@ -201,7 +201,10 @@ export default function Toolbar() {
 
   const handleExport = async (key: string) => {
     setExportingState(true);
-    await new Promise((r) => setTimeout(r, 100));
+    if ((key === "png" || key === "svg") && hasNodes) {
+      fitView({ padding: 0.15, duration: 0, maxZoom: 1 });
+    }
+    await new Promise((r) => setTimeout(r, 120));
 
     try {
       if (key === "png") await exportPng();

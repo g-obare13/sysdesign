@@ -80,8 +80,9 @@ export const replaceDiagramInputSchema = z.object({
   direction: z
     .enum(["TB", "LR"])
     .optional()
-    .default("TB")
-    .describe("Layout direction: 'TB' (top-to-bottom, default) or 'LR' (left-to-right)"),
+    .describe(
+      "Layout direction: 'LR' (left-to-right, preferred for data pipelines and system architectures) or 'TB' (top-to-bottom, preferred for layered or C4 hierarchies)",
+    ),
   nodes: z.array(aiNodeInputSchema).min(1).describe("All nodes in the new diagram"),
   edges: z.array(aiEdgeInputSchema).describe("All connections between nodes"),
 });
@@ -157,11 +158,20 @@ export interface ApplyOperationsResult {
 }
 
 // ---------------------------------------------------------------------------
-// Builders & Dagre Layout Helper
+// Builders & Layout Helpers
 // ---------------------------------------------------------------------------
 
-const DEFAULT_NODE_WIDTH = 248;
-const DEFAULT_NODE_HEIGHT = 96;
+/** Conservative rendered card dimensions (cards are 224 to 268px wide). */
+const DEFAULT_NODE_WIDTH = 268;
+const DEFAULT_NODE_HEIGHT = 148;
+
+const GROUP_PAD_X = 32;
+const GROUP_PAD_TOP = 56;
+const GROUP_PAD_BOTTOM = 32;
+const GROUP_INNER_GAP_X = 160;
+const GROUP_INNER_GAP_Y = 52;
+
+type LayoutDirection = "TB" | "LR";
 
 function buildCanvasNode(
   input: z.infer<typeof aiNodeInputSchema>,
@@ -214,55 +224,398 @@ function buildCanvasEdge(
   };
 }
 
-function layoutWithDagre(
+/**
+ * Architectural stage (0 = far-left client entry, 8 = far-right observability)
+ * used so diagrams always read clearly from Start (left) to End (right).
+ */
+function tierOf(node: DiagramNode): number {
+  const st = String(node.data.subtype ?? "").toLowerCase();
+  const cat = String(node.data.category ?? "").toLowerCase();
+  const label = String(node.data.label ?? "").toLowerCase();
+  const text = `${st} ${label}`;
+  const has = (...keys: Array<string>) => keys.some((k) => text.includes(k));
+
+  if (
+    cat === "observability" ||
+    has("monitor", "observab", "cloudwatch", "datadog", "prometheus", "grafana", "logging", "tracing", "telemetry")
+  ) {
+    return 8;
+  }
+  if (st === "c4-person" || st === "fe-user" || st === "fe-admin" || has("shopper", "customer", "client", "browser", "producer", "user")) {
+    return 0;
+  }
+  if (has("cdn", "cloudfront", "waf", "route53", "route 53", "dns", "shield")) {
+    return 1;
+  }
+  if (cat === "frontend") {
+    return 1;
+  }
+  if (has("worker", "consumer", "processor", "cron", "scheduler", "etl", "batch")) {
+    return 5;
+  }
+  if (
+    has("queue", "sqs", "sns", "kafka", "kinesis", "rabbit", "event-bus", "event bus", "eventbridge", "broker", "msk", "pubsub", "pub/sub", "topic")
+  ) {
+    return 4;
+  }
+  if (
+    has("gateway", "load-balancer", "load balancer", "proxy", "ingress", "bff", "graphql", "auth") ||
+    /(^|-)(alb|nlb|elb)($|-)/.test(st)
+  ) {
+    return 2;
+  }
+  if (
+    cat === "database" ||
+    st.startsWith("db-") ||
+    has("cache", "redis", "memcached", "s3", "bucket", "storage", "data lake", "warehouse", "elasticsearch", "opensearch", "search index", "postgres", "mysql", "dynamo", "mongo", "aurora", "rds", "snowflake", "database")
+  ) {
+    return 6;
+  }
+  if (node.data.isExternal || st === "c4-external-system" || has("stripe", "provider", "third-party", "third party", "external", "twilio", "sendgrid", "paypal")) {
+    return 7;
+  }
+  return 3;
+}
+
+/**
+ * Computes sub-columns for nodes inside a single group.
+ * Peer nodes without internal edges stay in sub-column 0 (a clean single-column
+ * vertical stack so no node ever blocks horizontal edges to its sibling).
+ * Only genuine forward edges inside the group advance a child to sub-column 1+.
+ */
+function computeGroupSubColumns(
+  members: Array<DiagramNode>,
+  edges: Array<DiagramEdge>,
+): Map<string, number> {
+  const memberById = new Map(members.map((m) => [m.id, m]));
+  const subCol = new Map<string, number>();
+  for (const m of members) subCol.set(m.id, 0);
+
+  const internalEdges = edges.filter(
+    (e) =>
+      memberById.has(e.source) &&
+      memberById.has(e.target) &&
+      e.source !== e.target,
+  );
+
+  // Relax forward internal edges up to max depth 2
+  for (let pass = 0; pass < members.length; pass++) {
+    let changed = false;
+    for (const e of internalEdges) {
+      const src = memberById.get(e.source)!;
+      const tgt = memberById.get(e.target)!;
+      const ts = tierOf(src);
+      const tt = tierOf(tgt);
+      if (ts <= tt) {
+        const nextCol = Math.min(2, (subCol.get(src.id) ?? 0) + 1);
+        if (nextCol > (subCol.get(tgt.id) ?? 0)) {
+          subCol.set(tgt.id, nextCol);
+          changed = true;
+        }
+      }
+    }
+    if (!changed) break;
+  }
+
+  return subCol;
+}
+
+/**
+ * Deterministic hierarchical layout for AI diagrams:
+ * 1. Arranges each group's children into vertical sub-columns (1 column for parallel
+ *    peers so no node sits in front of a sibling; 2 columns only when one member
+ *    calls another inside the same group) and computes exact group dimensions.
+ * 2. Runs Dagre on top-level entities (groups + ungrouped nodes) with tier-oriented
+ *    edges so the diagram reads strictly Left -> Right from Start (clients) to End (data).
+ * 3. Reorders children vertically inside each group by the average Y of their external
+ *    connected neighbors to minimize edge crossings.
+ */
+function layoutArchitecture(
   nodes: Array<DiagramNode>,
   edges: Array<DiagramEdge>,
-  direction: "TB" | "LR" = "TB",
+  direction: LayoutDirection,
 ): Array<DiagramNode> {
-  const rootNodes = nodes.filter((n) => !n.parentId);
-  if (rootNodes.length === 0) return nodes;
+  const groupNodes = nodes.filter((n) => n.type === "group");
+  const groupIds = new Set(groupNodes.map((g) => g.id));
+  const leaves = nodes.filter((n) => n.type !== "group");
+  if (leaves.length === 0) return nodes;
+
+  const childrenByGroup = new Map<string, Array<DiagramNode>>();
+  for (const leaf of leaves) {
+    if (leaf.parentId && groupIds.has(leaf.parentId)) {
+      const list = childrenByGroup.get(leaf.parentId) ?? [];
+      list.push(leaf);
+      childrenByGroup.set(leaf.parentId, list);
+    }
+  }
+
+  const activeGroups = groupNodes.filter(
+    (g) => (childrenByGroup.get(g.id)?.length ?? 0) > 0,
+  );
+  const activeGroupIds = new Set(activeGroups.map((g) => g.id));
+
+  // Precompute sub-columns and exact bounding box size for each active group
+  const groupMeta = new Map<
+    string,
+    {
+      width: number;
+      height: number;
+      tier: number;
+      columns: Map<number, Array<DiagramNode>>;
+    }
+  >();
+
+  for (const grp of activeGroups) {
+    const members = childrenByGroup.get(grp.id) ?? [];
+    const subCols = computeGroupSubColumns(members, edges);
+    const columns = new Map<number, Array<DiagramNode>>();
+    for (const m of members) {
+      const c = subCols.get(m.id) ?? 0;
+      const list = columns.get(c) ?? [];
+      list.push(m);
+      columns.set(c, list);
+    }
+
+    const colKeys = [...columns.keys()].sort((a, b) => a - b);
+    const numCols = Math.max(1, colKeys.length);
+    const maxRows = Math.max(
+      1,
+      ...colKeys.map((k) => columns.get(k)?.length ?? 1),
+    );
+
+    const width =
+      GROUP_PAD_X * 2 +
+      numCols * DEFAULT_NODE_WIDTH +
+      (numCols - 1) * GROUP_INNER_GAP_X;
+    const height =
+      GROUP_PAD_TOP +
+      GROUP_PAD_BOTTOM +
+      maxRows * DEFAULT_NODE_HEIGHT +
+      (maxRows - 1) * GROUP_INNER_GAP_Y;
+
+    const avgTier =
+      members.reduce((sum, m) => sum + tierOf(m), 0) / members.length;
+
+    groupMeta.set(grp.id, { width, height, tier: avgTier, columns });
+  }
+
+  // Map every leaf ID to its top-level root ID (group ID or its own ID)
+  const rootOf = new Map<string, string>();
+  const rootTier = new Map<string, number>();
+
+  for (const grp of activeGroups) {
+    rootOf.set(grp.id, grp.id);
+    rootTier.set(grp.id, groupMeta.get(grp.id)!.tier);
+  }
+  for (const leaf of leaves) {
+    const rid =
+      leaf.parentId && activeGroupIds.has(leaf.parentId)
+        ? leaf.parentId
+        : leaf.id;
+    rootOf.set(leaf.id, rid);
+    if (!rootTier.has(rid)) {
+      rootTier.set(rid, tierOf(leaf));
+    }
+  }
 
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
   g.setGraph({
     rankdir: direction,
-    nodesep: direction === "TB" ? 80 : 60,
-    ranksep: direction === "TB" ? 110 : 120,
+    ranker: "network-simplex",
+    nodesep: 72,
+    ranksep: direction === "LR" ? 220 : 170,
+    edgesep: 36,
     marginx: 40,
     marginy: 40,
   });
 
-  const rootIds = new Set(rootNodes.map((n) => n.id));
-  rootNodes.forEach((n) => {
-    const w = n.measured?.width ?? (n.type === "group" ? 420 : DEFAULT_NODE_WIDTH);
-    const h = n.measured?.height ?? (n.type === "group" ? 260 : DEFAULT_NODE_HEIGHT);
-    g.setNode(n.id, { width: w, height: h });
-  });
+  const rootNodes: Array<DiagramNode> = [
+    ...activeGroups,
+    ...leaves.filter((l) => !l.parentId || !activeGroupIds.has(l.parentId)),
+  ];
 
-  edges.forEach((e) => {
-    if (rootIds.has(e.source) && rootIds.has(e.target) && e.source !== e.target) {
-      g.setEdge(e.source, e.target);
+  for (const r of rootNodes) {
+    const gm = groupMeta.get(r.id);
+    g.setNode(r.id, {
+      width: gm ? gm.width : DEFAULT_NODE_WIDTH,
+      height: gm ? gm.height : DEFAULT_NODE_HEIGHT,
+    });
+  }
+
+  // Add real edges between distinct root entities, oriented from lower tier to higher tier
+  for (const e of edges) {
+    const ra = rootOf.get(e.source);
+    const rb = rootOf.get(e.target);
+    if (!ra || !rb || ra === rb) continue;
+    const ta = rootTier.get(ra) ?? 3;
+    const tb = rootTier.get(rb) ?? 3;
+    const [from, to] = ta > tb ? [rb, ra] : [ra, rb];
+    if (g.hasEdge(from, to) || g.hasEdge(to, from)) continue;
+    g.setEdge(from, to, { weight: 2, minlen: 1 });
+  }
+
+  // Backbone chain by tier so even loosely coupled stages stay ordered Start -> End
+  const sortedRootsByTier = [...rootNodes].sort(
+    (a, b) => (rootTier.get(a.id) ?? 3) - (rootTier.get(b.id) ?? 3),
+  );
+  for (let i = 0; i < sortedRootsByTier.length - 1; i++) {
+    const cur = sortedRootsByTier[i];
+    const nxt = sortedRootsByTier[i + 1];
+    const tc = rootTier.get(cur.id) ?? 3;
+    const tn = rootTier.get(nxt.id) ?? 3;
+    if (tn > tc && !g.hasEdge(cur.id, nxt.id) && !g.hasEdge(nxt.id, cur.id)) {
+      g.setEdge(cur.id, nxt.id, { weight: 1, minlen: 1 });
     }
-  });
+  }
 
   dagre.layout(g);
 
-  const positioned = new Map<string, DiagramNode>();
-  rootNodes.forEach((n) => {
-    const pos = g.node(n.id);
-    if (!pos) return;
-    const w = n.measured?.width ?? (n.type === "group" ? 420 : DEFAULT_NODE_WIDTH);
-    const h = n.measured?.height ?? (n.type === "group" ? 260 : DEFAULT_NODE_HEIGHT);
-    positioned.set(n.id, {
-      ...n,
-      position: {
-        x: Math.round((pos.x - w / 2) / 20) * 20,
-        y: Math.round((pos.y - h / 2) / 20) * 20,
+  const rootPos = new Map<string, { x: number; y: number; w: number; h: number }>();
+  for (const r of rootNodes) {
+    const pos = g.node(r.id) as { x: number; y: number } | undefined;
+    const gm = groupMeta.get(r.id);
+    const w = gm ? gm.width : DEFAULT_NODE_WIDTH;
+    const h = gm ? gm.height : DEFAULT_NODE_HEIGHT;
+    const x = pos ? Math.round((pos.x - w / 2) / 20) * 20 : 40;
+    const y = pos ? Math.round((pos.y - h / 2) / 20) * 20 : 40;
+    rootPos.set(r.id, { x, y, w, h });
+  }
+
+  // Approximate center Y of each root entity so children inside a group can align
+  // with their connected external neighbors and avoid diagonal edge crossings.
+  const externalNeighborY = (leafId: string, groupId: string): number => {
+    const ys: Array<number> = [];
+    for (const e of edges) {
+      const otherId =
+        e.source === leafId ? e.target : e.target === leafId ? e.source : null;
+      if (!otherId) continue;
+      const otherRoot = rootOf.get(otherId);
+      if (!otherRoot || otherRoot === groupId) continue;
+      const rp = rootPos.get(otherRoot);
+      if (rp) ys.push(rp.y + rp.h / 2);
+    }
+    if (ys.length === 0) return Number.POSITIVE_INFINITY;
+    return ys.reduce((a, b) => a + b, 0) / ys.length;
+  };
+
+  const outGroups: Array<DiagramNode> = activeGroups.map((grp) => {
+    const rp = rootPos.get(grp.id)!;
+    return {
+      ...grp,
+      position: { x: rp.x, y: rp.y },
+      style: {
+        ...(grp.style ?? {}),
+        width: rp.w,
+        height: rp.h,
       },
-    });
+    };
   });
 
-  return nodes.map((n) => positioned.get(n.id) ?? n);
+  const childRelativePos = new Map<string, { x: number; y: number }>();
+  for (const grp of activeGroups) {
+    const gm = groupMeta.get(grp.id)!;
+    const colKeys = [...gm.columns.keys()].sort((a, b) => a - b);
+    colKeys.forEach((colKey, colIdx) => {
+      const colMembers = [...(gm.columns.get(colKey) ?? [])].sort((a, b) => {
+        const ya = externalNeighborY(a.id, grp.id);
+        const yb = externalNeighborY(b.id, grp.id);
+        if (ya !== yb) return ya - yb;
+        return tierOf(a) - tierOf(b);
+      });
+      colMembers.forEach((member, rowIdx) => {
+        childRelativePos.set(member.id, {
+          x: GROUP_PAD_X + colIdx * (DEFAULT_NODE_WIDTH + GROUP_INNER_GAP_X),
+          y: GROUP_PAD_TOP + rowIdx * (DEFAULT_NODE_HEIGHT + GROUP_INNER_GAP_Y),
+        });
+      });
+    });
+  }
+
+  const outLeaves: Array<DiagramNode> = leaves.map((leaf) => {
+    if (leaf.parentId && activeGroupIds.has(leaf.parentId)) {
+      const rel = childRelativePos.get(leaf.id) ?? {
+        x: GROUP_PAD_X,
+        y: GROUP_PAD_TOP,
+      };
+      return {
+        ...leaf,
+        position: rel,
+      };
+    }
+    const rp = rootPos.get(leaf.id);
+    const { parentId: _drop, extent: _extent, ...rest } = leaf;
+    return {
+      ...rest,
+      position: rp ? { x: rp.x, y: rp.y } : leaf.position,
+    };
+  });
+
+  return [...outGroups, ...outLeaves];
+}
+
+/**
+ * Assigns facing `sourceHandle` and `targetHandle` IDs to edges based on
+ * the relative absolute geometry of their source and target nodes so edges
+ * never cut through node cards.
+ */
+function assignSmartEdgeHandles(
+  nodes: Array<DiagramNode>,
+  edges: Array<DiagramEdge>,
+  direction: LayoutDirection,
+): Array<DiagramEdge> {
+  const byId = new Map<string, DiagramNode>();
+  for (const n of nodes) byId.set(n.id, n);
+
+  const centerOf = (node: DiagramNode): { cx: number; cy: number } => {
+    let x = node.position.x;
+    let y = node.position.y;
+    if (node.parentId) {
+      const parent = byId.get(node.parentId);
+      if (parent) {
+        x += parent.position.x;
+        y += parent.position.y;
+      }
+    }
+    return { cx: x + DEFAULT_NODE_WIDTH / 2, cy: y + DEFAULT_NODE_HEIGHT / 2 };
+  };
+
+  return edges.map((edge) => {
+    const src = byId.get(edge.source);
+    const tgt = byId.get(edge.target);
+    if (!src || !tgt) return edge;
+
+    const sc = centerOf(src);
+    const tc = centerOf(tgt);
+    const dx = tc.cx - sc.cx;
+    const dy = tc.cy - sc.cy;
+
+    // Only use top/bottom handles when two nodes are stacked in the same column
+    const inSameColumn = Math.abs(dx) < DEFAULT_NODE_WIDTH * 0.45;
+    const useHorizontal =
+      direction === "LR" ? !inSameColumn : Math.abs(dx) > Math.abs(dy);
+
+    let sourceHandle: string;
+    let targetHandle: string;
+
+    if (useHorizontal) {
+      if (dx >= 0) {
+        sourceHandle = "right-s";
+        targetHandle = "left-t";
+      } else {
+        sourceHandle = "left-s";
+        targetHandle = "right-t";
+      }
+    } else if (dy >= 0) {
+      sourceHandle = "bottom-s";
+      targetHandle = "top-t";
+    } else {
+      sourceHandle = "top-s";
+      targetHandle = "bottom-t";
+    }
+
+    return { ...edge, sourceHandle, targetHandle };
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -290,20 +643,28 @@ export function applyAIOperationsToCanvas(
   let nodes: Array<DiagramNode> = canvasStore.state.nodes.map((n) => ({ ...n }));
   let edges: Array<DiagramEdge> = canvasStore.state.edges.map((e) => ({ ...e }));
   let shouldFitView = false;
+  let needsLayout = false;
+  let layoutDir: LayoutDirection = mode === "c4" ? "TB" : "LR";
   let title: string | undefined;
   const actions: Array<string> = [];
 
   for (const op of operations) {
     switch (op.type) {
       case "replace_diagram": {
-        const validIds = new Set(op.input.nodes.map((n) => n.id));
-        const rawNodes = op.input.nodes.map((n) => buildCanvasNode(n, mode));
-        const rawEdges = op.input.edges
+        const seen = new Set<string>();
+        const uniqueInputs = op.input.nodes.filter((n) => {
+          if (seen.has(n.id)) return false;
+          seen.add(n.id);
+          return true;
+        });
+        const validIds = new Set(uniqueInputs.map((n) => n.id));
+        nodes = uniqueInputs.map((n) => buildCanvasNode(n, mode));
+        edges = op.input.edges
           .filter((e) => validIds.has(e.source) && validIds.has(e.target) && e.source !== e.target)
           .map((e, idx) => buildCanvasEdge(e, idx));
 
-        nodes = layoutWithDagre(rawNodes, rawEdges, op.input.direction ?? "TB");
-        edges = rawEdges;
+        layoutDir = mode === "c4" ? (op.input.direction ?? "TB") : "LR";
+        needsLayout = true;
         title = op.input.title;
         shouldFitView = true;
         actions.push(`Generated ${nodes.length} nodes & ${edges.length} connections`);
@@ -312,37 +673,32 @@ export function applyAIOperationsToCanvas(
 
       case "add_elements": {
         const existingIds = new Set(nodes.map((n) => n.id));
-        const maxY = nodes.reduce((acc, n) => Math.max(acc, n.position.y), 0);
-        const startY = nodes.length > 0 ? maxY + 180 : 80;
+        const existingRoots = nodes.filter((n) => !n.parentId);
+        const maxX = existingRoots.reduce(
+          (acc, n) =>
+            Math.max(
+              acc,
+              n.position.x +
+                (typeof n.style?.width === "number" ? n.style.width : DEFAULT_NODE_WIDTH),
+            ),
+          0,
+        );
+        const minY =
+          existingRoots.length > 0
+            ? Math.min(...existingRoots.map((n) => n.position.y))
+            : 80;
+        const startX = existingRoots.length > 0 ? maxX + 160 : 80;
 
         const addedNodes: Array<DiagramNode> = [];
         op.input.nodes.forEach((n, idx) => {
           if (existingIds.has(n.id)) return;
           existingIds.add(n.id);
-          // Place near connected existing neighbor if possible, else clean row below
-          const neighborEdge = op.input.edges.find(
-            (e) =>
-              (e.source === n.id && nodes.some((ex) => ex.id === e.target)) ||
-              (e.target === n.id && nodes.some((ex) => ex.id === e.source)),
+          addedNodes.push(
+            buildCanvasNode(n, mode, {
+              x: Math.round((startX + (idx % 2) * (DEFAULT_NODE_WIDTH + 80)) / 20) * 20,
+              y: Math.round((minY + Math.floor(idx / 2) * (DEFAULT_NODE_HEIGHT + 60)) / 20) * 20,
+            }),
           );
-          const neighbor = neighborEdge
-            ? nodes.find(
-                (ex) =>
-                  ex.id === (neighborEdge.source === n.id ? neighborEdge.target : neighborEdge.source),
-              )
-            : undefined;
-
-          const pos = neighbor
-            ? {
-                x: Math.round((neighbor.position.x + 300 + (idx % 2) * 40) / 20) * 20,
-                y: Math.round((neighbor.position.y + idx * 120) / 20) * 20,
-              }
-            : {
-                x: 80 + idx * 280,
-                y: startY,
-              };
-
-          addedNodes.push(buildCanvasNode(n, mode, pos));
         });
 
         nodes = [...nodes, ...addedNodes];
@@ -353,10 +709,10 @@ export function applyAIOperationsToCanvas(
           .map((e, idx) => buildCanvasEdge(e, idx));
         edges = [...edges, ...addedEdges];
 
-        if (op.input.relayout) {
-          nodes = layoutWithDagre(nodes, edges, "TB");
-          shouldFitView = true;
-        } else if (addedNodes.length > 0) {
+        if (op.input.relayout || addedEdges.length > 0) {
+          needsLayout = true;
+        }
+        if (addedNodes.length > 0 || addedEdges.length > 0) {
           shouldFitView = true;
         }
         actions.push(
@@ -420,60 +776,53 @@ export function applyAIOperationsToCanvas(
 
       case "group_nodes": {
         const targetIds = new Set(op.input.nodeIds);
-        const members = nodes.filter((n) => targetIds.has(n.id) && !n.parentId);
+        const members = nodes.filter(
+          (n) => targetIds.has(n.id) && !n.parentId && n.type !== "group",
+        );
         if (members.length < 2) break;
 
-        const padding = 36;
-        const headerOffset = 44;
-        const minX = Math.min(...members.map((m) => m.position.x));
-        const minY = Math.min(...members.map((m) => m.position.y));
-        const maxX = Math.max(
-          ...members.map((m) => m.position.x + (m.measured?.width ?? DEFAULT_NODE_WIDTH)),
-        );
-        const maxY = Math.max(
-          ...members.map((m) => m.position.y + (m.measured?.height ?? DEFAULT_NODE_HEIGHT)),
-        );
-
         const groupId = `group-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-        const groupX = minX - padding;
-        const groupY = minY - headerOffset;
-
         const groupNode: DiagramNode = {
           id: groupId,
           type: "group",
-          position: { x: groupX, y: groupY },
+          position: { x: 0, y: 0 },
+          selected: false,
           style: {
-            width: maxX - minX + padding * 2,
-            height: maxY - minY + headerOffset + padding,
+            width: DEFAULT_NODE_WIDTH + GROUP_PAD_X * 2,
+            height: DEFAULT_NODE_HEIGHT + GROUP_PAD_TOP + GROUP_PAD_BOTTOM,
+            backgroundColor: "oklch(0.5 0 0 / 0.02)",
+            border: "1.5px dotted oklch(0.5 0 0 / 0.25)",
+            borderRadius: 12,
           },
           data: {
             label: op.input.label,
-            category: mode === "c4" ? "c4" : "cloud",
+            category: "flow",
           },
         };
 
+        const memberIds = new Set(members.map((m) => m.id));
         nodes = [
           groupNode,
           ...nodes.map((n) =>
-            targetIds.has(n.id) && !n.parentId
-              ? {
-                  ...n,
-                  parentId: groupId,
-                  extent: "parent" as const,
-                  position: {
-                    x: n.position.x - groupX,
-                    y: n.position.y - groupY,
-                  },
-                }
-              : n,
+            memberIds.has(n.id) ? { ...n, parentId: groupId } : n,
           ),
         ];
+        needsLayout = true;
+        shouldFitView = true;
         actions.push(`Grouped "${op.input.label}"`);
         break;
       }
     }
   }
 
+  // Drop group frames that ended up empty
+  const parentIds = new Set(nodes.filter((n) => n.parentId).map((n) => n.parentId as string));
+  nodes = nodes.filter((n) => n.type !== "group" || parentIds.has(n.id));
+
+  if (needsLayout) {
+    nodes = layoutArchitecture(nodes, edges, layoutDir);
+  }
+  edges = assignSmartEdgeHandles(nodes, edges, layoutDir);
   setDiagramFromAI(nodes, edges);
 
   return {

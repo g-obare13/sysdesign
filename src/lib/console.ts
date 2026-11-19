@@ -36,7 +36,7 @@ export function initConsole(): void {
      #####      #      #####   ######   #######   #####   ###   #####   #     #
 
     
-    %c Sysdesign | v0.0.3 https://sysdesign.obare27.com %c
+    %c Sysdesign | v0.0.4 https://sysdesign.obare27.com %c
 
     %cBuilt By Obare.
     
