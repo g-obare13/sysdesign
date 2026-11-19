@@ -2,6 +2,12 @@
 
 SysDesign is a web-based studio for designing, visualizing, and documenting system architectures and C4 models. Built with TanStack Start, React 19, and React Flow, it combines a drag-and-drop component registry, an AI Architect, reference blueprints, and multi-format code/image exports.
 
+## Preview
+
+| **AI-Generated Architecture** | **Chat Architecture Template** | **Fintech Architecture Template** |
+| :---: | :---: | :---: |
+| ![AI-Generated Architecture Preview](images/AI-Generated.png) | ![Chat Architecture Template Preview](images/Chat%20Template.png) | ![Fintech Architecture Template Preview](images/Fintech%20Template.png) |
+
 ## Key Features
 
 - **AI Architect (BYOK)**: Generate full production architectures from natural language, incrementally add or modify components, or ask for architecture reviews using your own **OpenAI**, **Anthropic (Claude)**, **Google (Gemini)**, or **DeepSeek** API key.
