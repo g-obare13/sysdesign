@@ -1,15 +1,17 @@
 /**
  * @fileoverview Architecture and C4 Model templates catalog.
- * Aggregates prebuilt reference diagrams for e-commerce, chat, fintech, banking, telehealth, and ride-hailing.
+ * Aggregates battle-tested, production-ready reference diagrams.
  */
 
 import type { DiagramEdge, DiagramNode } from "@/types/diagram";
-import { ECOMMERCE_TEMPLATE } from "./templates/ecommerce-architecture";
-import { CHAT_TEMPLATE } from "./templates/chat-architecture";
-import { FINTECH_TEMPLATE } from "./templates/fintech-architecture";
-import { BANKING_C4_TEMPLATE } from "./templates/banking-c4";
-import { TELEHEALTH_C4_TEMPLATE } from "./templates/telehealth-c4";
-import { RIDEHAILING_C4_TEMPLATE } from "./templates/ridehailing-c4";
+import { SAAS_MULTIREGION_TEMPLATE } from "./templates/saas-multiregion";
+import { EVENT_DRIVEN_ORDERS_TEMPLATE } from "./templates/event-driven-orders";
+import { DATA_INGESTION_PIPELINE_TEMPLATE } from "./templates/data-ingestion-pipeline";
+import { RAG_AI_PLATFORM_TEMPLATE } from "./templates/rag-ai-platform";
+import { B2B_SAAS_C4_TEMPLATE } from "./templates/b2b-saas-c4";
+import { ECOMMERCE_C4_TEMPLATE } from "./templates/ecommerce-c4";
+import { URL_SHORTENER_C4_TEMPLATE } from "./templates/url-shortener-c4";
+import { NOTIFICATIONS_C4_TEMPLATE } from "./templates/notifications-c4";
 
 /**
  * Prebuilt diagram template definition.
@@ -30,21 +32,23 @@ export interface Template {
 }
 
 /**
- * Collection of production system architecture templates.
+ * Collection of battle-tested production system architecture templates.
  */
 export const ARCHITECTURE_TEMPLATES: Array<Template> = [
-  ECOMMERCE_TEMPLATE,
-  CHAT_TEMPLATE,
-  FINTECH_TEMPLATE,
+  SAAS_MULTIREGION_TEMPLATE,
+  EVENT_DRIVEN_ORDERS_TEMPLATE,
+  DATA_INGESTION_PIPELINE_TEMPLATE,
+  RAG_AI_PLATFORM_TEMPLATE,
 ];
 
 /**
- * Collection of C4 Model context/container/component templates.
+ * Collection of C4 Model context/container templates.
  */
 export const C4_TEMPLATES: Array<Template> = [
-  BANKING_C4_TEMPLATE,
-  TELEHEALTH_C4_TEMPLATE,
-  RIDEHAILING_C4_TEMPLATE,
+  B2B_SAAS_C4_TEMPLATE,
+  ECOMMERCE_C4_TEMPLATE,
+  URL_SHORTENER_C4_TEMPLATE,
+  NOTIFICATIONS_C4_TEMPLATE,
 ];
 
 /**
@@ -56,10 +60,12 @@ export const TEMPLATES: Array<Template> = [
 ];
 
 export {
-  ECOMMERCE_TEMPLATE,
-  CHAT_TEMPLATE,
-  FINTECH_TEMPLATE,
-  BANKING_C4_TEMPLATE,
-  TELEHEALTH_C4_TEMPLATE,
-  RIDEHAILING_C4_TEMPLATE,
+  SAAS_MULTIREGION_TEMPLATE,
+  EVENT_DRIVEN_ORDERS_TEMPLATE,
+  DATA_INGESTION_PIPELINE_TEMPLATE,
+  RAG_AI_PLATFORM_TEMPLATE,
+  B2B_SAAS_C4_TEMPLATE,
+  ECOMMERCE_C4_TEMPLATE,
+  URL_SHORTENER_C4_TEMPLATE,
+  NOTIFICATIONS_C4_TEMPLATE,
 };

@@ -13,7 +13,7 @@ SysDesign is a web-based studio for designing, visualizing, and documenting syst
 - **AI Architect (BYOK)**: Generate full production architectures from natural language, incrementally add or modify components, or ask for architecture reviews using your own **OpenAI**, **Anthropic (Claude)**, **Google (Gemini)**, or **DeepSeek** API key.
 - **Component Registry**: Pre-built catalog of microservices, cloud infrastructure (AWS, GCP, Azure), databases, queues, security, observability, AI/ML, and C4 elements, backed by Supabase with local fallback.
 - **System Design & C4 Modes**: Switch between freeform System Architecture and C4 Model (`Context`, `Container`, `Component`, `Code`) views per workspace.
-- **Reference Blueprints**: 6 production-grade Architecture and C4 starter templates at `/templates` with live SVG topology previews.
+- **Reference Blueprints**: 8 battle-tested Architecture and C4 starter templates at `/templates` with live SVG topology previews.
 - **Smart Connectivity & Layout**: Automatic tier-ordered Dagre layout, facing edge handles, animated flow edges, editable edge labels, grouping boundaries, undo/redo, and 20px grid snapping.
 - **Cloud & Local Persistence**: Sync projects to Supabase with Google OAuth, or work offline in `localStorage` with automatic migration on sign-in.
 - **Multi-Format Export**: Export diagrams as high-resolution **PNG**, **SVG**, **Mermaid** (`diagram.mmd` with subgraphs and edge labels), **Terraform HCL** (`main.tf`), and **Structurizr DSL** (`workspace.dsl`).
@@ -47,15 +47,17 @@ Browse and preview all blueprints at `/templates` before placing them onto your 
 
 ### System Architectures
 
-- **Global E-Commerce Platform** (`ecommerce-platform`): High-throughput microservices architecture with edge CDN, Kubernetes API gateway, Kafka event streaming, Redis caching, and Aurora PostgreSQL.
-- **Real-Time Chat & Messaging Engine** (`realtime-chat-platform`): Low-latency real-time collaboration engine featuring WebSocket gateway clusters, distributed message broker, presence caching, and ScyllaDB history storage.
-- **Fintech Payments & Fraud Engine** (`fintech-payment-engine`): PCI-DSS compliant payment processing engine with distributed tokenization vault, real-time ML fraud scoring, and multi-region ACID ledger.
+- **Multi-Region SaaS Platform** (`saas-multiregion`): Production B2B SaaS architecture with edge WAF/CDN, stateless API gateway with OIDC auth, read-through Redis caching, Multi-AZ Aurora PostgreSQL, and SQS background workers.
+- **Event-Driven Order & Payments** (`event-driven-orders`): Resilient order and payment pipeline using idempotency keys in Redis, transactional outbox in PostgreSQL, Kafka domain events, and isolated fulfillment workers.
+- **High-Throughput Data & Search Pipeline** (`data-ingestion-pipeline`): Two-stage Kafka streaming pipeline absorbing bursty telemetry, enriching and deduplicating in Flink workers, and fanning out to Elasticsearch and an S3 Parquet data lake.
+- **RAG & AI Agent Platform** (`rag-ai-platform`): Production Retrieval-Augmented Generation architecture with streaming API gateway, semantic Redis cache, guardrails orchestrator, pgvector retrieval, and async document indexing.
 
 ### C4 Model Blueprints
 
-- **Enterprise Banking System (C4 Model)** (`banking-c4-system`): C4 Model representing an enterprise digital banking system with customer personas, containerized web and mobile apps, API gateway, core services, and external mainframe integrations.
-- **Telehealth & Clinical EHR Platform (C4 Model)** (`telehealth-ehr-c4`): C4 Model for a HIPAA-compliant telehealth platform with patient portal, physician consultation console, WebRTC streaming gateway, and FHIR clinical records service.
-- **Ride-Hailing & Dynamic Dispatch (C4 Model)** (`ridehailing-c4-system`): C4 Model representing a global ride-hailing dispatch system with rider/driver personas, real-time geospatial location tracking, matching engine, and external payment and mapping providers.
+- **Multi-Tenant B2B SaaS (C4 Model)** (`b2b-saas-c4`): C4 Container model for a multi-tenant B2B SaaS workspace with SSO/OIDC authentication, tenant-isolated PostgreSQL, Redis rate-limiting, and async webhook delivery.
+- **E-Commerce Checkout System (C4 Model)** (`ecommerce-c4`): C4 Container model for an online retail platform separating fast read-heavy catalog browsing from transactional checkout, idempotent payment processing, and carrier fulfillment.
+- **URL Shortener & Analytics (C4 Model)** (`url-shortener-c4`): C4 Container model for a 100:1 read-heavy URL shortener with sub-10ms Redis redirect cache, DynamoDB key-value store, Kafka click stream, and asynchronous analytics aggregation.
+- **Notification & Webhook Engine (C4 Model)** (`notifications-c4`): C4 Container model for a fault-tolerant notification platform with priority queues, Redis deduplication and rate limiting, user preference checks, and isolated Push/SMS/Email workers.
 
 ---
 
