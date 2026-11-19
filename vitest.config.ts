@@ -1,8 +1,15 @@
+import { URL, fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
-import tsconfigPaths from "vite-tsconfig-paths";
+
+const srcDir = fileURLToPath(new URL("./src", import.meta.url));
 
 export default defineConfig({
-  plugins: [tsconfigPaths({ projects: ["./tsconfig.json"] })],
+  resolve: {
+    alias: {
+      "@": srcDir,
+      "#": srcDir,
+    },
+  },
   test: {
     environment: "jsdom",
     include: ["src/**/*.{test,spec}.{ts,tsx}"],

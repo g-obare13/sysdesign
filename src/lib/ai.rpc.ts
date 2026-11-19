@@ -100,7 +100,7 @@ async function getServerCatalog(): Promise<Array<NodeTemplate>> {
  * Server-side AI Architect runner using unified OpenAI-compatible Chat Completions endpoints.
  */
 export const runAIArchitect = createServerFn({ method: "POST" })
-  .inputValidator((data: RunAIArchitectInput) => data)
+  .validator((data: RunAIArchitectInput) => data)
   .handler(async ({ data }): Promise<RunAIArchitectOutput> => {
     const { provider, modelId, apiKey, canvas, messages } = data;
 
