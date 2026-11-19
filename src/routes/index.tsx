@@ -34,25 +34,25 @@ function HomePage() {
   const loading = useProjectStore((s) => s.loading)
   const activeProjectId = useProjectStore((s) => s.activeProjectId)
   const activeProject = projects.find((p) => p.id === activeProjectId)
+  const targetProject = activeProject ?? projects[0]
   const hasProjects = projects.length > 0
-  const [modalOpen, setModalOpen] = useState(!hasProjects)
+  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
-    if (!hasProjects) {
-      setModalOpen(true)
-    }
-  }, [hasProjects])
+    if (loading) return
+    setModalOpen(!hasProjects)
+  }, [loading, hasProjects])
 
-  // Automatic redirect if a project is already active
+  // Automatic redirect if the user already has a project
   useEffect(() => {
-    if (activeProject) {
-      const isC4 = activeProject.type === "c4";
+    if (!loading && targetProject) {
+      const isC4 = targetProject.type === "c4";
       navigate({
         to: isC4 ? "/$slug/c4" : "/$slug",
-        params: { slug: activeProject.slug } as any,
+        params: { slug: targetProject.slug } as any,
       });
     }
-  }, [activeProject, navigate]);
+  }, [loading, targetProject, navigate]);
 
   const handleCreateProject = (
     name: string,
@@ -62,10 +62,13 @@ function HomePage() {
     const newProject = createProjectFromScratchpad(name, type, description)
     if (!newProject) return
     setModalOpen(false)
-    navigate({ to: '/$slug', params: { slug: newProject.slug } })
+    navigate({
+      to: type === "c4" ? "/$slug/c4" : "/$slug",
+      params: { slug: newProject.slug } as any,
+    })
   }
 
-  if (loading) {
+  if (loading || targetProject) {
     return <WorkspaceSkeleton />;
   }
 

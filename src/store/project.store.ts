@@ -104,6 +104,8 @@ const saved = load();
 export const projectStore = new Store<ProjectState>({
   ...DEFAULT_PROJECT_STATE,
   ...saved,
+  loading: true,
+  migrating: false,
 });
 
 /**
@@ -317,30 +319,47 @@ async function syncFromSupabase(): Promise<void> {
       .order("updated_at", { ascending: false });
 
     if (refreshed) {
-      projectStore.setState((s: ProjectState) => ({
-        ...s,
-        projects: refreshed.map((p) => ({
-          id: p.id,
-          slug: p.slug,
-          name: p.name,
-          type: (p.type as ProjectType) ?? "design",
-          description: p.description,
-          createdAt: new Date(p.created_at).getTime(),
-          updatedAt: new Date(p.updated_at).getTime(),
-        })),
-        loading: false,
-        migrating: false,
+      const refreshedList = refreshed.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        type: (p.type as ProjectType) ?? "design",
+        description: p.description,
+        createdAt: new Date(p.created_at).getTime(),
+        updatedAt: new Date(p.updated_at).getTime(),
       }));
+      projectStore.setState((s: ProjectState) => {
+        const hasValidActive =
+          s.activeProjectId !== null &&
+          refreshedList.some((p) => p.id === s.activeProjectId);
+        return {
+          ...s,
+          projects: refreshedList,
+          activeProjectId: hasValidActive
+            ? s.activeProjectId
+            : (refreshedList[0]?.id ?? null),
+          loading: false,
+          migrating: false,
+        };
+      });
       return;
     }
   }
 
-  projectStore.setState((s: ProjectState) => ({
-    ...s,
-    projects: projectList,
-    loading: false,
-    migrating: false,
-  }));
+  projectStore.setState((s: ProjectState) => {
+    const hasValidActive =
+      s.activeProjectId !== null &&
+      projectList.some((p) => p.id === s.activeProjectId);
+    return {
+      ...s,
+      projects: projectList,
+      activeProjectId: hasValidActive
+        ? s.activeProjectId
+        : (projectList[0]?.id ?? null),
+      loading: false,
+      migrating: false,
+    };
+  });
 }
 
 if (typeof window !== "undefined") {
@@ -362,7 +381,7 @@ if (typeof window !== "undefined") {
       ...s,
       session,
       user: session?.user ?? null,
-      loading: !session,
+      loading: Boolean(session),
     }));
 
     if (session) {
