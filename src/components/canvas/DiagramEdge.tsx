@@ -183,8 +183,8 @@ export default function DiagramEdge({
               isEditing
                 ? "z-50 w-[196px] nordic-panel rounded-xl px-2.5 py-1.5"
                 : isActive
-                  ? "z-40 max-w-[224px] nordic-pill rounded-xl px-2.5 py-1 text-[11px] font-medium text-foreground"
-                  : "z-10 max-w-[144px] bg-card/95 backdrop-blur-xs border border-black/[0.07] dark:border-white/[0.08] rounded-full px-2.5 py-0.5 text-[10.5px] font-medium text-foreground/80 shadow-[0_1px_4px_rgba(0,0,0,0.04)]",
+                  ? "z-40 max-w-[224px] nordic-panel rounded-xl px-2.5 py-1 text-caption font-medium text-foreground"
+                  : "z-10 max-w-[144px] bg-card/95 backdrop-blur-xs border border-border rounded-full px-2.5 py-0.5 text-caption font-medium text-foreground/80 shadow-panel",
               !hasLabel && !isEditing && "border-dashed opacity-90",
             )}
           >
@@ -194,7 +194,7 @@ export default function DiagramEdge({
                 autoFocus
                 rows={1}
                 placeholder="Describe connection…"
-                className="nodrag block w-full resize-none overflow-hidden bg-transparent text-[11.5px] leading-snug text-foreground placeholder:text-muted-foreground/70 p-0 outline-none border-none focus:ring-0 shadow-none text-center"
+                className="nodrag block w-full resize-none overflow-hidden bg-transparent text-caption leading-snug text-foreground placeholder:text-muted-foreground/70 p-0 outline-none border-none focus:ring-0 shadow-none text-center"
                 value={labelDraft}
                 onChange={(e) => setLabelDraft(e.target.value)}
                 onBlur={commitEdit}
@@ -221,7 +221,7 @@ export default function DiagramEdge({
                 {labelText}
               </span>
             ) : (
-              <span className="block text-center text-[10px] text-muted-foreground whitespace-nowrap">
+              <span className="block text-center text-caption text-muted-foreground whitespace-nowrap">
                 + Add label
               </span>
             )}

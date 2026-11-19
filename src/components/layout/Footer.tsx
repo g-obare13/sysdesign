@@ -25,7 +25,7 @@ export default function Footer() {
 
   return (
     <footer className="h-9 border-t border-border/80 bg-background/95 backdrop-blur-xs px-4 flex items-center justify-between shrink-0 z-50 select-none">
-      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-2 text-caption text-muted-foreground">
         <span>&copy; {currentYear} SysDesign</span>
         <span className="opacity-40">·</span>
         <div className="flex items-center gap-2.5">
@@ -114,7 +114,7 @@ export default function Footer() {
           href="https://obare27.com/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          className="text-caption font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
         >
           Portfolio
           <IconExternalLink size={11} className="opacity-60" />

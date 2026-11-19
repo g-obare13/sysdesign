@@ -13,7 +13,7 @@ function Textarea({ className, size, ...props }: TextareaProps) {
   return (
     <AutosizeTextarea
       data-slot="textarea"
-      className={cn(inputVariants({ size }), "p-2", className)}
+      className={cn(inputVariants({ size }), "h-auto p-3", className)}
       {...props}
     />
   );

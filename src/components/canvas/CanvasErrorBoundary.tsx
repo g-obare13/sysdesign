@@ -38,12 +38,11 @@ export default class CanvasErrorBoundary extends Component<Props, State> {
             <div className="flex size-12 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
               <IconAlertTriangle size={24} />
             </div>
-            <h2 className="text-lg font-bold text-foreground">
+            <h2 className="text-lg font-medium text-foreground">
               The diagram hit a snag
             </h2>
             <p className="max-w-sm text-sm text-muted-foreground">
-              Something went wrong rendering the canvas. Your work is saved —
-              reloading will bring it back.
+              Something went wrong rendering the canvas. Your work is saved: reloading will bring it back.
             </p>
             <Button
               onClick={() => window.location.reload()}

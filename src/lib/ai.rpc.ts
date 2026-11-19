@@ -34,6 +34,7 @@ const OPENAI_COMPAT_BASE_URLS: Record<AIProvider, string> = {
   openai: "https://api.openai.com/v1",
   anthropic: "https://api.anthropic.com/v1",
   google: "https://generativelanguage.googleapis.com/v1beta/openai",
+  deepseek: "https://api.deepseek.com/v1",
 };
 
 let serverCatalogCache: { items: Array<NodeTemplate>; fetchedAt: number } | null =

@@ -29,7 +29,12 @@ import {
 } from "@/store/ai.store";
 import type {AIProvider} from "@/store/ai.store";
 
-const PROVIDERS: Array<AIProvider> = ["openai", "anthropic", "google"];
+const PROVIDERS: Array<AIProvider> = [
+  "openai",
+  "anthropic",
+  "google",
+  "deepseek",
+];
 
 /**
  * AI Provider API Keys management settings component.
@@ -98,7 +103,7 @@ export default function AISettings() {
           stroke={1.6}
           className="text-foreground/75 shrink-0 mt-0.5"
         />
-        <p className="text-[12px] text-muted-foreground leading-relaxed">
+        <p className="text-small text-muted-foreground leading-relaxed">
           Keys are stored{" "}
           <strong className="font-medium text-foreground">
             locally in your browser
@@ -118,16 +123,16 @@ export default function AISettings() {
           return (
             <div
               key={provider}
-              className="flex flex-col gap-2 p-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.07] bg-card"
+              className="flex flex-col gap-2 p-3 rounded-2xl border border-border bg-card"
             >
               {/* Provider header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-medium text-foreground">
+                  <span className="text-body font-medium text-foreground">
                     {meta.label}
                   </span>
                   {isSaved && (
-                    <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-muted-foreground">
+                    <span className="inline-flex items-center gap-0.5 text-caption font-medium text-muted-foreground">
                       <IconCheck size={11} />
                       Saved
                     </span>
@@ -147,15 +152,14 @@ export default function AISettings() {
                                 revealed === provider ? null : provider,
                               )
                             }
-                            className="size-7 rounded-lg text-muted-foreground hover:text-foreground"
                             aria-label={
                               revealed === provider ? "Hide key" : "Reveal key"
                             }
                           >
                             {revealed === provider ? (
-                              <IconEyeOff size={14} stroke={1.6} />
+                              <IconEyeOff size={16} stroke={1.6} />
                             ) : (
-                              <IconEye size={14} stroke={1.6} />
+                              <IconEye size={16} stroke={1.6} />
                             )}
                           </Button>
                         }
@@ -171,10 +175,10 @@ export default function AISettings() {
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => setConfirmRemove(provider)}
-                            className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            className="hover:text-destructive hover:bg-destructive/10"
                             aria-label="Remove key"
                           >
-                            <IconTrash size={14} stroke={1.6} />
+                            <IconTrash size={16} stroke={1.6} />
                           </Button>
                         }
                       />
@@ -183,12 +187,13 @@ export default function AISettings() {
                   </div>
                 ) : !isAdding ? (
                   <Button
+                    variant="outline"
                     onClick={() => {
                       setAdding(provider);
                       setDraft("");
                       setError("");
                     }}
-                    size="xs"
+                    size="sm"
                   >
                     Add key
                   </Button>
@@ -203,7 +208,7 @@ export default function AISettings() {
                     stroke={1.6}
                     className="text-muted-foreground shrink-0"
                   />
-                  <code className="text-[11px] text-muted-foreground flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                  <code className="text-caption text-muted-foreground flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
                     {revealed === provider
                       ? existing.key
                       : maskKey(existing.key)}
@@ -228,23 +233,23 @@ export default function AISettings() {
                       if (e.key === "Enter") handleSave();
                       if (e.key === "Escape") handleCancel();
                     }}
-                    className="text-[12.5px]"
+                    className="text-body"
                   />
                   {error && (
-                    <p className="flex items-center gap-1 text-[11px] text-destructive">
+                    <p className="flex items-center gap-1 text-caption text-destructive">
                       <IconAlertCircle size={12} />
                       {error}
                     </p>
                   )}
                   <div className="flex items-center justify-end gap-1.5 pt-0.5">
                     <Button
-                      onClick={handleCancel}
                       variant="ghost"
-                      size="xs"
+                      onClick={handleCancel}
+                      size="sm"
                     >
                       Cancel
                     </Button>
-                    <Button onClick={handleSave} size="xs">
+                    <Button onClick={handleSave} size="sm">
                       Save key
                     </Button>
                   </div>

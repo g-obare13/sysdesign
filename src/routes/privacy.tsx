@@ -37,7 +37,7 @@ function PrivacyPage() {
           <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-xs">
             <IconShieldCheck size={20} />
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground mb-1">
+          <h1 className="text-xl font-medium tracking-tight text-foreground mb-1">
             Privacy Policy
           </h1>
           <p className="text-xs text-muted-foreground">
@@ -47,7 +47,7 @@ function PrivacyPage() {
 
         <div className="space-y-6 text-xs text-foreground/85 leading-relaxed">
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-sm font-medium text-foreground">
               1. Information We Collect
             </h2>
             <p>
@@ -67,7 +67,7 @@ function PrivacyPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-sm font-medium text-foreground">
               2. How Your Data Is Used
             </h2>
             <p>
@@ -81,7 +81,7 @@ function PrivacyPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-sm font-medium text-foreground">
               3. Data Storage & Security
             </h2>
             <p>

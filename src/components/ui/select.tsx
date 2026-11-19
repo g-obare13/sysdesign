@@ -37,19 +37,18 @@ function SelectTrigger({
   children,
   ...props
 }: SelectPrimitive.Trigger.Props & {
-  size?: "xs" | "sm" | "default";
+  size?: "sm" | "default";
 }) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-full items-center justify-between gap-1.5 rounded-md border border-border bg-input font-sans text-xs text-foreground whitespace-nowrap transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-40 aria-invalid:border-destructive data-placeholder:text-muted-foreground",
-        "data-[size=default]:h-8 data-[size=default]:px-2.5 data-[size=default]:py-1",
-        "data-[size=sm]:h-7 data-[size=sm]:px-2 data-[size=sm]:py-0.5",
-        "data-[size=xs]:h-6 data-[size=xs]:px-1.5 data-[size=xs]:py-0 data-[size=xs]:text-[11px]",
-        "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5",
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+        "flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-input font-sans text-body text-foreground whitespace-nowrap transition-colors duration-150 outline-none placeholder:text-muted-foreground focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-placeholder:text-muted-foreground",
+        "data-[size=default]:h-9 data-[size=default]:px-3 data-[size=default]:py-2",
+        "data-[size=sm]:h-8 data-[size=sm]:px-3 data-[size=sm]:py-1",
+        "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}
@@ -57,7 +56,7 @@ function SelectTrigger({
       {children}
       <SelectPrimitive.Icon
         render={
-          <IconSelector className="pointer-events-none size-3.5 text-muted-foreground" />
+          <IconSelector className="pointer-events-none size-4 text-muted-foreground" />
         }
       />
     </SelectPrimitive.Trigger>
@@ -113,7 +112,7 @@ function SelectLabel({
   return (
     <SelectPrimitive.GroupLabel
       data-slot="select-label"
-      className={cn("px-2 py-1 text-[11px] font-medium text-muted-foreground", className)}
+      className={cn("px-2 py-1 text-caption font-medium text-muted-foreground", className)}
       {...props}
     />
   );

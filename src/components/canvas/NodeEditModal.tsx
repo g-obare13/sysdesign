@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { setEditingNodeId, updateNodeMeta } from "@/store/canvas.store";
 import type { NodeMeta } from "@/types/diagram";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -86,29 +87,31 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-md nordic-glass text-foreground rounded-xl overflow-hidden p-5 flex flex-col gap-3.5 animate-in zoom-in-98 duration-150 select-none">
+        <div className="w-full max-w-md nordic-panel text-foreground rounded-xl shadow-popover overflow-hidden p-6 flex flex-col gap-4 animate-in zoom-in-98 duration-150 select-none">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-2 border-b border-border/60">
-          <div className="flex items-center gap-1.5">
-            <div className="size-5 rounded-xs bg-primary/10 flex items-center justify-center text-primary">
-              <TablerIcons.IconAdjustmentsHorizontal size={13} />
+        <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+          <div className="flex items-center gap-2">
+            <div className="size-6 rounded-lg bg-muted flex items-center justify-center text-foreground">
+              <TablerIcons.IconAdjustmentsHorizontal size={16} stroke={1.6} />
             </div>
-            <h6 className="text-xs font-semibold text-foreground">
-              Configure Node
-            </h6>
+            <h3 className="text-card font-medium text-foreground">
+              Configure node
+            </h3>
           </div>
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
             onClick={handleClose}
-            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-          >
-            <TablerIcons.IconX size={14} />
-          </button>
+            aria-label="Close dialog"
+            icon={<TablerIcons.IconX size={16} stroke={1.6} />}
+          />
         </div>
 
         {/* Modal Body / Form Fields */}
         <div className="space-y-2.5">
           <div className="flex flex-col gap-1">
-            <Label className="text-[11px]">Component Name</Label>
+            <Label className="text-caption">Component Name</Label>
             <Input
               autoFocus
               size="sm"
@@ -125,7 +128,7 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
 
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-1">
-              <Label className="text-[11px]">Technology / Stack</Label>
+              <Label className="text-caption">Technology / Stack</Label>
               <Input
                 size="sm"
                 className="w-full font-mono text-xs"
@@ -139,7 +142,7 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
             </div>
 
             <div className="flex flex-col gap-1">
-              <Label className="text-[11px]">C4 Model Level</Label>
+              <Label className="text-caption">C4 Model Level</Label>
               <Select
                 value={draftC4Level}
                 onValueChange={(val) => setDraftC4Level(val ?? "")}
@@ -159,24 +162,23 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
           </div>
 
           <div className="flex items-center gap-2 py-0.5">
-            <input
-              type="checkbox"
+            <Checkbox
               id="is-external-cb"
               checked={draftIsExternal}
-              onChange={(e) => setDraftIsExternal(e.target.checked)}
-              className="accent-primary rounded size-3.5 cursor-pointer"
+              onCheckedChange={(checked) => setDraftIsExternal(Boolean(checked))}
+              className="cursor-pointer"
             />
-            <label
+            <Label
               htmlFor="is-external-cb"
               className="text-xs text-foreground/80 cursor-pointer select-none font-medium"
             >
               External System / Actor
-            </label>
+            </Label>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-1">
-              <Label className="text-[11px]">Owner / Team</Label>
+              <Label className="text-caption">Owner / Team</Label>
               <Input
                 size="sm"
                 className="w-full text-xs"
@@ -187,7 +189,7 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
             </div>
 
             <div className="flex flex-col gap-1">
-              <Label className="text-[11px]">Status</Label>
+              <Label className="text-caption">Status</Label>
               <Select
                 value={draftStatus}
                 onValueChange={(val) => setDraftStatus(val as Status)}
@@ -206,7 +208,7 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <Label className="text-[11px]">Notes & Guidance</Label>
+            <Label className="text-caption">Notes & Guidance</Label>
             <Textarea
               placeholder="Additional documentation notes…"
               rows={3}
@@ -222,7 +224,7 @@ export default function NodeEditModal({ nodeId, meta }: NodeEditModalProps) {
           <Button variant="outline" size="sm" onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="default" size="sm" onClick={handleSave}>
+          <Button size="sm" onClick={handleSave}>
             Save Changes
           </Button>
         </div>

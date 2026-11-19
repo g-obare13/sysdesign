@@ -21,7 +21,7 @@ export default function MobileBlock() {
         </div>
       </div>
 
-      <h1 className="text-lg font-semibold text-foreground mb-2 tracking-tight">
+      <h1 className="text-lg font-medium text-foreground mb-2 tracking-tight">
         Desktop Workspace Required
       </h1>
 
@@ -30,7 +30,7 @@ export default function MobileBlock() {
       </p>
 
       <div className="mt-auto pb-6">
-        <span className="text-[11px] font-mono text-muted-foreground">
+        <span className="text-caption font-mono text-muted-foreground">
           sysdesign.obare27.com
         </span>
       </div>

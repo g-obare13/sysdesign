@@ -3,20 +3,20 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
-import { buttonVariants } from "./button-variants";
+import { IconLoader2 } from "@tabler/icons-react";
 import type { VariantProps } from "class-variance-authority";
+import { buttonVariants } from "./button-variants";
 import { cn } from "@/lib/utils";
-import { Loader } from "@/components/ui/loader";
 
-interface ButtonProps
+export interface ButtonProps
   extends
     Omit<React.ComponentPropsWithoutRef<typeof ButtonPrimitive>, "variant">,
     VariantProps<typeof buttonVariants> {
+  tone?: "default" | "destructive";
   href?: string;
   icon?: React.ElementType | React.ReactNode;
   iconPlacement?: "left" | "right";
   hideIcon?: boolean;
-  showLine?: boolean;
   loading?: boolean;
 }
 
@@ -24,13 +24,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
-      variant,
-      size,
+      variant = "default",
+      size = "default",
+      tone = "default",
       href,
       icon: Icon,
       iconPlacement = "right",
       hideIcon,
-      showLine,
       loading = false,
       children,
       disabled,
@@ -39,66 +39,79 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const isIconOnly = !children && (!!Icon || loading);
-    const renderIcon = !hideIcon && (!!Icon || loading);
+    const renderIcon = !hideIcon && !!Icon;
 
-    const renderIconContent = (icon: any, iconClassName?: string) => {
-      if (loading) {
-        return <Loader size="sm" className={iconClassName} />;
-      }
-
+    const renderIconContent = (icon: unknown) => {
       if (!icon) return null;
-
       if (React.isValidElement(icon)) return icon;
-
-      const IconComponent = icon;
-      return <IconComponent className={iconClassName} />;
+      const IconComponent = icon as React.ElementType;
+      return <IconComponent className="size-4" stroke={1.6} />;
     };
 
     const iconElement = renderIcon && (
       <span className="inline-flex items-center justify-center shrink-0">
-        {renderIconContent(Icon, "size-3.5")}
+        {renderIconContent(Icon)}
       </span>
     );
 
-    const content = isIconOnly ? (
-      <span className="flex h-full w-full items-center justify-center">
-        {renderIconContent(Icon, "size-4")}
+    const innerContent = isIconOnly ? (
+      <span
+        className={cn(
+          "flex size-full items-center justify-center",
+          loading && "invisible",
+        )}
+      >
+        {renderIconContent(Icon)}
       </span>
     ) : (
-      <>
+      <span
+        className={cn(
+          "inline-flex items-center justify-center gap-2 leading-none",
+          loading && "invisible",
+        )}
+      >
         {iconPlacement === "left" && iconElement}
-
-        <span className="relative z-10 leading-none">
-          {loading ? "Saving..." : children}
-        </span>
-
+        <span>{children}</span>
         {iconPlacement === "right" && iconElement}
+      </span>
+    );
 
-        {showLine && (
-          <span className="absolute -bottom-1 left-0 z-0 h-[1.5px] w-full origin-left scale-x-0 bg-current transition-transform duration-300 group-hover/button:scale-x-100" />
+    const content = (
+      <>
+        {innerContent}
+        {loading && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <IconLoader2 className="size-4 animate-spin" stroke={1.8} />
+          </span>
         )}
       </>
     );
 
-    const classes = cn(
-      buttonVariants({ variant, size }),
-      isIconOnly && "aspect-square justify-center px-0",
-      className,
-    );
+    const classes = cn(buttonVariants({ variant, size }), className);
 
     if (href) {
       return (
-        <Link to={href} className={classes}>
+        <Link
+          to={href}
+          data-tone={tone}
+          aria-busy={loading || undefined}
+          className={classes}
+        >
           {content}
         </Link>
       );
     }
 
-    const { dangerouslySetInnerHTML, ...cleanProps } = props as any;
+    const { dangerouslySetInnerHTML, ...cleanProps } = props as Record<
+      string,
+      unknown
+    >;
 
     return (
       <ButtonPrimitive
         ref={ref}
+        data-tone={tone}
+        aria-busy={loading || undefined}
         className={classes}
         disabled={disabled || loading}
         {...cleanProps}

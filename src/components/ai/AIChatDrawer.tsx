@@ -351,7 +351,7 @@ export default function AIChatDrawer() {
       <aside
         aria-label="AI Assistant Drawer"
         className={cn(
-          "fixed right-3 top-16 bottom-16 z-50 flex flex-col w-[calc(100vw-24px)] sm:w-[368px] rounded-[20px] overflow-hidden",
+          "fixed right-3 top-16 bottom-16 z-50 flex flex-col w-[calc(100vw-24px)] sm:w-[368px] rounded-xl overflow-hidden",
           "nordic-panel",
           "animate-in slide-in-from-right duration-200",
         )}
@@ -363,10 +363,10 @@ export default function AIChatDrawer() {
               <IconSparkles size={15} stroke={1.6} />
             </div>
             <div className="flex flex-col min-w-0">
-              <h6 className="text-[14px] font-semibold text-foreground tracking-tight leading-tight truncate">
+              <h4 className="text-card font-medium text-foreground tracking-tight leading-tight truncate">
                 AI Architecture
-              </h6>
-              <span className="text-[11.5px] text-muted-foreground leading-tight mt-0.5">
+              </h4>
+              <span className="text-caption text-muted-foreground leading-tight mt-0.5">
                 {isC4 ? "C4 Model Architect" : "System Design Architect"}
               </span>
             </div>
@@ -380,10 +380,9 @@ export default function AIChatDrawer() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => setShowSettingsModal(true)}
-                    className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
                     aria-label="API Keys"
                   >
-                    <IconKey size={15} stroke={1.6} />
+                    <IconKey size={16} stroke={1.6} />
                   </Button>
                 }
               />
@@ -398,10 +397,10 @@ export default function AIChatDrawer() {
                       variant="ghost"
                       size="icon-sm"
                       onClick={clearMessages}
-                      className="size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      className="hover:text-destructive hover:bg-destructive/10"
                       aria-label="Clear Chat"
                     >
-                      <IconTrash size={15} stroke={1.6} />
+                      <IconTrash size={16} stroke={1.6} />
                     </Button>
                   }
                 />
@@ -416,10 +415,9 @@ export default function AIChatDrawer() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={close}
-                    className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
                     aria-label="Close"
                   >
-                    <IconX size={15} stroke={1.6} />
+                    <IconX size={16} stroke={1.6} />
                   </Button>
                 }
               />
@@ -436,19 +434,16 @@ export default function AIChatDrawer() {
                 const meta = PROVIDER_META[k.provider];
                 const isActive = selectedProvider === k.provider;
                 return (
-                  <button
+                  <Button
                     key={k.provider}
                     type="button"
+                    variant={isActive ? "outline" : "ghost"}
+                    size="sm"
                     onClick={() => setSelectedProvider(k.provider)}
-                    className={cn(
-                      "flex-1 h-7 rounded-lg text-[12px] font-medium transition-all cursor-pointer select-none",
-                      isActive
-                        ? "bg-card text-foreground shadow-xs"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
+                    className="flex-1"
                   >
                     {meta.label.split(" ")[0]}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -460,17 +455,17 @@ export default function AIChatDrawer() {
           <ConversationContent className="gap-3.5 px-4 py-3.5">
             {/* Missing Keys Banner */}
             {!hasAny && (
-              <div className="p-4 rounded-2xl bg-muted/60 border border-black/[0.04] dark:border-white/[0.06] space-y-3">
+              <div className="p-4 rounded-2xl bg-muted/60 border border-border space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                  <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-none">
                     <IconKey size={15} stroke={1.6} />
                   </div>
                   <div className="space-y-1 min-w-0">
-                    <h6 className="text-[13px] font-semibold text-foreground leading-snug">
+                    <h4 className="text-body font-medium text-foreground leading-snug">
                       Connect an AI Provider
-                    </h6>
-                    <p className="text-[12px] text-muted-foreground leading-relaxed">
-                      Add your OpenAI, Anthropic, or Gemini key locally to
+                    </h4>
+                    <p className="text-small text-muted-foreground leading-relaxed">
+                      Add your OpenAI, Anthropic, Gemini, or DeepSeek key locally to
                       generate, edit, and critique architectures.
                     </p>
                   </div>
@@ -488,14 +483,15 @@ export default function AIChatDrawer() {
             {/* Empty State / Suggestions */}
             {messages.length === 0 && (
               <div className="space-y-2.5">
-                <span className="block text-[11.5px] font-medium text-muted-foreground px-1">
+                <span className="block text-caption font-medium text-muted-foreground px-1">
                   {nodes.length > 0 ? "Try Asking" : "Suggestions"}
                 </span>
                 <div className="flex flex-col gap-1.5">
                   {suggestions.map((s) => (
-                    <button
+                    <div
                       key={s.label}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => {
                         if (hasAny) {
                           handleSend(s.prompt);
@@ -504,25 +500,35 @@ export default function AIChatDrawer() {
                           textareaRef.current?.focus();
                         }
                       }}
-                      className="w-full flex items-start gap-3 p-3 rounded-2xl bg-muted/45 hover:bg-muted/85 text-left transition-colors group cursor-pointer"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          if (hasAny) handleSend(s.prompt);
+                          else {
+                            setPrompt(s.prompt);
+                            textareaRef.current?.focus();
+                          }
+                        }
+                      }}
+                      className="w-full flex items-start gap-3 p-3 rounded-lg bg-muted/45 hover:bg-muted/85 text-left transition-colors duration-150 group cursor-pointer focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      <div className="size-8 rounded-xl bg-card flex items-center justify-center text-foreground/75 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] mt-0.5">
-                        <s.icon size={15} stroke={1.6} />
+                      <div className="size-8 rounded-lg bg-card flex items-center justify-center text-foreground/75 shrink-0 mt-0.5">
+                        <s.icon size={16} stroke={1.6} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[12.5px] font-semibold text-foreground leading-snug">
+                        <div className="text-body font-medium text-foreground leading-snug">
                           {s.label}
                         </div>
-                        <div className="text-[11.5px] text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+                        <div className="text-small text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
                           {s.prompt}
                         </div>
                       </div>
                       <IconChevronRight
-                        size={14}
+                        size={16}
                         stroke={1.6}
-                        className="text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 mt-1"
+                        className="text-muted-foreground/40 group-hover:text-foreground transition-colors duration-150 shrink-0 mt-1"
                       />
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -538,7 +544,7 @@ export default function AIChatDrawer() {
                   msg.role === "user" ? "items-end" : "items-start",
                 )}
               >
-                <div className="flex items-center gap-1.5 px-1 text-[10.5px] text-muted-foreground tabular-nums">
+                <div className="flex items-center gap-1.5 px-1 text-caption text-muted-foreground tabular-nums">
                   <span>{msg.role === "user" ? "You" : "Architect"}</span>
                   <span>·</span>
                   <span>
@@ -551,10 +557,10 @@ export default function AIChatDrawer() {
 
                 <MessageContent
                   className={cn(
-                    "px-3.5 py-2.5 text-[12.5px] leading-relaxed",
+                    "px-3.5 py-2.5 text-body leading-relaxed",
                     msg.role === "user"
                       ? "rounded-2xl rounded-br-md bg-muted text-foreground"
-                      : "rounded-2xl rounded-bl-md bg-card border border-black/[0.06] dark:border-white/[0.07] text-foreground shadow-[0_1px_4px_rgba(0,0,0,0.03)] space-y-2.5",
+                      : "rounded-2xl rounded-bl-md bg-card border border-border text-foreground shadow-panel space-y-2.5",
                   )}
                 >
                   {/* Tool Execution Step Trace */}
@@ -562,13 +568,13 @@ export default function AIChatDrawer() {
                     <Task defaultOpen={false} className="w-full">
                       <TaskTrigger
                         title={`Used ${msg.toolSteps.length} architect ${msg.toolSteps.length === 1 ? "tool" : "tools"}`}
-                        className="text-[11.5px]"
+                        className="text-caption"
                       />
                       <TaskContent>
                         {msg.toolSteps.map((step, i) => (
                           <TaskItem
                             key={`${msg.id}-step-${i}`}
-                            className="flex items-center gap-1.5 text-[11.5px]"
+                            className="flex items-center gap-1.5 text-caption"
                           >
                             <IconCheck
                               size={12}
@@ -583,7 +589,7 @@ export default function AIChatDrawer() {
                   )}
 
                   {msg.role === "assistant" ? (
-                    <MessageResponse className="text-[12.5px] leading-relaxed">
+                    <MessageResponse className="text-body leading-relaxed">
                       {msg.content}
                     </MessageResponse>
                   ) : (
@@ -594,14 +600,14 @@ export default function AIChatDrawer() {
                   {msg.diagramGenerated && (
                     <div className="p-2.5 rounded-xl bg-muted/65 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="size-7 rounded-lg bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                        <div className="size-7 rounded-lg bg-card flex items-center justify-center text-foreground/80 shrink-0 shadow-none">
                           <IconLayout size={14} stroke={1.6} />
                         </div>
                         <div className="min-w-0">
-                          <div className="font-medium text-foreground text-[12px] truncate leading-tight">
+                          <div className="font-medium text-foreground text-small truncate leading-tight">
                             {msg.diagramGenerated.title || "Canvas Updated"}
                           </div>
-                          <div className="text-[11px] text-muted-foreground tabular-nums mt-0.5 truncate">
+                          <div className="text-caption text-muted-foreground tabular-nums mt-0.5 truncate">
                             {msg.diagramGenerated.summary ||
                               `${msg.diagramGenerated.nodeCount} nodes · ${msg.diagramGenerated.edgeCount} edges`}
                           </div>
@@ -610,14 +616,16 @@ export default function AIChatDrawer() {
                       <Tooltip>
                         <TooltipTrigger
                           render={
-                            <button
+                            <Button
                               type="button"
+                              variant="outline"
+                              size="sm"
                               onClick={() => undo()}
-                              className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/80 hover:text-foreground bg-card hover:bg-muted px-2 py-1 rounded-lg border border-black/[0.05] dark:border-white/[0.07] shrink-0 transition-colors cursor-pointer"
+                              icon={<IconArrowBackUp size={16} stroke={1.6} />}
+                              iconPlacement="left"
                             >
-                              <IconArrowBackUp size={12} stroke={1.7} />
                               Revert
-                            </button>
+                            </Button>
                           }
                         />
                         <TooltipContent side="top">
@@ -652,7 +660,7 @@ export default function AIChatDrawer() {
             {/* Loading Indicator */}
             {status === "loading" && (
               <div className="flex flex-col gap-1 items-start">
-                <span className="px-1 text-[10.5px] text-muted-foreground">
+                <span className="px-1 text-caption text-muted-foreground">
                   Architect · Designing
                 </span>
                 <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl rounded-bl-md bg-muted/60">
@@ -661,7 +669,7 @@ export default function AIChatDrawer() {
                     stroke={1.8}
                     className="animate-spin text-foreground/70 shrink-0"
                   />
-                  <Shimmer as="span" className="text-[12.5px] font-medium">
+                  <Shimmer as="span" className="text-body font-medium">
                     Designing & laying out canvas…
                   </Shimmer>
                 </div>
@@ -677,20 +685,20 @@ export default function AIChatDrawer() {
                     className="text-destructive shrink-0 mt-0.5"
                   />
                   <div className="min-w-0">
-                    <div className="font-semibold text-destructive text-[12px]">
+                    <div className="font-medium text-destructive text-small">
                       Generation Error
                     </div>
-                    <div className="text-muted-foreground text-[11.5px] mt-0.5 line-clamp-3">
+                    <div className="text-muted-foreground text-caption mt-0.5 line-clamp-3">
                       {errorMsg}
                     </div>
                   </div>
                 </div>
                 <Button
-                  onClick={handleRetry}
                   variant="outline"
-                  size="xs"
+                  onClick={handleRetry}
+                  size="sm"
                   className="shrink-0"
-                  icon={<IconRefresh size={12} />}
+                  icon={<IconRefresh size={16} />}
                 >
                   Retry
                 </Button>
@@ -704,12 +712,12 @@ export default function AIChatDrawer() {
         <div className="p-3.5 pt-2 shrink-0 space-y-2">
           {/* Active Canvas Selection Context Pill */}
           {selectedCount > 0 && (
-            <div className="flex items-center justify-between px-2.5 py-1 rounded-xl bg-muted/70 text-[11px] text-muted-foreground">
+            <div className="flex items-center justify-between px-2.5 py-1 rounded-xl bg-muted/70 text-caption text-muted-foreground">
               <span>
                 <strong className="font-medium text-foreground">
                   {selectedCount} {selectedCount === 1 ? "node" : "nodes"}
                 </strong>{" "}
-                selected — edits will target them
+                selected: edits will target them
               </span>
             </div>
           )}
@@ -722,7 +730,7 @@ export default function AIChatDrawer() {
                   key={s}
                   suggestion={s}
                   onClick={(text) => handleSend(text)}
-                  className="h-7 px-2.5 text-[11px] bg-muted/50 border-black/[0.05] dark:border-white/[0.07]"
+                  className="h-7 px-2.5 text-caption bg-muted/50 border-border"
                 />
               ))}
             </Suggestions>
@@ -734,7 +742,7 @@ export default function AIChatDrawer() {
                 handleSend(text);
               }
             }}
-            className="[&_[data-slot=input-group]]:rounded-2xl [&_[data-slot=input-group]]:bg-muted/65 [&_[data-slot=input-group]]:border-black/[0.05] dark:[&_[data-slot=input-group]]:border-white/[0.07] [&_[data-slot=input-group]]:focus-within:bg-card [&_[data-slot=input-group]]:focus-within:border-black/[0.12] dark:[&_[data-slot=input-group]]:focus-within:border-white/[0.14] [&_[data-slot=input-group]]:shadow-none [&_[data-slot=input-group]]:focus-within:shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+            className="[&_[data-slot=input-group]]:rounded-2xl [&_[data-slot=input-group]]:bg-muted/65 [&_[data-slot=input-group]]:border-border [&_[data-slot=input-group]]:focus-within:bg-card [&_[data-slot=input-group]]:focus-within:border-border-strong [&_[data-slot=input-group]]:shadow-none [&_[data-slot=input-group]]:focus-within:shadow-panel"
           >
             <PromptInputBody>
               <PromptInputTextarea
@@ -751,7 +759,7 @@ export default function AIChatDrawer() {
                         ? "Describe a C4 model to generate…"
                         : "Describe a system architecture…"
                 }
-                className="min-h-[48px] max-h-[160px] px-3.5 pt-3 pb-1.5 text-[13px] leading-relaxed"
+                className="min-h-[48px] max-h-[160px] px-3.5 pt-3 pb-1.5 text-body leading-relaxed"
               />
             </PromptInputBody>
 
@@ -762,7 +770,7 @@ export default function AIChatDrawer() {
                     open={modelSelectorOpen}
                     onOpenChange={setModelSelectorOpen}
                   >
-                    <ModelSelectorTrigger className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-muted text-[11.5px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none">
+                    <ModelSelectorTrigger className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-muted text-caption font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none">
                       <ModelSelectorLogo provider={selectedProvider} />
                       <span>{activeModelLabel}</span>
                       <IconChevronDown size={12} stroke={1.7} />
@@ -811,7 +819,7 @@ export default function AIChatDrawer() {
                     </ModelSelectorContent>
                   </ModelSelector>
                 ) : (
-                  <div className="flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-1.5 px-1 text-caption text-muted-foreground">
                     <IconShieldLock size={12} stroke={1.6} />
                     <span>Keys stored locally</span>
                   </div>
@@ -827,7 +835,7 @@ export default function AIChatDrawer() {
                       ? "error"
                       : "ready"
                 }
-                className="nordic-btn size-8 rounded-xl"
+                className="shiny-primary-btn size-8 rounded-full"
               />
             </PromptInputFooter>
           </PromptInput>
@@ -841,23 +849,23 @@ export default function AIChatDrawer() {
             className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-in fade-in duration-150"
             onClick={() => setShowSettingsModal(false)}
           />
-          <div className="relative w-full max-w-md nordic-panel rounded-[20px] animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-3">
+          <div className="relative w-full max-w-md nordic-panel rounded-xl animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="size-7 rounded-lg bg-muted flex items-center justify-center text-foreground">
                   <IconKey size={14} stroke={1.6} />
                 </div>
-                <h6 className="text-[13.5px] font-semibold text-foreground">
+                <h4 className="text-body font-medium text-foreground">
                   AI Provider Keys
-                </h6>
+                </h4>
               </div>
               <Button
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => setShowSettingsModal(false)}
-                className="size-7 rounded-lg text-muted-foreground hover:text-foreground"
+                aria-label="Close settings"
               >
-                <IconX size={15} stroke={1.6} />
+                <IconX size={16} stroke={1.6} />
               </Button>
             </div>
             <AISettings />

@@ -3,6 +3,7 @@
  */
 
 import { IconSparkles } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -18,29 +19,31 @@ export default function AIFloatingButton() {
   return (
     <div
       className={cn(
-        "fixed right-3 top-1/2 -translate-y-1/2 z-40 transition-all duration-150",
+        "fixed right-3 top-1/2 -translate-y-1/2 z-40 transition-opacity duration-150",
         isOpen
-          ? "opacity-0 pointer-events-none scale-95"
-          : "opacity-100 pointer-events-auto scale-100",
+          ? "opacity-0 pointer-events-none"
+          : "opacity-100 pointer-events-auto",
       )}
     >
       <Tooltip>
         <TooltipTrigger
           render={
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon-lg"
               onClick={toggle}
               aria-label="Open AI Assistant"
-              className="nordic-btn relative size-10 rounded-2xl inline-flex items-center justify-center cursor-pointer"
+              className="relative nordic-panel"
             >
               <IconSparkles size={16} stroke={1.6} />
               {!hasAny && (
-                <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-foreground/50 ring-2 ring-card" />
+                <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-foreground/60" />
               )}
-            </button>
+            </Button>
           }
         />
-        <TooltipContent side="left">AI Architecture</TooltipContent>
+        <TooltipContent side="left">AI architecture</TooltipContent>
       </Tooltip>
     </div>
   );

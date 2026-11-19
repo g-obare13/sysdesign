@@ -15,13 +15,19 @@ import {
   IconClick,
   IconFocus2,
   IconGridDots,
+  IconHome,
   IconInfoCircle,
   IconKey,
   IconKeyboard,
+  IconLayout,
   IconLogout,
   IconMouse,
+  IconPlug,
   IconSettings,
+  IconShape,
   IconSitemap,
+  IconStack2,
+  IconTopologyStar3,
   IconTrash,
   IconUserCircle,
   IconX,
@@ -104,12 +110,17 @@ const C4_LEVELS: Array<{ id: C4Level; label: string; tooltip: string }> = [
 ];
 
 const TOP_NAV_ITEMS = [
-  { id: "components", label: "Architecture", path: "/$slug" },
-  { id: "c4", label: "C4 Model", path: "/$slug/c4" },
-  { id: "templates", label: "Templates", path: "/templates" },
-  { id: "integrations", label: "Integrations", path: "/integrations" },
-  { id: "flows", label: "Flows", path: "/flows" },
-  { id: "shapes", label: "Shapes", path: "/shapes" },
+  { id: "components", label: "Architecture", path: "/$slug", icon: IconHome },
+  { id: "c4", label: "C4 Model", path: "/$slug/c4", icon: IconSitemap },
+  { id: "templates", label: "Templates", path: "/templates", icon: IconLayout },
+  {
+    id: "integrations",
+    label: "Integrations",
+    path: "/integrations",
+    icon: IconPlug,
+  },
+  { id: "flows", label: "Flows", path: "/flows", icon: IconTopologyStar3 },
+  { id: "shapes", label: "Shapes", path: "/shapes", icon: IconShape },
 ];
 
 /**
@@ -250,8 +261,9 @@ export default function Toolbar() {
       <ConfirmModal
         open={clearConfirmOpen}
         title="Clear Canvas?"
-        description="This will remove all nodes and edges from your design. This action can be undone with the undo button."
+        description="This will remove all nodes and edges from your design."
         confirmText="Clear Canvas"
+        isDestructive
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={() => {
           clearCanvas();
@@ -266,22 +278,22 @@ export default function Toolbar() {
             className="absolute inset-0 bg-background/70 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setAiSettingsOpen(false)}
           />
-          <div className="relative w-full max-w-md nordic-panel rounded-[20px] animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-3">
+          <div className="relative w-full max-w-md nordic-panel rounded-xl animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
               <div className="flex items-center gap-2">
                 <div className="size-7 rounded-lg bg-muted flex items-center justify-center text-foreground">
                   <IconKey size={14} stroke={1.6} />
                 </div>
-                <h6 className="text-sm font-semibold text-foreground">
+                <h4 className="text-sm font-medium text-foreground">
                   AI Provider Keys
-                </h6>
+                </h4>
               </div>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                icon={<IconX size={15} />}
+                icon={<IconX size={16} />}
                 onClick={() => setAiSettingsOpen(false)}
-                className="rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                aria-label="Close AI settings"
               />
             </div>
             <AISettings />
@@ -295,7 +307,7 @@ export default function Toolbar() {
       ) && (
         <Link
           to="/"
-          className="fixed top-3 left-3 z-50 h-10 px-3.5 nordic-pill rounded-2xl flex items-center gap-2 hover:bg-muted/70 transition-colors"
+          className="fixed top-3 left-3 z-50 h-10 px-3.5 nordic-panel rounded-2xl flex items-center gap-2 hover:bg-muted/70 transition-colors"
         >
           <Logo className="h-3.5 w-auto text-foreground" />
           <span className="sr-only">SysDesign</span>
@@ -305,32 +317,34 @@ export default function Toolbar() {
       {/* Floating Top-Center Navigation Pill */}
       <nav
         aria-label="Primary Navigation"
-        className="fixed top-3 left-1/2 -translate-x-1/2 z-50 hidden md:flex items-center gap-0.5 p-1 nordic-pill rounded-2xl"
+        className="fixed top-3 left-1/2 -translate-x-1/2 z-50 hidden md:flex items-center gap-0.5 p-1 nordic-panel rounded-full"
       >
         {TOP_NAV_ITEMS.map((item) => {
           const isActive = activeNavTab === item.id;
+          const NavIcon = item.icon;
           return (
-            <button
+            <Button
               key={item.id}
               type="button"
+              variant={isActive ? "secondary" : "ghost"}
+              size="sm"
               onClick={() => handleNavClick(item)}
+              icon={<NavIcon size={16} stroke={1.6} />}
+              iconPlacement="left"
               className={cn(
-                "h-8 px-3.5 rounded-xl text-[12.5px] font-medium transition-all cursor-pointer select-none",
-                isActive
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
               {item.label}
-            </button>
+            </Button>
           );
         })}
       </nav>
 
       {/* Floating Top-Right Settings Cluster */}
-      <div className="fixed top-3 right-3 z-50 flex items-center gap-1 p-1 nordic-pill rounded-2xl">
+      <div className="fixed top-3 right-3 z-50 flex items-center gap-1 p-1 nordic-panel rounded-full">
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 h-8 px-2.5 rounded-xl hover:bg-muted/80 text-foreground transition-colors cursor-pointer outline-none select-none text-[12.5px] font-medium">
+          <DropdownMenuTrigger className="flex items-center gap-2 h-8 px-2.5 rounded-full hover:bg-muted/80 text-foreground transition-colors cursor-pointer outline-none select-none text-body font-medium">
             {user?.user_metadata?.avatar_url ? (
               <img
                 src={user.user_metadata.avatar_url}
@@ -357,44 +371,44 @@ export default function Toolbar() {
           <DropdownMenuContent
             align="end"
             sideOffset={8}
-            className="min-w-60 rounded-2xl p-1.5 shadow-xl border border-black/[0.06] dark:border-white/[0.08] space-y-0.5"
+            className="min-w-60 rounded-2xl p-1.5 shadow-xl border border-border space-y-0.5"
           >
             {user ? (
               <div className="px-2.5 py-2 bg-muted/60 rounded-xl mb-1 flex items-center justify-between gap-2">
                 <div className="flex flex-col min-w-0">
-                  <p className="text-xs font-semibold text-foreground truncate">
+                  <p className="text-xs font-medium text-foreground truncate">
                     {user.user_metadata?.full_name || "Signed In"}
                   </p>
-                  <p className="text-[11px] text-muted-foreground truncate">
+                  <p className="text-caption text-muted-foreground truncate">
                     {user.email}
                   </p>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  icon={<IconLogout size={14} />}
+                  icon={<IconLogout size={16} />}
                   onClick={() => logout()}
-                  className="rounded-lg text-destructive hover:bg-destructive/10"
-                  title="Logout"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  aria-label="Sign out"
                 />
               </div>
             ) : (
               <div className="p-2.5 bg-muted/60 rounded-xl mb-1 flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5">
                   <IconUserCircle size={15} className="text-foreground/80" />
-                  <span className="text-xs font-semibold text-foreground">
+                  <span className="text-xs font-medium text-foreground">
                     Sign In
                   </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-snug">
+                <p className="text-caption text-muted-foreground leading-snug">
                   Sync your system designs safely across devices.
                 </p>
                 <Button
+                  variant="outline"
                   onClick={() => login()}
                   disabled={loading || migrating}
-                  variant="outline"
                   size="sm"
-                  className="h-8 rounded-xl bg-card text-xs w-full justify-center mt-1"
+                  className="w-full justify-center mt-1"
                   icon={
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                       <path
@@ -426,7 +440,7 @@ export default function Toolbar() {
             )}
 
             <div className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-muted/70 transition-colors">
-              <span className="text-[12.5px] font-medium text-foreground">
+              <span className="text-body font-medium text-foreground">
                 Theme
               </span>
               <ThemeToggle />
@@ -434,22 +448,22 @@ export default function Toolbar() {
 
             <DropdownMenuItem
               onClick={() => setAiSettingsOpen(true)}
-              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-[12.5px] font-medium cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-body font-medium cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <IconKey size={14} stroke={1.6} className="text-foreground/80" />
                 <span>AI Provider Keys</span>
               </div>
-              <span className="text-[11px] text-muted-foreground">Config</span>
+              <span className="text-caption text-muted-foreground">Config</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      {/* Floating C4 Level Switcher — Below Top-Center Nav */}
+      {/* Floating C4 Level Switcher: Below Top-Center Nav */}
       {isCanvasRoute && (diagramMode === "c4" || activeNavTab === "c4") && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 p-1 nordic-pill rounded-2xl animate-in fade-in duration-150">
-          <span className="text-[11px] font-medium text-muted-foreground px-2 select-none flex items-center gap-1.5">
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 p-1 nordic-panel rounded-2xl animate-in fade-in duration-150">
+          <span className="text-caption font-medium text-muted-foreground px-2 select-none flex items-center gap-1.5">
             <IconBrain size={13} stroke={1.6} className="text-foreground/75" />
             C4
           </span>
@@ -459,18 +473,17 @@ export default function Toolbar() {
               <Tooltip key={lvl.id}>
                 <TooltipTrigger
                   render={
-                    <button
+                    <Button
                       type="button"
+                      variant={isCurrent ? "secondary" : "ghost"}
+                      size="sm"
                       onClick={() => setC4Level(lvl.id)}
                       className={cn(
-                        "h-7 px-2.5 rounded-xl text-[11.5px] font-medium transition-all cursor-pointer select-none",
-                        isCurrent
-                          ? "bg-muted text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                        isCurrent ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                       )}
                     >
                       {lvl.label}
-                    </button>
+                    </Button>
                   }
                 />
                 <TooltipContent side="bottom">{lvl.tooltip}</TooltipContent>
@@ -482,18 +495,19 @@ export default function Toolbar() {
 
       {/* Floating Bottom-Center Studio Dock */}
       {isCanvasRoute && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 p-1.5 nordic-pill rounded-2xl animate-in fade-in duration-200">
-          {/* History */}
-          <div className="flex items-center gap-0.5">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 animate-in fade-in duration-200">
+          {/* Main Segmented Canvas Controls Pill */}
+          <div className="flex items-center gap-0.5 p-1 nordic-panel rounded-full">
+            {/* History */}
             <Tooltip>
               <TooltipTrigger
                 render={
                   <Button
+                    variant="ghost"
                     onClick={undo}
                     disabled={!canUndo}
-                    variant="ghost"
                     size="icon-sm"
-                    className="size-8 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+                    aria-label="Undo"
                   >
                     <IconArrowBackUp size={16} stroke={1.6} />
                   </Button>
@@ -506,11 +520,11 @@ export default function Toolbar() {
               <TooltipTrigger
                 render={
                   <Button
+                    variant="ghost"
                     onClick={redo}
                     disabled={!canRedo}
-                    variant="ghost"
                     size="icon-sm"
-                    className="size-8 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+                    aria-label="Redo"
                   >
                     <IconArrowForwardUp size={16} stroke={1.6} />
                   </Button>
@@ -518,16 +532,15 @@ export default function Toolbar() {
               />
               <TooltipContent side="top">Redo (⌘Y)</TooltipContent>
             </Tooltip>
-          </div>
 
-          <div className="w-px h-5 bg-border/70 mx-1" />
+            <div className="w-px h-4 bg-border/70 mx-1" />
 
-          {/* Layout & Utilities */}
-          <div className="flex items-center gap-0.5">
+            {/* Layout & Snap */}
             <Tooltip>
               <TooltipTrigger
                 render={
                   <Button
+                    variant="ghost"
                     onClick={() => {
                       autoLayout();
                       setTimeout(
@@ -541,11 +554,10 @@ export default function Toolbar() {
                       );
                     }}
                     disabled={!hasNodes}
-                    variant="ghost"
                     size="icon-sm"
-                    className="size-8 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+                    aria-label="Auto Layout"
                   >
-                    <IconSitemap size={16} stroke={1.6} />
+                    <IconStack2 size={16} stroke={1.6} />
                   </Button>
                 }
               />
@@ -556,16 +568,11 @@ export default function Toolbar() {
               <TooltipTrigger
                 render={
                   <Button
+                    variant={snapToGrid ? "secondary" : "ghost"}
                     icon={IconGridDots}
                     onClick={toggleSnap}
-                    variant="ghost"
                     size="icon-sm"
-                    className={cn(
-                      "size-8 rounded-xl transition-colors",
-                      snapToGrid
-                        ? "text-foreground bg-muted"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
-                    )}
+                    aria-label="Snap to Grid"
                   />
                 }
               />
@@ -574,94 +581,19 @@ export default function Toolbar() {
               </TooltipContent>
             </Tooltip>
 
+            <div className="w-px h-4 bg-border/70 mx-1" />
+
+            {/* Zoom Controls */}
             <Tooltip>
               <TooltipTrigger
                 render={
                   <Button
-                    onClick={() => setClearConfirmOpen(true)}
-                    disabled={!hasNodes}
                     variant="ghost"
-                    size="icon-sm"
-                    className="size-8 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-30"
-                  >
-                    <IconTrash size={16} stroke={1.6} />
-                  </Button>
-                }
-              />
-              <TooltipContent side="top">Clear Canvas</TooltipContent>
-            </Tooltip>
-          </div>
-
-          <div className="w-px h-5 bg-border/70 mx-1" />
-
-          {/* Tactile Nordic Satin Export Button */}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              disabled={!hasNodes}
-              className="nordic-btn inline-flex items-center justify-center gap-1.5 rounded-xl h-8 px-4 text-[12.5px] font-medium cursor-pointer disabled:opacity-40 disabled:pointer-events-none outline-none"
-            >
-              <span>Export</span>
-              <IconChevronDown size={13} stroke={1.7} className="opacity-70" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              side="top"
-              sideOffset={8}
-              className="min-w-56 rounded-2xl p-1.5 space-y-0.5 shadow-xl border border-black/[0.06] dark:border-white/[0.08]"
-            >
-              <DropdownMenuLabel className="px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground">
-                Export Format
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {EXPORT_OPTIONS.map((opt) => (
-                <DropdownMenuItem
-                  key={opt.key}
-                  onClick={() => handleExport(opt.key)}
-                  className="w-full flex flex-col items-start px-2.5 py-2 rounded-xl hover:bg-muted transition-colors cursor-pointer"
-                >
-                  <span className="text-[12.5px] font-medium text-foreground">
-                    {opt.label}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    {opt.desc}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
-
-      {/* Floating Bottom-Right Viewport Controls */}
-      {isCanvasRoute && (
-        <div className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 animate-in fade-in duration-200">
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  onClick={() => fitView({ duration: 350, maxZoom: 1 })}
-                  variant="ghost"
-                  size="icon-sm"
-                  className="size-9 rounded-xl nordic-pill hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <IconFocus2 size={16} stroke={1.6} />
-                </Button>
-              }
-            />
-            <TooltipContent side="top">Fit to Canvas (F)</TooltipContent>
-          </Tooltip>
-
-          <div className="flex items-center gap-0.5 h-9 px-1 nordic-pill rounded-xl">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
                     onClick={() => zoomOut()}
-                    variant="ghost"
                     size="icon-sm"
-                    className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Zoom Out"
                   >
-                    <IconZoomOut size={15} stroke={1.6} />
+                    <IconZoomOut size={16} stroke={1.6} />
                   </Button>
                 }
               />
@@ -675,7 +607,8 @@ export default function Toolbar() {
                     variant="ghost"
                     size="sm"
                     onClick={() => zoomTo(1, { duration: 250 })}
-                    className="px-2 h-7 min-w-11 text-center text-[12px] tabular-nums font-medium text-foreground/90 hover:text-foreground hover:bg-muted rounded-lg"
+                    className="px-2 min-w-11 text-center text-small tabular-nums text-foreground"
+                    aria-label="Reset Zoom"
                   >
                     {Math.round(zoom * 100)}%
                   </Button>
@@ -688,34 +621,71 @@ export default function Toolbar() {
               <TooltipTrigger
                 render={
                   <Button
-                    onClick={() => zoomIn()}
                     variant="ghost"
+                    onClick={() => zoomIn()}
                     size="icon-sm"
-                    className="size-7 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Zoom In"
                   >
-                    <IconZoomIn size={15} stroke={1.6} />
+                    <IconZoomIn size={16} stroke={1.6} />
                   </Button>
                 }
               />
               <TooltipContent side="top">Zoom In (+)</TooltipContent>
             </Tooltip>
+
+            <div className="w-px h-4 bg-border/70 mx-1" />
+
+            {/* Fit to Canvas */}
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    onClick={() => fitView({ duration: 350, maxZoom: 1 })}
+                    size="icon-sm"
+                    aria-label="Fit to Canvas"
+                  >
+                    <IconFocus2 size={16} stroke={1.6} />
+                  </Button>
+                }
+              />
+              <TooltipContent side="top">Fit to Canvas (F)</TooltipContent>
+            </Tooltip>
+
+            {/* Clear Canvas */}
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="destructive"
+                    onClick={() => setClearConfirmOpen(true)}
+                    disabled={!hasNodes}
+                    size="icon-sm"
+                    aria-label="Clear Canvas"
+                  >
+                    <IconTrash size={16} stroke={1.6} />
+                  </Button>
+                }
+              />
+              <TooltipContent side="top">Clear Canvas</TooltipContent>
+            </Tooltip>
           </div>
 
-          {/* Navigation Tips Toggle & Popover */}
+          {/* Circular Info / Navigation Tips Button */}
           <div className="relative">
             {showHint && (
-              <div className="absolute bottom-full right-0 mb-2.5 animate-in slide-in-from-bottom-1 fade-in duration-150 z-50">
-                <div className="relative nordic-panel rounded-[20px] p-4 w-72 overflow-hidden">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 animate-in slide-in-from-bottom-1 fade-in duration-150 z-50">
+                <div className="relative nordic-panel rounded-xl p-4 w-72 overflow-hidden">
                   <div className="flex items-center justify-between mb-3 border-b border-border/60 pb-2">
-                    <h6 className="text-[12.5px] font-semibold text-foreground">
+                    <h4 className="text-body font-medium text-foreground">
                       Navigation Tips
-                    </h6>
+                    </h4>
                     <Button
                       variant="ghost"
-                      size="icon-xs"
-                      icon={<IconX size={13} />}
+                      size="icon-sm"
+                      icon={<IconX size={16} />}
                       onClick={toggleHint}
-                      className="rounded-lg text-muted-foreground hover:text-foreground"
+                      aria-label="Close navigation tips"
                     />
                   </div>
 
@@ -729,10 +699,10 @@ export default function Toolbar() {
                         />
                       </div>
                       <div className="min-w-0 text-xs">
-                        <span className="block font-medium text-foreground text-[12px]">
+                        <span className="block font-medium text-foreground text-small">
                           Canvas Controls
                         </span>
-                        <p className="text-muted-foreground text-[11.5px] leading-relaxed">
+                        <p className="text-muted-foreground text-caption leading-relaxed">
                           Right-click drag to pan. Scroll to zoom. Left-click
                           drag to group.
                         </p>
@@ -748,30 +718,30 @@ export default function Toolbar() {
                         />
                       </div>
                       <div className="min-w-0 text-xs flex-1">
-                        <span className="block font-medium text-foreground text-[12px]">
+                        <span className="block font-medium text-foreground text-small">
                           Shortcuts
                         </span>
                         <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 mt-1.5">
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <kbd className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-[10px]">
+                          <div className="flex items-center gap-1.5 text-caption text-muted-foreground">
+                            <kbd className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-caption">
                               ⌘K
                             </kbd>
                             <span>Search</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <kbd className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-[10px]">
+                          <div className="flex items-center gap-1.5 text-caption text-muted-foreground">
+                            <kbd className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-caption">
                               F
                             </kbd>
                             <span>Fit</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <kbd className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-[10px]">
+                          <div className="flex items-center gap-1.5 text-caption text-muted-foreground">
+                            <kbd className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-caption">
                               ⌘Z
                             </kbd>
                             <span>Undo</span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <kbd className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-[10px]">
+                          <div className="flex items-center gap-1.5 text-caption text-muted-foreground">
+                            <kbd className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-caption">
                               Del
                             </kbd>
                             <span>Delete</span>
@@ -789,10 +759,10 @@ export default function Toolbar() {
                         />
                       </div>
                       <div className="min-w-0 text-xs">
-                        <span className="block font-medium text-foreground text-[12px]">
+                        <span className="block font-medium text-foreground text-small">
                           Editing
                         </span>
-                        <p className="text-muted-foreground text-[11.5px] leading-relaxed">
+                        <p className="text-muted-foreground text-caption leading-relaxed">
                           Double-click any node or edge to edit properties.
                         </p>
                       </div>
@@ -806,13 +776,14 @@ export default function Toolbar() {
               <TooltipTrigger
                 render={
                   <Button
-                    onClick={toggleHint}
                     variant="ghost"
-                    size="icon-sm"
+                    onClick={toggleHint}
+                    size="icon-lg"
                     className={cn(
-                      "size-9 rounded-xl nordic-pill hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer",
+                      "nordic-panel",
                       showHint && "text-foreground bg-muted",
                     )}
+                    aria-label="Navigation Tips"
                   >
                     <IconInfoCircle size={16} stroke={1.6} />
                   </Button>
@@ -821,6 +792,42 @@ export default function Toolbar() {
               <TooltipContent side="top">Navigation Tips</TooltipContent>
             </Tooltip>
           </div>
+
+          {/* Shiny Primary Export Pill Button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              disabled={!hasNodes}
+              className="shiny-primary-btn inline-flex items-center justify-center gap-1.5 rounded-full h-10 px-5 text-body font-medium cursor-pointer disabled:opacity-40 disabled:pointer-events-none outline-none"
+            >
+              <span>Export</span>
+              <IconChevronDown size={13} stroke={1.8} className="opacity-85" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              side="top"
+              sideOffset={8}
+              className="min-w-56 rounded-2xl p-1.5 space-y-0.5 shadow-xl border border-border"
+            >
+              <DropdownMenuLabel className="px-2.5 py-1.5 text-caption font-medium text-muted-foreground">
+                Export Format
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {EXPORT_OPTIONS.map((opt) => (
+                <DropdownMenuItem
+                  key={opt.key}
+                  onClick={() => handleExport(opt.key)}
+                  className="w-full flex flex-col items-start px-2.5 py-2 rounded-xl hover:bg-muted transition-colors cursor-pointer"
+                >
+                  <span className="text-body font-medium text-foreground">
+                    {opt.label}
+                  </span>
+                  <span className="text-caption text-muted-foreground">
+                    {opt.desc}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 

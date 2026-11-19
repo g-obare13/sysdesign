@@ -8,19 +8,21 @@ import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
 import {
   Background,
+  BackgroundVariant,
   ConnectionLineType,
-  
   MarkerType,
   MiniMap,
-  
-  
-  
-  
   ReactFlow,
   SelectionMode,
-  useReactFlow
+  useReactFlow,
 } from "@xyflow/react";
-import type {EdgeTypes, NodeTypes, OnConnect, OnEdgesChange, OnNodesChange} from "@xyflow/react";
+import type {
+  EdgeTypes,
+  NodeTypes,
+  OnConnect,
+  OnEdgesChange,
+  OnNodesChange,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import {
@@ -37,11 +39,12 @@ import {
   updateEdgeConnection,
   useCanvasStore,
 } from "@/store/canvas.store";
-import { CATEGORY_STYLE  } from "@/types/diagram";
-import type {DiagramEdge, DiagramNode, NodeTemplate } from "@/types/diagram";
+import { CATEGORY_STYLE } from "@/types/diagram";
+import type { DiagramEdge, DiagramNode, NodeTemplate } from "@/types/diagram";
 import DiagramNodeComponent from "./DiagramNode";
 import DiagramEdgeComponent from "./DiagramEdge";
 import { IconX } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
 const nodeTypes: NodeTypes = { diagram: DiagramNodeComponent };
@@ -269,16 +272,17 @@ export default function DiagramCanvas() {
       >
         {!isExporting && (
           <Background
-            color={isDark ? "rgba(243,244,246,0.06)" : "rgba(23,23,23,0.08)"}
+            variant={BackgroundVariant.Dots}
+            // color="color-mix(in srgb, var(--border-strong) 90%, transparent)"
             gap={20}
-            size={1}
+            size={1.25}
           />
         )}
         {!isExporting && (
           <MiniMap
             pannable
             zoomable
-            className="!rounded-2xl !border !border-black/[0.06] dark:!border-white/[0.07] !bg-card/95 !backdrop-blur-md !shadow-md !bottom-16 !right-4"
+            className="!rounded-xl !border !border-border !bg-card/95 !backdrop-blur-md !shadow-panel !bottom-0 !right-4"
             nodeColor={(n) => {
               const cat = (n.data as { category?: string })?.category;
               const catStyle = cat
@@ -311,16 +315,19 @@ export default function DiagramCanvas() {
       {showShortcuts &&
         createPortal(
           <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-background/70 backdrop-blur-sm animate-in fade-in duration-150 p-4">
-            <div className="nordic-glass rounded-xl p-5 w-full max-w-sm animate-in zoom-in-98 duration-150 flex flex-col gap-3">
-              <div className="flex items-center justify-between pb-2 border-b border-border/60">
-                <h6 className="text-xs font-semibold text-foreground">Keyboard Shortcuts</h6>
-                <button
+            <div className="nordic-panel rounded-xl shadow-popover p-6 w-full max-w-sm animate-in zoom-in-98 duration-150 flex flex-col gap-4">
+              <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+                <h3 className="text-card font-medium text-foreground">
+                  Keyboard shortcuts
+                </h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={() => setShowShortcuts(false)}
-                  className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer rounded"
                   aria-label="Close shortcuts"
-                >
-                  <IconX size={14} />
-                </button>
+                  icon={<IconX size={16} stroke={1.6} />}
+                />
               </div>
               <div className="flex flex-col text-xs">
                 {[
@@ -336,15 +343,15 @@ export default function DiagramCanvas() {
                     key={`${keys}-${desc}`}
                     className="flex items-center justify-between gap-4 py-1.5 border-b border-border/40 last:border-0"
                   >
-                    <kbd className="text-[10px] font-mono font-medium text-foreground bg-muted px-1.5 py-0.5 rounded-xs border border-border">
+                    <kbd className="text-caption font-mono font-medium text-foreground bg-muted px-1.5 py-0.5 rounded-xs border border-border">
                       {keys}
                     </kbd>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-caption text-muted-foreground">
                       {desc}
                     </span>
                   </div>
                 ))}
-                <p className="text-[10px] font-mono text-muted-foreground/70 pt-2">
+                <p className="text-caption font-mono text-muted-foreground/70 pt-2">
                   Tip: drag components from palette, double-click to edit.
                 </p>
               </div>

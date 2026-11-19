@@ -37,7 +37,7 @@ function TermsPage() {
           <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-xs">
             <IconScale size={20} />
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground mb-1">
+          <h1 className="text-xl font-medium tracking-tight text-foreground mb-1">
             Terms of Service
           </h1>
           <p className="text-xs text-muted-foreground">
@@ -47,7 +47,7 @@ function TermsPage() {
 
         <div className="space-y-6 text-xs text-foreground/85 leading-relaxed">
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-sm font-medium text-foreground">
               1. Acceptance of Terms
             </h2>
             <p>
@@ -56,7 +56,7 @@ function TermsPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-sm font-medium text-foreground">
               2. Intellectual Property & Ownership
             </h2>
             <p>
@@ -65,7 +65,7 @@ function TermsPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-sm font-medium text-foreground">
               3. Service Availability
             </h2>
             <p>

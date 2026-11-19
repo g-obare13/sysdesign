@@ -346,7 +346,7 @@ async function syncFromSupabase(): Promise<void> {
 if (typeof window !== "undefined") {
   const loadingTimeout = setTimeout(() => {
     if (projectStore.state.loading) {
-      console.warn("[SysDesign] Loading timed out — clearing loading state");
+      console.warn("[SysDesign] Loading timed out: clearing loading state");
       const local = load();
       projectStore.setState((s: ProjectState) => ({
         ...s,

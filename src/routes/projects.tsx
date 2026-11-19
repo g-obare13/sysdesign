@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import Container from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -103,7 +104,7 @@ function ProjectsPage() {
       <main className="flex-1 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="size-6 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
-          <p className="text-[12.5px] text-muted-foreground font-medium">
+          <p className="text-body text-muted-foreground font-medium">
             Loading projects…
           </p>
         </div>
@@ -119,19 +120,19 @@ function ProjectsPage() {
 
   return (
     <main className="flex-1 w-full bg-background">
-      <div className="max-w-5xl mx-auto w-full pt-20 pb-10 px-6 flex flex-col gap-6">
+      <Container className="w-full pt-20 pb-10 flex flex-col gap-6">
         {/* Page Header */}
         <div className="flex items-end justify-between gap-4">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2.5">
-              <h1 className="text-[22px] font-semibold tracking-tight text-foreground leading-none">
+              <h1 className="text-page font-medium tracking-tight text-foreground leading-none">
                 Projects
               </h1>
-              <span className="px-2 py-0.5 rounded-full bg-muted text-[11px] font-medium text-muted-foreground tabular-nums">
+              <span className="px-2 py-0.5 rounded-full bg-muted text-caption font-medium text-muted-foreground tabular-nums">
                 {projects.length} / {MAX_PROJECTS}
               </span>
             </div>
-            <p className="text-[13px] text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               Manage and organize your system architectures and C4 models.
             </p>
           </div>
@@ -163,27 +164,22 @@ function ProjectsPage() {
               }
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-9 rounded-xl bg-card border border-black/[0.06] dark:border-white/[0.07] shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+              className="w-full h-9 rounded-xl bg-card border border-border shadow-none"
             />
           </div>
 
-          <div className="flex items-center p-1 rounded-xl bg-muted/85">
+          <div className="flex items-center gap-1 p-1 rounded-full bg-muted/85">
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <button
+                  <Button
                     type="button"
+                    variant={view === "grid" ? "outline" : "ghost"}
+                    size="icon-sm"
                     onClick={() => setView("grid")}
-                    className={cn(
-                      "size-7 rounded-lg flex items-center justify-center transition-all cursor-pointer",
-                      view === "grid"
-                        ? "bg-card text-foreground shadow-xs"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
                     aria-label="Grid view"
-                  >
-                    <IconLayoutGrid size={15} stroke={1.6} />
-                  </button>
+                    icon={<IconLayoutGrid size={16} stroke={1.6} />}
+                  />
                 }
               />
               <TooltipContent side="top">Grid view</TooltipContent>
@@ -191,19 +187,14 @@ function ProjectsPage() {
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <button
+                  <Button
                     type="button"
+                    variant={view === "list" ? "outline" : "ghost"}
+                    size="icon-sm"
                     onClick={() => setView("list")}
-                    className={cn(
-                      "size-7 rounded-lg flex items-center justify-center transition-all cursor-pointer",
-                      view === "list"
-                        ? "bg-card text-foreground shadow-xs"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
                     aria-label="List view"
-                  >
-                    <IconLayoutList size={15} stroke={1.6} />
-                  </button>
+                    icon={<IconLayoutList size={16} stroke={1.6} />}
+                  />
                 }
               />
               <TooltipContent side="top">List view</TooltipContent>
@@ -219,7 +210,7 @@ function ProjectsPage() {
               return (
                 <div
                   key={p.id}
-                  className="group relative flex flex-col justify-between gap-4 p-5 nordic-panel rounded-[20px] transition-all hover:-translate-y-0.5"
+                  className="group relative flex flex-col justify-between gap-4 p-5 nordic-panel rounded-xl transition-all hover:-translate-y-0.5"
                 >
                   <div className="flex flex-col gap-3.5">
                     <div className="flex items-center justify-between">
@@ -231,23 +222,23 @@ function ProjectsPage() {
                             <IconVectorBezier2 size={15} stroke={1.6} />
                           )}
                         </div>
-                        <span className="text-[11.5px] font-medium text-muted-foreground">
+                        <span className="text-caption font-medium text-muted-foreground">
                           {p.type === "c4" ? "C4 Model" : "Architecture"}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 opacity-75 group-hover:opacity-100 transition-opacity duration-150">
                         <Tooltip>
                           <TooltipTrigger
                             render={
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="icon-sm"
                                 onClick={() => handleRenameRequest(p)}
                                 aria-label="Rename project"
-                                className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-                              >
-                                <IconPencil size={14} stroke={1.6} />
-                              </button>
+                                icon={<IconPencil size={16} stroke={1.6} />}
+                              />
                             }
                           />
                           <TooltipContent side="top">
@@ -257,14 +248,15 @@ function ProjectsPage() {
                         <Tooltip>
                           <TooltipTrigger
                             render={
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="icon-sm"
                                 onClick={() => handleDeleteRequest(p)}
+                                className="hover:text-destructive hover:bg-destructive/10"
                                 aria-label="Delete project"
-                                className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                              >
-                                <IconTrash size={14} stroke={1.6} />
-                              </button>
+                                icon={<IconTrash size={16} stroke={1.6} />}
+                              />
                             }
                           />
                           <TooltipContent side="top">
@@ -275,17 +267,17 @@ function ProjectsPage() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <h2 className="text-[15px] font-semibold text-foreground tracking-tight truncate">
+                      <h2 className="text-card font-medium text-foreground tracking-tight truncate">
                         {p.name}
                       </h2>
-                      <p className="text-[12.5px] text-muted-foreground line-clamp-2 min-h-9 leading-relaxed">
+                      <p className="text-body text-muted-foreground line-clamp-2 min-h-9 leading-relaxed">
                         {p.description || "No description provided."}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-3.5 border-t border-border/60">
-                    <div className="flex items-center gap-1.5 text-[11.5px] text-muted-foreground tabular-nums">
+                    <div className="flex items-center gap-1.5 text-caption text-muted-foreground tabular-nums">
                       <IconCalendar size={13} stroke={1.6} />
                       {new Date(p.updatedAt).toLocaleDateString()}
                     </div>
@@ -293,7 +285,7 @@ function ProjectsPage() {
                     <Link
                       to={targetRoute}
                       params={{ slug: p.slug } as any}
-                      className="nordic-btn inline-flex items-center gap-1.5 h-7 px-3 rounded-lg text-[12px] font-medium"
+                      className="shiny-primary-btn inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-body font-medium"
                     >
                       <span>Open</span>
                       <IconArrowRight size={13} stroke={1.7} />
@@ -305,7 +297,7 @@ function ProjectsPage() {
           </div>
         ) : (
           /* List View */
-          <div className="flex flex-col nordic-panel rounded-[20px] overflow-hidden">
+          <div className="flex flex-col nordic-panel rounded-xl overflow-hidden">
             {filtered.map((p, idx) => {
               const targetRoute = p.type === "c4" ? "/$slug/c4" : "/$slug";
               return (
@@ -325,20 +317,20 @@ function ProjectsPage() {
                       )}
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[13.5px] font-semibold text-foreground truncate">
+                      <span className="text-body font-medium text-foreground truncate">
                         {p.name}
                       </span>
-                      <span className="text-[12px] text-muted-foreground truncate max-w-md">
+                      <span className="text-small text-muted-foreground truncate max-w-md">
                         {p.description || "No description provided."}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4 shrink-0">
-                    <span className="hidden sm:inline-block text-[11.5px] text-muted-foreground">
+                    <span className="hidden sm:inline-block text-caption text-muted-foreground">
                       {p.type === "c4" ? "C4 Model" : "Architecture"}
                     </span>
-                    <div className="text-[11.5px] text-muted-foreground tabular-nums flex items-center gap-1.5">
+                    <div className="text-caption text-muted-foreground tabular-nums flex items-center gap-1.5">
                       <IconCalendar size={13} stroke={1.6} />
                       {new Date(p.updatedAt).toLocaleDateString()}
                     </div>
@@ -346,7 +338,7 @@ function ProjectsPage() {
                       <Link
                         to={targetRoute}
                         params={{ slug: p.slug } as any}
-                        className="nordic-btn inline-flex items-center gap-1.5 h-7 px-3 rounded-lg text-[12px] font-medium"
+                        className="shiny-primary-btn inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-small font-medium"
                       >
                         <span>Open</span>
                         <IconArrowRight size={13} stroke={1.7} />
@@ -354,14 +346,14 @@ function ProjectsPage() {
                       <Tooltip>
                         <TooltipTrigger
                           render={
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="icon-sm"
                               onClick={() => handleRenameRequest(p)}
                               aria-label="Rename project"
-                              className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-                            >
-                              <IconPencil size={14} stroke={1.6} />
-                            </button>
+                              icon={<IconPencil size={16} stroke={1.6} />}
+                            />
                           }
                         />
                         <TooltipContent side="top">
@@ -371,14 +363,15 @@ function ProjectsPage() {
                       <Tooltip>
                         <TooltipTrigger
                           render={
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="icon-sm"
                               onClick={() => handleDeleteRequest(p)}
+                              className="hover:text-destructive hover:bg-destructive/10"
                               aria-label="Delete project"
-                              className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                            >
-                              <IconTrash size={14} stroke={1.6} />
-                            </button>
+                              icon={<IconTrash size={16} stroke={1.6} />}
+                            />
                           }
                         />
                         <TooltipContent side="top">
@@ -394,11 +387,11 @@ function ProjectsPage() {
         )}
 
         {filtered.length === 0 && (
-          <div className="flex flex-col gap-2.5 items-center justify-center py-16 nordic-panel rounded-[20px] text-center">
-            <h6 className="text-[15px] font-semibold text-foreground">
+          <div className="flex flex-col gap-2.5 items-center justify-center py-16 nordic-panel rounded-xl text-center">
+            <h4 className="text-card font-medium text-foreground">
               No projects found
-            </h6>
-            <p className="text-[12.5px] text-muted-foreground max-w-sm mb-1">
+            </h4>
+            <p className="text-body text-muted-foreground max-w-sm mb-1">
               Create a project to start designing your system architecture.
             </p>
             <Button
@@ -411,28 +404,29 @@ function ProjectsPage() {
             </Button>
           </div>
         )}
-      </div>
+      </Container>
 
       {/* Rename Modal */}
       {renameTarget && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-background/70 backdrop-blur-sm animate-in fade-in duration-150 p-4">
-          <div className="nordic-panel rounded-[20px] p-5 w-full max-w-sm animate-in zoom-in-98 duration-150 flex flex-col gap-4">
+          <div className="nordic-panel rounded-xl p-5 w-full max-w-sm animate-in zoom-in-98 duration-150 flex flex-col gap-4">
             <div className="flex items-center justify-between pb-2.5 border-b border-border/60">
               <div className="flex items-center gap-2">
                 <div className="size-7 rounded-lg bg-muted flex items-center justify-center text-foreground">
                   <IconPencil size={14} stroke={1.6} />
                 </div>
-                <h6 className="text-[13.5px] font-semibold text-foreground">
+                <h4 className="text-body font-medium text-foreground">
                   Rename Project
-                </h6>
+                </h4>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => setRenameTarget(null)}
-                className="size-7 rounded-lg flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-              >
-                <IconX size={15} />
-              </button>
+                aria-label="Close dialog"
+                icon={<IconX size={16} stroke={1.6} />}
+              />
             </div>
 
             <form
@@ -443,7 +437,7 @@ function ProjectsPage() {
               className="flex flex-col gap-3.5"
             >
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="rename-input" className="text-[12px]">
+                <Label htmlFor="rename-input" className="text-small">
                   Project Name
                 </Label>
                 <Input
@@ -458,7 +452,7 @@ function ProjectsPage() {
               <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-border/50">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={() => setRenameTarget(null)}
                 >

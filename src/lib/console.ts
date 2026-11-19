@@ -36,7 +36,7 @@ export function initConsole(): void {
     #####      #      #####    #####   #######   #####   ###   #####    #     #
 
     
-    %c SysDesign | v0.0.1 https://sysdesign.obare27.com %c
+    %c SysDesign | v0.0.2 https://sysdesign.obare27.com %c
 
     %cBuilt By Obare.
     
@@ -47,7 +47,7 @@ export function initConsole(): void {
       banner,
       "color: #10b981; font-weight: bold; font-family: monospace;",
       "background: #10b981; color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold;",
-      "color: #94a3b8; font-style: italic;",
+      "color: #94a3b8; ",
       "color: #64748b; font-weight: 500;",
       "color: #475569;",
       "color: #10b981; font-weight: bold; text-decoration: underline;",

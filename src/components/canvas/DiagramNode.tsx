@@ -268,8 +268,8 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
             <div className="flex flex-col gap-1">
               <Input
                 autoFocus
-                size="xs"
-                className="nodrag text-[10px] h-5"
+                size="sm"
+                className="nodrag text-caption h-5"
                 placeholder="Group name"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -280,14 +280,14 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
               />
               <Button
                 onClick={commitEdit}
-                size="xs"
-                className="h-5 text-[9px] nodrag cursor-pointer"
+                size="sm"
+                className="h-5 text-caption nodrag cursor-pointer"
               >
                 Save
               </Button>
             </div>
           ) : (
-            <span className="text-[10px] font-mono font-medium uppercase tracking-wider cursor-text text-foreground/70 truncate leading-tight">
+            <span className="text-caption font-mono font-medium uppercase tracking-wider cursor-text text-foreground/70 truncate leading-tight">
               {meta.label as string}
             </span>
           )}
@@ -326,17 +326,17 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
       <div
         className={cn(
           "group relative flex flex-col bg-card text-foreground rounded-2xl border transition-all duration-150 min-w-[224px] max-w-[268px] select-none cursor-pointer overflow-visible",
-          "shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_18px_rgba(0,0,0,0.4)]",
+          "shadow-none",
           isExternal && "border-dashed opacity-95",
           selected
             ? "border-foreground/35 ring-2 ring-foreground/10 z-20"
-            : "border-black/[0.06] dark:border-white/[0.07] hover:border-black/[0.12] dark:hover:border-white/[0.14]",
+            : "border-border hover:border-border-strong",
         )}
       >
         {/* Floating Quick Action Buttons on Hover & Select */}
         <div
           className={cn(
-            "absolute -top-3.5 right-2 flex items-center gap-0.5 z-30 transition-all duration-150 bg-card/95 backdrop-blur-sm border border-border rounded-full px-1 py-0.5 shadow-sm",
+            "absolute -top-3.5 right-2 flex items-center gap-1 z-30 transition-all duration-150",
             selected
               ? "opacity-100 pointer-events-auto"
               : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto",
@@ -348,14 +348,15 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
                 render={
                   <Button
                     variant="outline"
-                    size="icon"
-                    icon={<TablerIcons.IconHierarchy size={11} stroke={1.8} />}
+                    size="icon-sm"
+                    icon={<TablerIcons.IconHierarchy size={14} stroke={1.8} />}
                     iconPlacement="left"
                     onClick={(e) => {
                       e.stopPropagation();
                       setC4Level("component");
                     }}
-                    className="size-5 rounded-xs bg-card"
+                    aria-label="Drill down"
+                    className="size-6 bg-card shadow-panel"
                   />
                 }
               />
@@ -368,14 +369,15 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
               render={
                 <Button
                   variant="outline"
-                  size="icon"
-                  icon={<TablerIcons.IconPencil size={11} stroke={1.8} />}
+                  size="icon-sm"
+                  icon={<TablerIcons.IconPencil size={14} stroke={1.8} />}
                   iconPlacement="left"
                   onClick={(e) => {
                     e.stopPropagation();
                     openEdit();
                   }}
-                  className="size-5 rounded-xs bg-card"
+                  aria-label="Edit properties"
+                  className="size-6 bg-card shadow-panel"
                 />
               }
             />
@@ -387,14 +389,15 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
               render={
                 <Button
                   variant="destructive"
-                  size="icon"
-                  icon={<TablerIcons.IconTrash size={11} stroke={1.8} />}
+                  size="icon-sm"
+                  icon={<TablerIcons.IconTrash size={14} stroke={1.8} />}
                   iconPlacement="left"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDelete(e);
                   }}
-                  className="size-5 rounded-xs bg-card "
+                  aria-label="Delete node"
+                  className="size-6 shadow-panel"
                 />
               }
             />
@@ -453,46 +456,28 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
         />
 
         {/* Top Header Strip (Nordic Studio Two-Part Card) */}
-        <div className="flex items-center justify-between px-3.5 py-2 bg-muted/75 border-b border-border/60 rounded-t-[15px]">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[11.5px] font-medium text-foreground/80 truncate leading-none">
-              {c4BadgeText || style.label}
-            </span>
-            {meta.status && (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <span
-                      className={cn(
-                        "size-1.5 rounded-full shrink-0",
-                        meta.status === "existing" && "bg-[#3B6E5C]",
-                        meta.status === "planned" && "bg-[#9A6B3B]",
-                        meta.status === "deprecated" && "bg-[#A84A44]",
-                      )}
-                      aria-label={`Status: ${meta.status}`}
-                    />
-                  }
-                />
-                <TooltipContent side="top">
-                  Status: {meta.status}
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
+        <div
+          data-category={isC4 ? subtype || "c4" : category}
+          className="node-category-header flex items-center justify-between px-3.5 py-2 border-b border-border/50 rounded-t-[15px]"
+        >
+          <span className="text-caption font-medium text-foreground/85 truncate leading-none">
+            {c4BadgeText || style.label}
+          </span>
           <Tooltip>
             <TooltipTrigger
               render={
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     openEdit();
                   }}
-                  className="text-muted-foreground hover:text-foreground transition-colors p-0.5 -mr-1 rounded-md cursor-pointer"
                   aria-label="Edit node"
-                >
-                  <TablerIcons.IconDotsVertical size={13} stroke={1.6} />
-                </button>
+                  className="size-6 text-muted-foreground hover:text-foreground"
+                  icon={<TablerIcons.IconDotsVertical size={14} stroke={1.6} />}
+                />
               }
             />
             <TooltipContent side="top">Edit node</TooltipContent>
@@ -500,21 +485,49 @@ function DiagramNode({ id, data, selected, type }: NodeProps) {
         </div>
 
         {/* Card Body */}
-        <div className="flex items-center gap-3 px-3.5 py-3 bg-card rounded-b-[15px]">
-          {/* Monochrome Squircle Icon */}
-          <div className="size-9 rounded-xl bg-muted/80 flex items-center justify-center shrink-0 text-foreground/75">
-            <Icon size={16} stroke={1.6} />
+        <div className="flex flex-col gap-2.5 px-3.5 py-3 bg-card rounded-b-[15px]">
+          <div className="flex items-center gap-3">
+            {/* Category-Tinted Squircle Icon */}
+            <div
+              data-category={isC4 ? subtype || "c4" : category}
+              className="node-category-icon size-7 rounded-lg flex items-center justify-center shrink-0"
+            >
+              <Icon size={14} stroke={1.6} />
+            </div>
+
+            {/* Node Labels Column */}
+            <div className="flex flex-col min-w-0 flex-1 gap-0.5">
+              <span className="text-body font-medium text-foreground truncate leading-tight">
+                {meta.label || style.label}
+              </span>
+              <span className="text-caption text-muted-foreground line-clamp-2 leading-snug">
+                {meta.technology || meta.description || meta.subtype || style.label}
+              </span>
+            </div>
           </div>
 
-          {/* Node Labels Column */}
-          <div className="flex flex-col min-w-0 flex-1 gap-0.5">
-            <span className="text-[13px] font-semibold text-foreground truncate leading-tight">
-              {meta.label || style.label}
-            </span>
-            <span className="text-[11.5px] text-muted-foreground truncate leading-tight">
-              {meta.technology || meta.description || meta.subtype || style.label}
-            </span>
-          </div>
+          {(meta.owner || meta.status) && (
+            <div className="flex flex-wrap items-center gap-1.5 pl-10">
+              {meta.owner && (
+                <span className="inline-flex items-center rounded-full bg-muted/70 border border-border px-2.5 py-0.5 text-caption font-medium text-foreground/80 truncate max-w-32">
+                  {meta.owner.startsWith("@") ? meta.owner : `@${meta.owner}`}
+                </span>
+              )}
+              {meta.status && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/70 border border-border px-2.5 py-0.5 text-caption font-medium text-foreground/80 capitalize">
+                  <span
+                    className={cn(
+                      "size-1.5 rounded-full shrink-0",
+                      meta.status === "existing" && "bg-[#3B6E5C]",
+                      meta.status === "planned" && "bg-[#9A6B3B]",
+                      meta.status === "deprecated" && "bg-[#A84A44]",
+                    )}
+                  />
+                  {meta.status}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

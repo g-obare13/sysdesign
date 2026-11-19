@@ -29,7 +29,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SysDesign — Systems Architecture & C4 Modeling" },
+      { title: "SysDesign: Systems Architecture & C4 Modeling" },
       {
         name: "description",
         content:
@@ -42,7 +42,7 @@ export const Route = createRootRoute({
       },
       {
         name: "og:title",
-        content: "SysDesign — Systems Architecture & C4 Modeling",
+        content: "SysDesign: Systems Architecture & C4 Modeling",
       },
       {
         name: "og:description",
@@ -65,13 +65,6 @@ export const Route = createRootRoute({
       {
         rel: "preload",
         href: "/fonts/Ronzino-Medium.woff2",
-        as: "font",
-        type: "font/woff2",
-        crossOrigin: "anonymous",
-      },
-      {
-        rel: "preload",
-        href: "/fonts/Ronzino-Bold.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",
@@ -140,10 +133,10 @@ function NotFound() {
         <IconLinkOff size={22} stroke={1.5} />
       </div>
 
-      <span className="text-[10px] font-mono font-medium text-muted-foreground uppercase tracking-widest mb-1">
+      <span className="text-caption font-mono font-medium text-muted-foreground uppercase tracking-widest mb-1">
         404 · Route Not Found
       </span>
-      <h1 className="text-xl font-semibold text-foreground mb-2">
+      <h1 className="text-xl font-medium text-foreground mb-2">
         Page Not Found
       </h1>
       <p className="max-w-sm mx-auto text-xs text-muted-foreground mb-6 leading-relaxed">
@@ -153,7 +146,6 @@ function NotFound() {
       <div className="flex items-center gap-2">
         <Button
           href="/"
-          variant="default"
           size="sm"
           className="gap-1.5"
         >
@@ -161,8 +153,8 @@ function NotFound() {
           Editor
         </Button>
         <Button
-          href="/projects"
           variant="outline"
+          href="/projects"
           size="sm"
         >
           Projects

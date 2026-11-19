@@ -72,28 +72,29 @@ export default function ProjectSetupPopup({
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-md nordic-glass rounded-xl animate-in zoom-in-98 duration-150 p-5 flex flex-col gap-3.5 z-10">
-        <div className="flex items-center justify-between pb-2 border-b border-border/60">
-          <div className="flex flex-col gap-0.5">
-            <h6 className="text-xs font-semibold text-foreground">Create New Project</h6>
-            <p className="text-[11px] text-muted-foreground">
+      <div className="relative w-full max-w-md nordic-panel rounded-xl shadow-popover animate-in zoom-in-98 duration-150 p-6 flex flex-col gap-4 z-10">
+        <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+          <div className="flex flex-col gap-1">
+            <h3 className="text-card font-medium text-foreground">Create new project</h3>
+            <p className="text-small text-muted-foreground">
               Define your system architecture workspace
             </p>
           </div>
           {canClose && (
-            <button
+            <Button
+              variant="ghost"
               onClick={onClose}
               type="button"
-              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              <IconX size={15} />
-            </button>
+              size="icon-sm"
+              aria-label="Close dialog"
+              icon={<IconX size={16} stroke={1.6} />}
+            />
           )}
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="name" className="text-[11px]">Project Name</Label>
+            <Label htmlFor="name" className="text-caption">Project Name</Label>
             <Input
               autoFocus
               id="name"
@@ -105,7 +106,7 @@ export default function ProjectSetupPopup({
           </div>
 
           <div className="flex flex-col gap-1">
-            <Label className="text-[11px]">Project Type</Label>
+            <Label className="text-caption">Project Type</Label>
             <Tabs
               value={type}
               onValueChange={(val) => setType(val as ProjectType)}
@@ -119,7 +120,7 @@ export default function ProjectSetupPopup({
           </div>
 
           <div className="flex flex-col gap-1">
-            <Label htmlFor="desc" className="text-[11px]">Description (Optional)</Label>
+            <Label htmlFor="desc" className="text-caption">Description (Optional)</Label>
             <Textarea
               id="desc"
               rows={2}
@@ -133,8 +134,8 @@ export default function ProjectSetupPopup({
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
             {canClose && (
               <Button
-                type="button"
                 variant="outline"
+                type="button"
                 size="sm"
                 onClick={onClose}
               >
@@ -143,7 +144,6 @@ export default function ProjectSetupPopup({
             )}
             <Button
               size="sm"
-              variant="default"
               type="submit"
               disabled={!name.trim() || loading || isLimitReached}
               className={cn(

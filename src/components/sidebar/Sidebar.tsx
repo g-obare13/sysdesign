@@ -105,11 +105,11 @@ function NodeItem({
         {Icon && <Icon size={15} stroke={1.6} />}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-medium text-foreground/90 truncate leading-tight">
+        <div className="text-body font-medium text-foreground/90 truncate leading-tight">
           {template.label}
         </div>
         {template.description && (
-          <div className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">
+          <div className="text-caption text-muted-foreground truncate leading-tight mt-0.5">
             {template.description}
           </div>
         )}
@@ -289,7 +289,7 @@ export default function Sidebar() {
 
       {/* Compact Floating Pill when Collapsed */}
       {isCollapsed && (
-        <div className="fixed top-3 left-3 z-40 flex items-center gap-1.5 p-1.5 pr-2.5 nordic-pill rounded-2xl animate-in fade-in duration-150">
+        <div className="fixed top-3 left-3 z-40 flex items-center gap-1.5 p-1.5 pr-2.5 nordic-panel rounded-2xl animate-in fade-in duration-150">
           <Tooltip>
             <TooltipTrigger
               render={
@@ -297,7 +297,6 @@ export default function Sidebar() {
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => setIsCollapsed(false)}
-                  className="size-8 rounded-xl text-foreground/80 hover:text-foreground hover:bg-muted"
                   aria-label="Expand Sidebar"
                 >
                   <TablerIcons.IconLayoutSidebar size={16} stroke={1.6} />
@@ -307,7 +306,7 @@ export default function Sidebar() {
             <TooltipContent side="right">Expand Sidebar</TooltipContent>
           </Tooltip>
           <div className="w-px h-4 bg-border" />
-          <span className="text-[13px] font-medium text-foreground truncate max-w-36 pl-1">
+          <span className="text-body font-medium text-foreground truncate max-w-36 pl-1">
             {activeProject ? activeProject.name : "Scratchpad"}
           </span>
         </div>
@@ -316,7 +315,7 @@ export default function Sidebar() {
       {/* Sculpted Left Floating Studio Panel */}
       <aside
         className={cn(
-          "fixed top-3 left-3 bottom-3 w-[260px] rounded-[20px] nordic-panel flex flex-col overflow-hidden transition-all duration-200 z-40",
+          "fixed top-3 left-3 bottom-3 w-[260px] rounded-xl nordic-panel flex flex-col overflow-hidden transition-all duration-200 z-40",
           isCollapsed
             ? "-translate-x-72 opacity-0 pointer-events-none"
             : "translate-x-0 opacity-100",
@@ -335,7 +334,6 @@ export default function Sidebar() {
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => setIsCollapsed(true)}
-                  className="size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
                   aria-label="Collapse Sidebar"
                 >
                   <TablerIcons.IconLayoutSidebarLeftCollapse
@@ -354,7 +352,7 @@ export default function Sidebar() {
           <DropdownMenu>
             <DropdownMenuTrigger className="w-full flex flex-col items-start px-2 py-1.5 rounded-xl hover:bg-muted/70 transition-colors cursor-pointer outline-none text-left group">
               <div className="w-full flex items-center justify-between gap-2">
-                <span className="text-[14px] font-semibold text-foreground tracking-tight truncate">
+                <span className="text-card font-medium text-foreground tracking-tight truncate">
                   {activeProject ? activeProject.name : "Untitled Project"}
                 </span>
                 <TablerIcons.IconChevronDown
@@ -365,7 +363,7 @@ export default function Sidebar() {
               </div>
               <span
                 className={cn(
-                  "text-[11.5px] truncate mt-0.5 tabular-nums",
+                  "text-caption truncate mt-0.5 tabular-nums",
                   saveStatus === "error"
                     ? "text-destructive"
                     : "text-muted-foreground",
@@ -379,9 +377,9 @@ export default function Sidebar() {
             <DropdownMenuContent
               align="start"
               sideOffset={6}
-              className="w-60 rounded-2xl p-1.5 shadow-xl border border-black/[0.06] dark:border-white/[0.08]"
+              className="w-60 rounded-2xl p-1.5 shadow-xl border border-border"
             >
-              <DropdownMenuLabel className="px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground">
+              <DropdownMenuLabel className="px-2.5 py-1.5 text-caption font-medium text-muted-foreground">
                 Projects
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -397,13 +395,13 @@ export default function Sidebar() {
                       });
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-[12.5px] cursor-pointer",
+                      "w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-body cursor-pointer",
                       p.id === activeProjectId && "bg-muted font-medium",
                     )}
                   >
                     <div className="flex flex-col min-w-0">
                       <span className="truncate text-foreground">{p.name}</span>
-                      <span className="text-[10.5px] text-muted-foreground truncate">
+                      <span className="text-caption text-muted-foreground truncate">
                         {new Date(p.updatedAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -419,14 +417,14 @@ export default function Sidebar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setCreateProjectModalOpen(true)}
-                className="w-full flex items-center justify-start px-2.5 py-2 gap-2 text-[12.5px] font-medium text-foreground hover:bg-muted rounded-xl cursor-pointer"
+                className="w-full flex items-center justify-start px-2.5 py-2 gap-2 text-body font-medium text-foreground hover:bg-muted rounded-xl cursor-pointer"
               >
                 <TablerIcons.IconFolderPlus size={15} stroke={1.6} />
                 <span>New Project</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate({ to: "/projects" })}
-                className="w-full flex items-center justify-start px-2.5 py-2 gap-2 text-[12.5px] text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl cursor-pointer"
+                className="w-full flex items-center justify-start px-2.5 py-2 gap-2 text-body text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl cursor-pointer"
               >
                 <TablerIcons.IconLayoutGrid size={15} stroke={1.6} />
                 <span>All Projects</span>
@@ -444,18 +442,20 @@ export default function Sidebar() {
               leftIcon={<TablerIcons.IconSearch size={14} stroke={1.6} />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9 rounded-xl bg-muted/75 border-transparent text-[12.5px] placeholder:text-muted-foreground/80 pr-11"
+              className="w-full h-9 rounded-full bg-muted/75 border-transparent text-body placeholder:text-muted-foreground/80 pr-11"
             />
             {searchQuery ? (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-md cursor-pointer"
-              >
-                <TablerIcons.IconX size={13} />
-              </button>
+                aria-label="Clear search"
+                className="absolute right-1 top-1/2 -translate-y-1/2"
+                icon={<TablerIcons.IconX size={16} stroke={1.6} />}
+              />
             ) : (
-              <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground bg-card/90 border border-border rounded-md">
+              <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-caption font-medium text-muted-foreground bg-card/90 border border-border rounded-sm">
                 ⌘K
               </kbd>
             )}
@@ -463,31 +463,25 @@ export default function Sidebar() {
 
           {/* Recessed Segmented Switch (Architecture | C4) */}
           <div className="mt-3 px-1">
-            <div className="grid grid-cols-2 p-1 rounded-xl bg-muted/85">
-              <button
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-full bg-muted/85">
+              <Button
                 type="button"
+                variant={activeTab !== "c4" ? "outline" : "ghost"}
+                size="sm"
                 onClick={() => handleModeSwitch("architecture")}
-                className={cn(
-                  "h-7 rounded-lg text-[12px] font-medium transition-all cursor-pointer select-none",
-                  activeTab !== "c4"
-                    ? "bg-card text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+                className="w-full"
               >
                 Architecture
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant={activeTab === "c4" ? "outline" : "ghost"}
+                size="sm"
                 onClick={() => handleModeSwitch("c4")}
-                className={cn(
-                  "h-7 rounded-lg text-[12px] font-medium transition-all cursor-pointer select-none",
-                  activeTab === "c4"
-                    ? "bg-card text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+                className="w-full"
               >
-                C4 Model
-              </button>
+                C4 model
+              </Button>
             </div>
           </div>
         </div>
@@ -564,10 +558,10 @@ export default function Sidebar() {
                 return (
                   <AccordionItem key={cat} value={cat} className="border-none">
                     <AccordionTrigger className="w-full py-2 px-2.5 hover:bg-muted/70 rounded-xl">
-                      <span className="text-[12.5px] font-medium text-foreground/85 truncate">
+                      <span className="text-body font-medium text-foreground/85 truncate">
                         {style?.label || cat}
                       </span>
-                      <span className="text-[11px] text-muted-foreground ml-auto mr-2 tabular-nums">
+                      <span className="text-[12px] text-muted-foreground ml-auto mr-2 tabular-nums">
                         {templates.length}
                       </span>
                     </AccordionTrigger>

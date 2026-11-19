@@ -2,8 +2,9 @@
  * @fileoverview TanStack Router configuration and initialization.
  */
 
-import { createRouter as createTanStackRouter } from '@tanstack/react-router'
-import { routeTree } from './routeTree.gen'
+import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import WorkspaceSkeleton from "@/components/layout/WorkspaceSkeleton";
+import { routeTree } from "./routeTree.gen";
 
 /**
  * Creates and configures the TanStack router instance with route tree and preloading options.
@@ -13,13 +14,15 @@ import { routeTree } from './routeTree.gen'
 export function getRouter() {
   const router = createTanStackRouter({
     routeTree,
-
+    defaultPendingComponent: WorkspaceSkeleton,
+    defaultPendingMs: 150,
+    defaultPendingMinMs: 200,
     scrollRestoration: true,
-    defaultPreload: 'intent',
+    defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
-  })
+  });
 
-  return router
+  return router;
 }
 
 declare module '@tanstack/react-router' {

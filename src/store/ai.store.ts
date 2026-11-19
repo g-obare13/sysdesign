@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 /**
  * Supported AI provider service names.
  */
-export type AIProvider = "openai" | "anthropic" | "google";
+export type AIProvider = "openai" | "anthropic" | "google" | "deepseek";
 
 /**
  * Stored API key record with provider metadata.
@@ -65,6 +65,10 @@ export const PROVIDER_MODELS: Record<
     { id: "gemini-4-hydrogen", label: "Gemini 4 Hydrogen" },
     { id: "gemini-3.8-flash", label: "Gemini 3.8 Flash" },
   ],
+  deepseek: [
+    { id: "deepseek-chat", label: "DeepSeek Chat" },
+    { id: "deepseek-reasoner", label: "DeepSeek Reasoner" },
+  ],
 };
 
 /**
@@ -91,6 +95,7 @@ function defaultSelectedModels(): Record<AIProvider, string> {
     openai: PROVIDER_MODELS.openai[0].id,
     anthropic: PROVIDER_MODELS.anthropic[0].id,
     google: PROVIDER_MODELS.google[0].id,
+    deepseek: PROVIDER_MODELS.deepseek[0].id,
   };
 }
 
@@ -102,7 +107,7 @@ function loadSelectedModels(): Record<AIProvider, string> {
     if (!raw) return defaults;
     const parsed = JSON.parse(raw) as Partial<Record<AIProvider, string>>;
     const validated: Record<AIProvider, string> = { ...defaults };
-    (["openai", "anthropic", "google"] as Array<AIProvider>).forEach((p) => {
+    (["openai", "anthropic", "google", "deepseek"] as Array<AIProvider>).forEach((p) => {
       const candidate = parsed[p];
       if (candidate && PROVIDER_MODELS[p].some((m) => m.id === candidate)) {
         validated[p] = candidate;
@@ -172,6 +177,12 @@ export const PROVIDER_META: Record<
     placeholder: "AIza...",
     prefix: "AIza",
     color: "#4285F4",
+  },
+  deepseek: {
+    label: "DeepSeek",
+    placeholder: "sk-...",
+    prefix: "sk-",
+    color: "#4D6BFE",
   },
 };
 

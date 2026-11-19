@@ -13,6 +13,7 @@ import {
   useProjectStore,
 } from "@/store/project.store";
 import ProjectSetupPopup from "@/components/dashboard/ProjectSetupPopup";
+import WorkspaceSkeleton from "@/components/layout/WorkspaceSkeleton";
 import Container from "@/components/ui/container";
 import type { ProjectType } from "@/store/project.store";
 import { setDiagramMode } from "@/store/canvas.store";
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/$slug")({
 function SlugPage() {
   const { slug } = Route.useParams();
   const projects = useProjectStore((s) => s.projects);
+  const loading = useProjectStore((s) => s.loading);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const navigate = useNavigate();
 
@@ -46,13 +48,9 @@ function SlugPage() {
       if (project.id !== activeProjectId) {
         setActiveProject(project.id);
       }
-      if (project.type === "c4") {
-        navigate({ to: "/$slug/c4", params: { slug: project.slug } as any });
-      } else {
-        setDiagramMode("architecture");
-      }
+      setDiagramMode("architecture");
     }
-  }, [project, activeProjectId, projects.length]);
+  }, [project, activeProjectId]);
 
   const handleCreateProject = (
     name: string,
@@ -65,17 +63,20 @@ function SlugPage() {
     navigate({ to: "/$slug", params: { slug: newProject.slug } });
   };
 
+  if (loading && !project) {
+    return <WorkspaceSkeleton />;
+  }
+
   if (!project) {
     return (
       <Container>
         <div className="flex flex-col gap-2.5 h-screen items-center justify-center bg-background p-4 text-center">
-          <h1 className="text-lg font-semibold text-foreground">Project not found</h1>
+          <h1 className="text-lg font-medium text-foreground">Project not found</h1>
           <p className="text-xs text-muted-foreground mb-2">The requested project does not exist or has been removed.</p>
 
           <Button
             icon={IconFolderPlus}
             iconPlacement="left"
-            variant="default"
             size="sm"
             onClick={() => navigate({ to: "/projects" })}
           >

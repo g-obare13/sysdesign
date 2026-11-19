@@ -510,12 +510,16 @@ export function clearCanvas(): void {
   canvasStore.setState((s) => {
     const next: CanvasState = {
       ...s,
-      nodes: [], edges: [], edgeCounter: 0,
-      history: [{ nodes: [], edges: [] }], historyIndex: 0,
+      nodes: [],
+      edges: [],
+      edgeCounter: 0,
+      history: [{ nodes: [], edges: [] }],
+      historyIndex: 0,
     }
     save(next)
     return next
   })
+  flushSave()
 }
 
 /**
@@ -563,6 +567,154 @@ export function createProjectFromScratchpad(
   return newProject
 }
 
+const TEMPLATE_NODE_W = 256
+const TEMPLATE_NODE_H = 128
+const GROUP_PAD_X = 28
+const GROUP_PAD_TOP = 56
+const GROUP_PAD_BOTTOM = 28
+const GROUP_GAP_X = 28
+const GROUP_GAP_Y = 28
+
+/**
+ * Lays out a template's grouped child nodes and top-level nodes/groups using Dagre
+ * so nodes match current card dimensions without overlapping on the canvas.
+ */
+export function normalizeTemplateLayout(
+  rawNodes: Array<DiagramNode>,
+  rawEdges: Array<DiagramEdge>,
+  category?: "architecture" | "c4",
+): Array<DiagramNode> {
+  if (rawNodes.length === 0) return rawNodes
+
+  const childrenByParent = new Map<string, Array<DiagramNode>>()
+  for (const node of rawNodes) {
+    if (node.parentId) {
+      const list = childrenByParent.get(node.parentId) ?? []
+      list.push(node)
+      childrenByParent.set(node.parentId, list)
+    }
+  }
+
+  const groupSizeById = new Map<string, { width: number; height: number }>()
+  const updatedChildren = new Map<string, DiagramNode>()
+
+  for (const [parentId, children] of childrenByParent.entries()) {
+    const sorted = [...children].sort(
+      (a, b) => a.position.y - b.position.y || a.position.x - b.position.x,
+    )
+    const xs = sorted.map((c) => c.position.x)
+    const xSpan = Math.max(...xs) - Math.min(...xs)
+    const cols = xSpan > 120 && sorted.length > 1 ? 2 : 1
+    const rows = Math.ceil(sorted.length / cols)
+
+    const groupWidth =
+      cols * TEMPLATE_NODE_W + (cols - 1) * GROUP_GAP_X + GROUP_PAD_X * 2
+    const groupHeight =
+      GROUP_PAD_TOP +
+      rows * TEMPLATE_NODE_H +
+      Math.max(0, rows - 1) * GROUP_GAP_Y +
+      GROUP_PAD_BOTTOM
+
+    groupSizeById.set(parentId, { width: groupWidth, height: groupHeight })
+
+    sorted.forEach((child, idx) => {
+      const col = idx % cols
+      const row = Math.floor(idx / cols)
+      updatedChildren.set(child.id, {
+        ...child,
+        position: {
+          x: GROUP_PAD_X + col * (TEMPLATE_NODE_W + GROUP_GAP_X),
+          y: GROUP_PAD_TOP + row * (TEMPLATE_NODE_H + GROUP_GAP_Y),
+        },
+      })
+    })
+  }
+
+  // Map every node to its top-level root ID (group ID if grouped, else its own ID)
+  const rootOf = new Map<string, string>()
+  for (const node of rawNodes) {
+    rootOf.set(node.id, node.parentId ?? node.id)
+  }
+
+  const rootNodes = rawNodes.filter((n) => !n.parentId)
+  const graph = new dagre.graphlib.Graph()
+  graph.setDefaultEdgeLabel(() => ({}))
+  graph.setGraph({
+    rankdir: category === "c4" ? "TB" : "LR",
+    nodesep: 70,
+    ranksep: 90,
+    marginx: 40,
+    marginy: 40,
+  })
+
+  for (const root of rootNodes) {
+    const groupSize = groupSizeById.get(root.id)
+    const w =
+      groupSize?.width ??
+      (typeof root.style?.width === "number"
+        ? root.style.width
+        : TEMPLATE_NODE_W)
+    const h =
+      groupSize?.height ??
+      (typeof root.style?.height === "number"
+        ? root.style.height
+        : TEMPLATE_NODE_H)
+    graph.setNode(root.id, { width: w, height: h })
+  }
+
+  const seenRootEdges = new Set<string>()
+  for (const edge of rawEdges) {
+    const srcRoot = rootOf.get(edge.source)
+    const tgtRoot = rootOf.get(edge.target)
+    if (!srcRoot || !tgtRoot || srcRoot === tgtRoot) continue
+    const key = `${srcRoot}->${tgtRoot}`
+    if (seenRootEdges.has(key)) continue
+    seenRootEdges.add(key)
+    graph.setEdge(srcRoot, tgtRoot)
+  }
+
+  dagre.layout(graph)
+
+  const updatedRoots = new Map<string, DiagramNode>()
+  for (const root of rootNodes) {
+    const pos = graph.node(root.id)
+    const groupSize = groupSizeById.get(root.id)
+    const w =
+      groupSize?.width ??
+      (typeof root.style?.width === "number"
+        ? root.style.width
+        : TEMPLATE_NODE_W)
+    const h =
+      groupSize?.height ??
+      (typeof root.style?.height === "number"
+        ? root.style.height
+        : TEMPLATE_NODE_H)
+
+    updatedRoots.set(root.id, {
+      ...root,
+      position: pos
+        ? {
+            x: Math.round((pos.x - w / 2) / 20) * 20,
+            y: Math.round((pos.y - h / 2) / 20) * 20,
+          }
+        : root.position,
+      ...(groupSize
+        ? {
+            style: {
+              ...root.style,
+              width: groupSize.width,
+              height: groupSize.height,
+            },
+          }
+        : {}),
+    })
+  }
+
+  return rawNodes.map(
+    (n) => updatedChildren.get(n.id) ?? updatedRoots.get(n.id) ?? n,
+  )
+}
+
 /**
  * Auto-arranges root nodes on the canvas using a Dagre top-to-bottom layout.
  * Nodes inside groups keep their relative placement; only top-level nodes move.
@@ -570,7 +722,7 @@ export function createProjectFromScratchpad(
 export function autoLayout(): void {
   const graph = new dagre.graphlib.Graph()
   graph.setDefaultEdgeLabel(() => ({}))
-  graph.setGraph({ rankdir: "TB", nodesep: 60, ranksep: 90 })
+  graph.setGraph({ rankdir: "TB", nodesep: 70, ranksep: 100 })
 
   const nodes = canvasStore.state.nodes.filter((n) => !n.parentId)
   if (nodes.length === 0) return
@@ -581,8 +733,12 @@ export function autoLayout(): void {
   )
 
   nodes.forEach((n) => {
-    const w = n.measured?.width ?? 170
-    const h = n.measured?.height ?? 100
+    const w =
+      n.measured?.width ??
+      (typeof n.style?.width === "number" ? n.style.width : TEMPLATE_NODE_W)
+    const h =
+      n.measured?.height ??
+      (typeof n.style?.height === "number" ? n.style.height : TEMPLATE_NODE_H)
     graph.setNode(n.id, { width: w, height: h })
   })
   edges.forEach((e) => graph.setEdge(e.source, e.target))
@@ -593,8 +749,12 @@ export function autoLayout(): void {
   const positioned = new Map(
     nodes.map((n) => {
       const pos = graph.node(n.id)
-      const w = n.measured?.width ?? 170
-      const h = n.measured?.height ?? 100
+      const w =
+        n.measured?.width ??
+        (typeof n.style?.width === "number" ? n.style.width : TEMPLATE_NODE_W)
+      const h =
+        n.measured?.height ??
+        (typeof n.style?.height === "number" ? n.style.height : TEMPLATE_NODE_H)
       return [
         n.id,
         {
@@ -622,13 +782,18 @@ export function autoLayout(): void {
  */
 export function loadTemplate(template: { nodes: Array<any>; edges: Array<any>; category?: 'architecture' | 'c4' }): void {
   const mode = template.category ?? canvasStore.state.diagramMode
+  const laidOutNodes = normalizeTemplateLayout(
+    template.nodes,
+    template.edges,
+    template.category,
+  )
   const next: CanvasState = {
     ...canvasStore.state,
     diagramMode: mode,
-    nodes: template.nodes,
+    nodes: laidOutNodes,
     edges: template.edges,
     edgeCounter: template.edges.length,
-    history: [{ nodes: template.nodes, edges: template.edges }],
+    history: [{ nodes: laidOutNodes, edges: template.edges }],
     historyIndex: 0,
     saveStatus: 'idle',
   }

@@ -13,32 +13,8 @@
 
 @font-face {
   font-family: "Ronzino";
-  src: url("/fonts/Ronzino-Oblique.woff2") format("woff2");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Ronzino";
   src: url("/fonts/Ronzino-Medium.woff2") format("woff2");
   font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Ronzino";
-  src: url("/fonts/Ronzino-Medium.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Ronzino";
-  src: url("/fonts/Ronzino-Bold.woff2") format("woff2");
-  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -46,10 +22,17 @@
 @theme {
   --font-sans:
     "Ronzino", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono:
-    "Ronzino", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Theme variables matching Tailwind v4 format */
+  /* Typography Scale */
+  --text-caption: 0.6875rem; /* 11px */
+  --text-small: 0.75rem; /* 12px */
+  --text-body: 0.8125rem; /* 13px */
+  --text-card: 0.875rem; /* 14px */
+  --text-section: 1rem; /* 16px */
+  --text-page: 1.25rem; /* 20px */
+
+  /* Theme color tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
@@ -89,12 +72,16 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Nordic Architectural Radii */
+  /* Radii */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 10px;
   --radius-xl: 14px;
+
+  /* Elevation */
+  --shadow-panel: var(--elevation-1);
+  --shadow-popover: var(--elevation-2);
 
   /* Nordic Fjord & Mineral Scales */
   --color-olive-50: #f3f6f7;
@@ -143,15 +130,13 @@
   --destructive: #c94a3f;
   --destructive-foreground: #ffffff;
 
-  /* Delicate hairline borders */
+  /* Hairline borders */
   --border: #eaeaea;
   --border-subtle: #f2f2f2;
   --border-strong: #d4d4d4;
 
   --input: #f5f5f5;
   --ring: #171717;
-
-  --radius: 0.625rem;
 
   --sidebar: #ffffff;
   --sidebar-foreground: #171717;
@@ -162,12 +147,81 @@
   --sidebar-border: #eaeaea;
   --sidebar-ring: #171717;
 
+  /* Two-level elevation tokens */
+  --elevation-1:
+    0 4px 24px -4px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.03);
+  --elevation-2:
+    0 12px 32px -6px rgba(0, 0, 0, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+
   /* Canvas Edge & Connection Stroke Tokens */
   --edge-stroke: #a3a3a3;
   --edge-stroke-selected: #171717;
   --edge-glow: rgba(23, 23, 23, 0.14);
 
   --brand-accent: #171717;
+
+  /* Category Palette Tokens (Light) */
+  --cat-microservice-bg: #f2f6f9;
+  --cat-microservice-pill: #e6eff5;
+  --cat-microservice-border: #c9d8e2;
+  --cat-microservice-color: #2b5b7a;
+
+  --cat-cloud-bg: #f2f7f5;
+  --cat-cloud-pill: #e5efea;
+  --cat-cloud-border: #c7ddd5;
+  --cat-cloud-color: #3b6e5c;
+
+  --cat-database-bg: #f9f6f1;
+  --cat-database-pill: #f2eae0;
+  --cat-database-border: #e4d6c3;
+  --cat-database-color: #9a6b3b;
+
+  --cat-frontend-bg: #f8f4f7;
+  --cat-frontend-pill: #efe6ec;
+  --cat-frontend-border: #dfced9;
+  --cat-frontend-color: #7a4e6d;
+
+  --cat-networking-bg: #f1f7f7;
+  --cat-networking-pill: #e3efef;
+  --cat-networking-border: #c4dedc;
+  --cat-networking-color: #2f7270;
+
+  --cat-security-bg: #faf3f2;
+  --cat-security-pill: #f4e5e4;
+  --cat-security-border: #e6cbc9;
+  --cat-security-color: #a84a44;
+
+  --cat-observability-bg: #f4f4f9;
+  --cat-observability-pill: #e8e9f3;
+  --cat-observability-border: #cecee2;
+  --cat-observability-color: #52568a;
+
+  --cat-ai-bg: #f2f5fa;
+  --cat-ai-pill: #e5ecf5;
+  --cat-ai-border: #c8d5e8;
+  --cat-ai-color: #365c94;
+
+  --cat-devops-bg: #f4f6f7;
+  --cat-devops-pill: #e9ecef;
+  --cat-devops-border: #d1d7dc;
+  --cat-devops-color: #4e5b66;
+
+  --cat-flow-bg: #f4f6f5;
+  --cat-flow-pill: #e8ecea;
+  --cat-flow-border: #d0d8d4;
+  --cat-flow-color: #55635d;
+
+  --cat-shape-bg: #f5f6f7;
+  --cat-shape-pill: #eaecef;
+  --cat-shape-border: #d4d8dc;
+  --cat-shape-color: #5a626a;
+
+  --cat-c4-bg: #f3f6f7;
+  --cat-c4-pill: #e6ecef;
+  --cat-c4-border: #cbd6dc;
+  --cat-c4-color: #2b4657;
 }
 
 .dark {
@@ -218,11 +272,80 @@
   --sidebar-border: #23262f;
   --sidebar-ring: #f3f4f6;
 
+  /* Two-level elevation tokens (Dark) */
+  --elevation-1:
+    0 8px 32px -6px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.35);
+  --elevation-2:
+    0 16px 40px -8px rgba(0, 0, 0, 0.65),
+    0 4px 10px rgba(0, 0, 0, 0.45);
+
   --edge-stroke: #525866;
   --edge-stroke-selected: #f3f4f6;
-  --edge-glow: rgba(243, 244, 246, 0.2);
+  --edge-glow: rgba(243, 244, 246, 0.16);
 
   --brand-accent: #f3f4f6;
+
+  /* Category Palette Tokens (Dark) */
+  --cat-microservice-bg: #15222c;
+  --cat-microservice-pill: #1c2e3c;
+  --cat-microservice-border: #243a4a;
+  --cat-microservice-color: #78a9c8;
+
+  --cat-cloud-bg: #14241f;
+  --cat-cloud-pill: #1b3029;
+  --cat-cloud-border: #233d34;
+  --cat-cloud-color: #70b098;
+
+  --cat-database-bg: #261e14;
+  --cat-database-pill: #33281b;
+  --cat-database-border: #403221;
+  --cat-database-color: #d4a36a;
+
+  --cat-frontend-bg: #241821;
+  --cat-frontend-pill: #30202c;
+  --cat-frontend-border: #3d2938;
+  --cat-frontend-color: #c08eb0;
+
+  --cat-networking-bg: #132424;
+  --cat-networking-pill: #1a302f;
+  --cat-networking-border: #213d3c;
+  --cat-networking-color: #6eb5b2;
+
+  --cat-security-bg: #281615;
+  --cat-security-pill: #361e1c;
+  --cat-security-border: #452624;
+  --cat-security-color: #d97e78;
+
+  --cat-observability-bg: #191a28;
+  --cat-observability-pill: #222336;
+  --cat-observability-border: #2b2d45;
+  --cat-observability-color: #9296c9;
+
+  --cat-ai-bg: #151e2b;
+  --cat-ai-pill: #1c283a;
+  --cat-ai-border: #24344b;
+  --cat-ai-color: #7ba3dc;
+
+  --cat-devops-bg: #181d21;
+  --cat-devops-pill: #21272c;
+  --cat-devops-border: #2b333a;
+  --cat-devops-color: #94a3b0;
+
+  --cat-flow-bg: #181e1b;
+  --cat-flow-pill: #202724;
+  --cat-flow-border: #2a332f;
+  --cat-flow-color: #92a39b;
+
+  --cat-shape-bg: #1a1c1f;
+  --cat-shape-pill: #23262a;
+  --cat-shape-border: #2e3237;
+  --cat-shape-color: #9ba3ab;
+
+  --cat-c4-bg: #141d24;
+  --cat-c4-pill: #1b2730;
+  --cat-c4-border: #243440;
+  --cat-c4-color: #8fb3c9;
 }
 
 @layer base {
@@ -234,178 +357,204 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-size: 13px;
-    line-height: 1.5;
+    @apply bg-background text-foreground font-sans antialiased text-body leading-normal;
   }
-  /* Typography Scale (Ronzino) */
+  /* Typography Scale (Ronzino: 400 and 500 only) */
   h1 {
-    @apply font-sans text-xl font-semibold tracking-tight text-foreground;
+    @apply font-sans text-page font-medium tracking-tight leading-[1.3] text-foreground;
   }
   h2 {
-    @apply font-sans text-lg font-semibold tracking-tight text-foreground;
+    @apply font-sans text-section font-medium tracking-tight leading-[1.4] text-foreground;
   }
   h3 {
-    @apply font-sans text-base font-semibold tracking-tight text-foreground;
+    @apply font-sans text-card font-medium leading-[1.4] text-foreground;
   }
   h4 {
-    @apply font-sans text-sm font-semibold tracking-tight text-foreground;
-  }
-  h5 {
-    @apply font-sans text-xs font-semibold tracking-tight text-foreground;
-  }
-  h6 {
-    @apply font-sans text-xs font-semibold tracking-tight text-foreground;
+    @apply font-sans text-body font-medium leading-normal text-foreground;
   }
   p {
-    @apply font-sans text-xs font-normal text-foreground/80 leading-relaxed;
+    @apply font-sans text-body font-normal text-foreground/80 leading-normal;
   }
   label {
-    @apply font-sans text-xs font-medium text-foreground/80;
+    @apply font-sans text-small font-medium text-foreground/80;
   }
   code,
   kbd,
   samp,
   pre {
-    @apply font-mono text-xs;
+    @apply font-mono text-small;
   }
 }
 
-/* Nordic Studio Sculpted Surfaces */
-.nordic-panel,
-.nordic-pill,
-.nordic-glass {
-  @apply bg-card/95 backdrop-blur-md border border-black/[0.06] dark:border-white/[0.07];
-  box-shadow:
-    0 4px 24px -4px rgba(0, 0, 0, 0.05),
-    0 1px 3px rgba(0, 0, 0, 0.03);
+/* Sculpted Studio Panel Surface (Level 1 Elevation) */
+.nordic-panel {
+  @apply bg-card/95 backdrop-blur-md border border-border;
+  box-shadow: var(--elevation-1);
 }
 
-.dark .nordic-panel,
-.dark .nordic-pill,
-.dark .nordic-glass {
-  @apply bg-card/95 backdrop-blur-md border border-white/[0.07];
-  box-shadow:
-    0 8px 32px -6px rgba(0, 0, 0, 0.55),
-    0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-/* Nordic Tactile Satin Button (Specular Top Bevel — Light & Dark) */
-.nordic-btn {
-  background: linear-gradient(180deg, #f7f7f7 0%, #e7e7e7 100%);
-  color: #171717;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.92),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.04),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06),
-    0 2px 6px -2px rgba(0, 0, 0, 0.04);
-  transition:
-    background 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.1s ease,
-    border-color 0.15s ease;
-}
-
-.nordic-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, #fcfcfc 0%, #ececec 100%);
-  border-color: rgba(0, 0, 0, 0.11);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.98),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.05),
-    0 2px 4px 0 rgba(0, 0, 0, 0.07),
-    0 4px 10px -2px rgba(0, 0, 0, 0.05);
-}
-
-.nordic-btn:active:not(:disabled) {
-  background: linear-gradient(180deg, #ebebeb 0%, #f2f2f2 100%);
-  transform: translateY(0.5px);
-  box-shadow:
-    inset 0 1px 2px 0 rgba(0, 0, 0, 0.09),
-    0 1px 1px 0 rgba(0, 0, 0, 0.03);
-}
-
-.dark .nordic-btn {
-  background: linear-gradient(180deg, #2d313b 0%, #20232b 100%);
-  color: #f3f4f6;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.38),
-    0 1px 2px 0 rgba(0, 0, 0, 0.45),
-    0 2px 8px -2px rgba(0, 0, 0, 0.35);
-}
-
-.dark .nordic-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, #353a46 0%, #252933 100%);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.4),
-    0 2px 6px 0 rgba(0, 0, 0, 0.5),
-    0 4px 12px -2px rgba(0, 0, 0, 0.4);
-}
-
-.dark .nordic-btn:active:not(:disabled) {
-  background: linear-gradient(180deg, #1e2129 0%, #262a34 100%);
-  transform: translateY(0.5px);
-  box-shadow:
-    inset 0 1px 2px 0 rgba(0, 0, 0, 0.5),
-    0 1px 1px 0 rgba(0, 0, 0, 0.3);
-}
-
-/* Tool Windows */
+/* Tool Windows extend .nordic-panel */
 .tool-window-panel {
-  @apply absolute top-3 left-3 bottom-3 w-[260px] rounded-[20px] bg-card/95 backdrop-blur-md border border-black/[0.06] dark:border-white/[0.07] z-30 flex flex-col overflow-hidden transition-all duration-150 select-none;
-  box-shadow:
-    0 4px 24px -4px rgba(0, 0, 0, 0.05),
-    0 1px 3px rgba(0, 0, 0, 0.03);
+  @apply nordic-panel absolute top-3 left-3 bottom-3 w-[260px] rounded-xl z-30 flex flex-col overflow-hidden transition-colors duration-150 select-none;
 }
+
+/* Primary Shiny Pill Button */
+.shiny-primary-btn {
+  --shiny-color: var(--primary);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--shiny-color) 82%, white) 0%,
+    var(--shiny-color) 52%,
+    color-mix(in oklab, var(--shiny-color) 88%, black) 100%
+  );
+  color: var(--primary-foreground);
+  border: 1px solid color-mix(in oklab, var(--shiny-color) 75%, black);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.16),
+    0 2px 8px -2px color-mix(in oklab, var(--shiny-color) 45%, transparent),
+    0 1px 2px 0 rgba(0, 0, 0, 0.12);
+  transition:
+    filter 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.shiny-primary-btn[data-tone="destructive"] {
+  --shiny-color: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+.shiny-primary-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.28) 45%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 75%
+  );
+  transform: translateX(-110%);
+  transition: transform 550ms ease;
+  pointer-events: none;
+}
+
+.shiny-primary-btn:disabled::after {
+  display: none;
+}
+
+.shiny-primary-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.48),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.18),
+    0 6px 16px -4px color-mix(in oklab, var(--shiny-color) 55%, transparent),
+    0 2px 4px 0 rgba(0, 0, 0, 0.14);
+}
+
+.shiny-primary-btn:hover:not(:disabled)::after {
+  transform: translateX(110%);
+}
+
+.shiny-primary-btn:active:not(:disabled) {
+  transform: translateY(0.5px);
+  filter: brightness(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shiny-primary-btn::after {
+    transition: none;
+    display: none;
+  }
+}
+
+/* Node Category Header & Icon Tints (Token-driven, no hex fallbacks) */
+.node-category-header {
+  background-color: var(--muted);
+}
+
+.node-category-header[data-category="microservice"] { background-color: var(--cat-microservice-bg); }
+.node-category-header[data-category="cloud"] { background-color: var(--cat-cloud-bg); }
+.node-category-header[data-category="database"] { background-color: var(--cat-database-bg); }
+.node-category-header[data-category="frontend"] { background-color: var(--cat-frontend-bg); }
+.node-category-header[data-category="networking"] { background-color: var(--cat-networking-bg); }
+.node-category-header[data-category="security"] { background-color: var(--cat-security-bg); }
+.node-category-header[data-category="observability"] { background-color: var(--cat-observability-bg); }
+.node-category-header[data-category="ai"] { background-color: var(--cat-ai-bg); }
+.node-category-header[data-category="devops"] { background-color: var(--cat-devops-bg); }
+.node-category-header[data-category="flow"] { background-color: var(--cat-flow-bg); }
+.node-category-header[data-category="shape"] { background-color: var(--cat-shape-bg); }
+.node-category-header[data-category="c4"],
+.node-category-header[data-category^="c4-"] { background-color: var(--cat-c4-bg); }
+
+.node-category-icon {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.node-category-icon[data-category="microservice"] { background-color: var(--cat-microservice-pill); border-color: var(--cat-microservice-border); color: var(--cat-microservice-color); }
+.node-category-icon[data-category="cloud"] { background-color: var(--cat-cloud-pill); border-color: var(--cat-cloud-border); color: var(--cat-cloud-color); }
+.node-category-icon[data-category="database"] { background-color: var(--cat-database-pill); border-color: var(--cat-database-border); color: var(--cat-database-color); }
+.node-category-icon[data-category="frontend"] { background-color: var(--cat-frontend-pill); border-color: var(--cat-frontend-border); color: var(--cat-frontend-color); }
+.node-category-icon[data-category="networking"] { background-color: var(--cat-networking-pill); border-color: var(--cat-networking-border); color: var(--cat-networking-color); }
+.node-category-icon[data-category="security"] { background-color: var(--cat-security-pill); border-color: var(--cat-security-border); color: var(--cat-security-color); }
+.node-category-icon[data-category="observability"] { background-color: var(--cat-observability-pill); border-color: var(--cat-observability-border); color: var(--cat-observability-color); }
+.node-category-icon[data-category="ai"] { background-color: var(--cat-ai-pill); border-color: var(--cat-ai-border); color: var(--cat-ai-color); }
+.node-category-icon[data-category="devops"] { background-color: var(--cat-devops-pill); border-color: var(--cat-devops-border); color: var(--cat-devops-color); }
+.node-category-icon[data-category="flow"] { background-color: var(--cat-flow-pill); border-color: var(--cat-flow-border); color: var(--cat-flow-color); }
+.node-category-icon[data-category="shape"] { background-color: var(--cat-shape-pill); border-color: var(--cat-shape-border); color: var(--cat-shape-color); }
+.node-category-icon[data-category="c4"],
+.node-category-icon[data-category^="c4-"] { background-color: var(--cat-c4-pill); border-color: var(--cat-c4-border); color: var(--cat-c4-color); }
 
 /* Architecture Node Styling */
 .flowise-node-card {
-  @apply relative bg-card text-foreground rounded-md border border-border shadow-none overflow-hidden select-none transition-colors duration-150 hover:border-border-strong min-w-[200px] max-w-[250px];
+  @apply relative bg-card text-foreground rounded-lg border border-border shadow-none overflow-hidden select-none transition-colors duration-150 hover:border-border-strong min-w-[200px] max-w-[250px];
 }
 
 .flowise-header-strip {
-  @apply flex items-center justify-between px-2.5 py-1.5 border-b border-border/60 transition-colors duration-150;
+  @apply flex items-center justify-between px-3 py-2 border-b border-border-subtle transition-colors duration-150;
 }
 
 .flowise-header-title {
-  @apply font-sans font-medium text-foreground text-xs leading-tight truncate;
+  @apply font-sans font-medium text-foreground text-small leading-tight truncate;
 }
 
 .flowise-header-badge {
-  @apply inline-flex items-center gap-1 font-mono text-[9px] font-medium tracking-wider uppercase px-1.5 py-0.5 rounded border border-border/60;
+  @apply inline-flex items-center gap-1 font-mono text-caption font-medium tracking-wider uppercase px-1.5 py-0.5 rounded-sm border border-border-subtle;
 }
 
 .flowise-card-body {
-  @apply p-2.5 space-y-1.5 bg-card;
+  @apply p-3 space-y-2 bg-card;
 }
 
 .flowise-property-row {
-  @apply flex items-center justify-between text-xs text-muted-foreground;
+  @apply flex items-center justify-between text-small text-muted-foreground;
 }
 
 .flowise-property-label {
-  @apply font-sans font-normal text-muted-foreground text-[11px] flex items-center gap-1;
+  @apply font-sans font-normal text-muted-foreground text-caption flex items-center gap-1;
 }
 
 .flowise-property-value {
-  @apply font-mono font-medium text-foreground text-[11px] truncate max-w-[120px];
+  @apply font-mono font-medium text-foreground text-caption truncate max-w-[120px];
 }
 
 /* Toast Customization */
 [data-sonner-toast] {
-  @apply rounded-md p-3 font-sans shadow-md border border-border text-xs;
+  @apply rounded-xl p-3 font-sans border border-border text-body;
+  box-shadow: var(--elevation-2);
 }
 
 [data-sonner-toast] [data-title] {
-  @apply font-semibold text-xs text-foreground;
+  @apply font-medium text-body text-foreground;
 }
 
 [data-sonner-toast] [data-description] {
-  @apply text-[11px] text-muted-foreground mt-0.5;
+  @apply text-small text-muted-foreground mt-1;
 }
 
 /* Custom Clean Scrollbar */
@@ -418,7 +567,7 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply rounded bg-border-strong/40;
+    @apply rounded-full bg-border-strong/40;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-border-strong/70;
@@ -445,20 +594,20 @@ g.react-flow__edge {
 }
 
 .react-flow__edge-path {
-  stroke: var(--edge-stroke, #a3a3a3);
+  stroke: var(--edge-stroke);
   stroke-width: 1.5px;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
   transition:
-    stroke 0.2s ease,
-    stroke-width 0.2s ease,
-    opacity 0.2s ease;
+    stroke 150ms ease,
+    stroke-width 150ms ease,
+    opacity 150ms ease;
 }
 
 .react-flow__edge.selected .react-flow__edge-path,
 .react-flow__edge-path.edge-glow {
-  stroke: var(--edge-stroke-selected, #171717);
+  stroke: var(--edge-stroke-selected);
   stroke-width: 2px;
 }
 
@@ -497,8 +646,8 @@ g.react-flow__edge {
   border-radius: 50% !important;
   border-width: 1px !important;
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
 .react-flow__handle:hover {

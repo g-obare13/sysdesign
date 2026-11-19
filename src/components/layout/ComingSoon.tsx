@@ -39,7 +39,7 @@ export default function ComingSoon({
           </div>
         </div>
 
-        <h1 className="text-xl font-semibold text-foreground tracking-tight mb-2">
+        <h1 className="text-xl font-medium text-foreground tracking-tight mb-2">
           {title}
         </h1>
         <p className="max-w-md mx-auto text-xs text-muted-foreground mb-8 leading-relaxed">
@@ -47,7 +47,7 @@ export default function ComingSoon({
         </p>
 
         <div className="pt-4 border-t border-border/40 w-full max-w-xs">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          <span className="text-caption font-mono uppercase tracking-widest text-muted-foreground">
             Feature in development
           </span>
         </div>

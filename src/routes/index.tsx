@@ -11,6 +11,7 @@ import { createProjectFromScratchpad } from '@/store/canvas.store'
 import {  useProjectStore } from '@/store/project.store'
 import type {ProjectType} from '@/store/project.store';
 import ProjectSetupPopup from '@/components/dashboard/ProjectSetupPopup'
+import WorkspaceSkeleton from '@/components/layout/WorkspaceSkeleton'
 import { Button } from "@/components/ui/button";
 import { IconSparkles } from "@tabler/icons-react";
 
@@ -65,14 +66,7 @@ function HomePage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-medium text-muted-foreground">Initializing workspace…</p>
-        </div>
-      </div>
-    );
+    return <WorkspaceSkeleton />;
   }
 
   return (
@@ -80,17 +74,16 @@ function HomePage() {
       <Sidebar />
 
       <main className="flex-1 relative overflow-hidden z-10">
-        {/* Scratchpad banner — shown until the first project is saved */}
+        {/* Scratchpad banner: shown until the first project is saved */}
         {!hasProjects && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50">
-            <div className="flex items-center gap-2.5 nordic-glass rounded-xl px-3.5 py-1.5 animate-in slide-in-from-top-1 fade-in duration-200">
+            <div className="flex items-center gap-2.5 nordic-panel rounded-xl px-3.5 py-1.5 animate-in slide-in-from-top-1 fade-in duration-200">
               <IconSparkles size={13} className="text-primary shrink-0" />
-              <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap">
+              <span className="text-caption font-mono text-muted-foreground whitespace-nowrap">
                 Scratchpad mode
               </span>
               <Button
-                size="xs"
-                variant="default"
+                size="sm"
                 onClick={() => setModalOpen(true)}
               >
                 Save as Project

@@ -23,7 +23,6 @@ const config = defineConfig({
       "@xyflow/react",
       "@tanstack/react-store",
       "@tanstack/store",
-      "@tabler/icons-react",
     ],
   },
   build: {

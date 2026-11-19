@@ -9,6 +9,7 @@ import DiagramCanvas from "@/components/canvas/DiagramCanvas";
 import CanvasErrorBoundary from "@/components/canvas/CanvasErrorBoundary";
 import { setActiveProject, useProjectStore } from "@/store/project.store";
 import { setDiagramMode } from "@/store/canvas.store";
+import WorkspaceSkeleton from "@/components/layout/WorkspaceSkeleton";
 import Container from "@/components/ui/container";
 import { IconFolderPlus } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/$slug/c4")({
 function C4Page() {
   const { slug } = Route.useParams();
   const projects = useProjectStore((s) => s.projects);
+  const loading = useProjectStore((s) => s.loading);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const navigate = useNavigate();
 
@@ -39,17 +41,20 @@ function C4Page() {
     }
   }, [project, activeProjectId]);
 
+  if (loading && !project) {
+    return <WorkspaceSkeleton />;
+  }
+
   if (!project) {
     return (
       <Container>
         <div className="flex flex-col gap-2.5 h-screen items-center justify-center bg-background p-4 text-center">
-          <h1 className="text-lg font-semibold text-foreground">Project not found</h1>
+          <h1 className="text-lg font-medium text-foreground">Project not found</h1>
           <p className="text-xs text-muted-foreground mb-2">The requested project does not exist or has been removed.</p>
 
           <Button
             icon={IconFolderPlus}
             iconPlacement="left"
-            variant="default"
             size="sm"
             onClick={() => navigate({ to: "/projects" })}
           >

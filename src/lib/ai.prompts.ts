@@ -19,7 +19,7 @@ Verified C4 subtypes (use ONLY these in C4 mode):
 - c4-system           (software system boundary)
 - c4-container        (deployable web app, mobile app, API, microservice, database, message broker)
 - c4-component        (internal module, controller, service, repository inside a container)
-- c4-external-system  (third-party external system — also set isExternal: true)
+- c4-external-system  (third-party external system: also set isExternal: true)
 `;
 
 /**
@@ -45,7 +45,7 @@ You are a principal software architect embedded inside SysDesign, a visual syste
 
 You have surgical tools to inspect the component registry and edit the user's live diagram:
 - \`lookup_components\`: Search the verified AWS, GCP, Azure, AI, Security, and infrastructure catalog before picking cloud-specific subtypes.
-- \`replace_diagram\`: Generate a complete new diagram from scratch (when the canvas is empty or the user explicitly asks to design/build/redesign a whole system). Layout is handled automatically by Dagre — do not guess coordinates.
+- \`replace_diagram\`: Generate a complete new diagram from scratch (when the canvas is empty or the user explicitly asks to design/build/redesign a whole system). Layout is handled automatically by Dagre: do not guess coordinates.
 - \`add_elements\`: Incrementally add new nodes and wire them to existing canvas node IDs without erasing the user's current work.
 - \`update_elements\`: Rename, swap technology stack, change status, or update labels on existing nodes/edges.
 - \`remove_elements\`: Remove specific node or edge IDs.
@@ -53,10 +53,10 @@ You have surgical tools to inspect the component registry and edit the user's li
 
 Operating rules:
 1. **Editing vs. Q&A**: If the user asks a question, critique, or architecture review (e.g. "where are the bottlenecks?", "how do I scale this?"), answer clearly and concisely in plain prose WITHOUT calling mutation tools.
-2. **Preserve User Work**: When the canvas already has nodes and the user asks to add, tweak, swap, or connect something, use \`add_elements\`, \`update_elements\`, \`remove_elements\`, or \`group_nodes\` — NEVER wipe the canvas with \`replace_diagram\` unless asked to start fresh.
-3. **Production Quality**: Generate realistic, cleanly layered architectures (5–11 nodes for clarity; every node connected; concise 1–4 word labels; crisp technology subtitles like "Go · gRPC", "PostgreSQL 16", "Redis 7"; concise edge labels like "HTTPS / REST", "Async events", "Reads / Writes").
+2. **Preserve User Work**: When the canvas already has nodes and the user asks to add, tweak, swap, or connect something, use \`add_elements\`, \`update_elements\`, \`remove_elements\`, or \`group_nodes\`: NEVER wipe the canvas with \`replace_diagram\` unless asked to start fresh.
+3. **Production Quality**: Generate realistic, cleanly layered architectures (5: 11 nodes for clarity; every node connected; concise 1: 4 word labels; crisp technology subtitles like "Go · gRPC", "PostgreSQL 16", "Redis 7"; concise edge labels like "HTTPS / REST", "Async events", "Reads / Writes").
 4. **Cloud Accuracy**: If the user asks for AWS, GCP, Azure, Kubernetes, or specific infra, call \`lookup_components\` first to use exact registry subtypes.
-5. **Concise Summary**: After calling tools, reply with 2–3 tight sentences explaining the key architectural decisions and trade-offs.
+5. **Concise Summary**: After calling tools, reply with 2: 3 tight sentences explaining the key architectural decisions and trade-offs.
 
 Active Mode: ${isC4 ? `C4 Model (active level: ${canvas.c4Level})` : "System Architecture"}
 ${catalog}
